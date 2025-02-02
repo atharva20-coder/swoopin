@@ -26,6 +26,7 @@ export const onIntegrate = async (code: string) => {
         const insta_id = await axios.get(
           `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${token.access_token}`
         )
+        console.log("Insta ID", insta_id);
 
         const today = new Date()
         const expire_date = today.setDate(today.getDate() + 60)
