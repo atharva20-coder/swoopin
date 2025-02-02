@@ -16,10 +16,10 @@ export const updateIntegration = async (
   })
 }
 
-export const getIntegration = async (email: string) => {
+export const getIntegration = async (clerkId: string) => {
   return await client.user.findUnique({
     where: {
-      email,
+      clerkId,
     },
     select: {
       integrations: {
@@ -32,14 +32,14 @@ export const getIntegration = async (email: string) => {
 }
 
 export const createIntegration = async (
-  email: string,
+  clerkId: string,
   token: string,
   expire: Date,
   igId?: string
 ) => {
   return await client.user.update({
     where: {
-      email,
+      clerkId,
     },
     data: {
       integrations: {
