@@ -16,7 +16,7 @@ export const onIntegrate = async (code: string) => {
   const user = await onCurrentUser()
 
   try {
-    const integration = await getIntegration(user.id)
+    const integration = await getIntegration(user.emailAddresses[0].emailAddress)
 
     if (integration && integration.integrations.length === 0) {
       const token = await generateTokens(code)
@@ -30,7 +30,7 @@ export const onIntegrate = async (code: string) => {
         const today = new Date()
         const expire_date = today.setDate(today.getDate() + 60)
         const create = await createIntegration(
-          user.id,
+          user.emailAddresses[0].emailAddress,
           token.access_token,
           new Date(expire_date),
           insta_id.data.user_id
