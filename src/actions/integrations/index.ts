@@ -18,14 +18,19 @@ export const onIntegrate = async (code: string) => {
   try {
     const integration = await getIntegration(user.emailAddresses[0].emailAddress)
 
+    console.log('User:', user)
+    console.log('Integration:', integration)
+
     if (integration && integration.integrations.length === 0) {
       const token = await generateTokens(code)
-      console.log(token)
+      console.log('Token:', token)
 
       if (token) {
         const insta_id = await axios.get(
           `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${token.access_token}`
         )
+
+        console.log('Instagram ID:', insta_id.data)
 
         const today = new Date()
         const expire_date = today.setDate(today.getDate() + 60)
@@ -35,6 +40,8 @@ export const onIntegrate = async (code: string) => {
           new Date(expire_date),
           insta_id.data.user_id
         )
+
+        console.log('Created Integration:', create)
         return { status: 200, data: create }
       }
       console.log('🔴 401')
