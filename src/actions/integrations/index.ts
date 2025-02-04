@@ -6,84 +6,91 @@ import { createIntegration, getIntegration } from './queries'
 import { generateTokens } from '@/lib/fetch'
 import axios from 'axios'
 
-// Temporary debug function
-const showDebugInfo = (token: string, userId: string) => {
-  if (typeof window !== 'undefined') {
-    const debugDiv = document.createElement('div')
-    debugDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #333;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      z-index: 9999;
-      max-width: 400px;
-      word-break: break-all;
-    `
-    debugDiv.innerHTML = `
-      <h3>Integration Debug Info</h3>
-      <p>Token: ${token.slice(0, 15)}...</p>
-      <p>User ID: ${userId}</p>
-      <button onclick="this.parentElement.remove()" style="margin-top: 10px; padding: 5px 10px; background: #666; border: none; color: white; border-radius: 4px;">Close</button>
-    `
-    document.body.appendChild(debugDiv)
+// Function to handle OAuth redirection for Instagram
+export const onOAuthInstagram = (strategy: 'INSTAGRAM' | 'CRM') => {
+  if (strategy === 'INSTAGRAM') {
+    return redirect(process.env.INSTAGRAM_EMBEDDED_OAUTH_URL as string)
   }
 }
 
+// Function to handle integration with Instagram
 export const onIntegrate = async (code: string) => {
   const user = await onCurrentUser()
 
   try {
     try {
+      console.log('Starting token generation with code:', code)
       const token = await generateTokens(code)
-      console.log('Debug - Token:', token)
+      console.log('Token response:', {
+        success: !!token,
+        hasAccessToken: !!token?.access_token,
+      })
       
       if (!token || !token.access_token) {
-        console.log('🔴 Failed to generate token')
-        return { status: 401, error: 'Failed to generate token' }
+        return { 
+          status: 401, 
+          error: 'Failed to generate token',
+          details: 'No token or access_token received'
+        }
       }
 
+      console.log('Fetching Instagram user data...')
       const instaResponse = await axios.get(
         `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id,username&access_token=${token.access_token}`
       )
-      console.log('Debug - Instagram Response:', instaResponse.data)
+      console.log('Instagram API response:', {
+        success: !!instaResponse.data,
+        userId: instaResponse.data?.user_id,
+      })
 
       if (!instaResponse.data?.user_id) {
-        console.log('🔴 Failed to fetch Instagram user ID')
-        return { status: 401, error: 'Failed to fetch Instagram user ID' }
+        return { 
+          status: 401, 
+          error: 'Failed to fetch Instagram user ID',
+          details: 'No user_id in response'
+        }
       }
-
-      // Show debug info
-      showDebugInfo(token.access_token, instaResponse.data.user_id)
 
       const expire_date = new Date()
       expire_date.setDate(expire_date.getDate() + 60)
 
+      console.log('Creating integration...')
       const create = await createIntegration(
         user.id,
         token.access_token,
         expire_date,
         instaResponse.data.user_id
       )
+      console.log('Integration created successfully')
 
-      return { status: 200, data: create }
-    } catch (tokenError) {
-      console.log('🔴 Token generation or Instagram API error:', tokenError)
-      return { status: 401, error: 'Authentication failed' }
+      return { 
+        status: 200, 
+        data: create,
+        details: {
+          token: token.access_token.slice(0, 15) + '...',
+          userId: instaResponse.data.user_id
+        }
+      }
+    } catch (tokenError: any) {
+      console.error('Integration error:', {
+        message: tokenError.message,
+        response: tokenError.response?.data,
+      })
+      return { 
+        status: 401, 
+        error: 'Authentication failed',
+        details: tokenError.message
+      }
     }
-  } catch (error) {
-    console.log('🔴 500', error)
-    return { status: 500, error: 'Internal server error' }
-  }
-}
-
-// Function to handle OAuth redirection for Instagram
-export const onOAuthInstagram = (strategy: 'INSTAGRAM' | 'CRM') => {
-  if (strategy === 'INSTAGRAM') {
-    // Add force_reauthorize parameter to ensure fresh authentication
-    const authUrl = `${process.env.INSTAGRAM_EMBEDDED_OAUTH_URL}&force_reauthorize=true`
-    return redirect(authUrl)
+  } catch (error: any) {
+    console.error('Server error:', {
+      message: error.message,
+      type: error.constructor.name
+    })
+    return { 
+      status: 500, 
+      error: 'Internal server error',
+      details: error.message
+    }
   }
 }
