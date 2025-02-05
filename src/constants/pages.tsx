@@ -4,50 +4,53 @@ import {
   HomeDuoToneBlue,
   RocketDuoToneBlue,
   SettingsDuoToneWhite,
-} from '@/icons'
+} from "@/icons";
+import { BellBlue } from "@/icons/bell";
 
 export const PAGE_BREAD_CRUMBS: string[] = [
-  'contacts',
-  'automations',
-  'integrations',
-  'settings',
-]
+  "contacts",
+  "automations",
+  "integrations",
+  "settings",
+  "notifications",
+];
 
 type Props = {
-  [page in string]: React.ReactNode
-}
+  [page in string]: React.ReactNode;
+};
 
 export const PAGE_ICON: Props = {
+  NOTIFICATIONS: <BellBlue />,
   AUTOMATIONS: <AutomationDuoToneBlue />,
   CONTACTS: <ContactsDuoToneBlue />,
   INTEGRATIONS: <RocketDuoToneBlue />,
   SETTINGS: <SettingsDuoToneWhite />,
   HOME: <HomeDuoToneBlue />,
-}
+};
 
 export const PLANS = [
   {
-    name: 'Free Plan',
-    description: 'Perfect for getting started',
-    price: '$0',
+    name: "Free Plan",
+    description: "Perfect for getting started",
+    price: "$0",
     features: [
-      'Boost engagement with target responses',
-      'Automate comment replies to enhance audience interaction',
-      'Turn followers into customers with targeted messaging',
+      "Boost engagement with target responses",
+      "Automate comment replies to enhance audience interaction",
+      "Turn followers into customers with targeted messaging",
     ],
-    cta: 'Get Started',
+    cta: "Get Started",
   },
   {
-    name: 'Smart AI Plan',
-    description: 'Advanced features for power users',
-    price: '$99',
+    name: "Smart AI Plan",
+    description: "Advanced features for power users",
+    price: "$99",
     features: [
-      'All features from Free Plan',
-      'AI-powered response generation',
-      'Advanced analytics and insights',
-      'Priority customer support',
-      'Custom branding options',
+      "All features from Free Plan",
+      "AI-powered response generation",
+      "Advanced analytics and insights",
+      "Priority customer support",
+      "Custom branding options",
     ],
-    cta: 'Upgrade Now',
+    cta: "Upgrade Now",
   },
-]
+];

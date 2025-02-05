@@ -64,7 +64,7 @@ const InfoBar = ({ slug }: Props) => {
           </span>
           <Search slug={slug} />
           <CreateAutomation />
-          <Notifications />
+          <Notifications slug={slug} />
         </div>
         <MainBreadCrumb page={page === slug ? "Home" : page} slug={slug} />
       </div>

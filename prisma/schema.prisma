@@ -17,14 +17,14 @@ model User {
   id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   clerkId      String         @unique
   email        String         @unique
-  firstname    String?
-  lastname     String?
+  firstname    String?        
+  lastname     String?        
   createdAt    DateTime       @default(now())
   subscription Subscription?
   integrations Integrations[]
   automations  Automation[]
+  notification Notification[]
 }
-
 
 model Subscription {
   id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -107,6 +107,16 @@ model Keyword {
 
   @@unique([automationId, word]) //this constraints ensure user cant use the same keyword on multiple automations
 }
+
+model Notification {
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  User    User?   @relation(fields: [userId], references: [id])
+  userId  String? @db.Uuid
+  isSeen Boolean @default(false)
+  content String
+  createdAt DateTime @default(now())
+}
+
 
 enum SUBSCRIPTION_PLAN {
   PRO

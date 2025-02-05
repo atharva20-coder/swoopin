@@ -8,6 +8,18 @@ export const findUser = async (clerkId: string) => {
       clerkId,
     },
     include: {
+      notification: {
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+          isSeen: true,
+        },
+        where: {
+          isSeen: false,
+        },
+      },
       subscription: true,
       integrations: {
         select: {

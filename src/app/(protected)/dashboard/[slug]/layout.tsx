@@ -5,14 +5,15 @@ import {
 } from "@tanstack/react-query";
 import InfoBar from "@/components/global/infobar";
 import Sidebar from "@/components/global/sidebar";
-import React from "react";
+import React, { ReactNode } from "react";
 import {
   PrefetchUserAutomations,
+  PrefetchUserNotifications,
   PrefetchUserProfile,
 } from "@/react-query/prefetch";
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   params: { slug: string };
 };
 
@@ -22,6 +23,8 @@ const Layout = async ({ children, params }: Props) => {
   await PrefetchUserProfile(query);
 
   await PrefetchUserAutomations(query);
+
+  await PrefetchUserNotifications(query);
 
   return (
     <HydrationBoundary state={dehydrate(query)}>

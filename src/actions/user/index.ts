@@ -10,6 +10,7 @@ import { stripe } from "@/lib/stripe";
 
 export const onCurrentUser = async () => {
   const user = await currentUser();
+
   if (!user) return redirect("/sign-in");
 
   return user;
