@@ -1,22 +1,17 @@
-import { onBoardUser } from '@/actions/user'
-import { redirect } from 'next/navigation'
-import React from 'react'
+import { onBoardUser } from "@/actions/user";
+import Loader from "@/components/global/loader";
+import { redirect } from "next/navigation";
+import React from "react";
 
-type Props = {}
+type Props = {};
 
 const Page = async (props: Props) => {
+  const user = await onBoardUser();
+  if (user.status === 200 || user.status === 201) {
+    return redirect(`dashboard/${user.data?.firstname}${user.data?.lastname}`);
+  }
 
-    //Server Action For Onboardin New User
-    const user = await onBoardUser()
-    if(user.status === 200 || user.status === 201){
-      return redirect(`dashboard/${user.data?.firstname}${user.data?.lastname}`)
-    }
-    
-    //Already User 200 || 201
+  return redirect("/sign-in");
+};
 
-  return (
-    redirect('/sign-in')
-  )
-}
-
-export default Page
+export default Page;

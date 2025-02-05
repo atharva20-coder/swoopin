@@ -1,6 +1,6 @@
-'use server'
+"use server";
 
-import { client } from '@/lib/prisma'
+import { client } from "@/lib/prisma";
 
 export const findUser = async (clerkId: string) => {
   return await client.user.findUnique({
@@ -18,8 +18,8 @@ export const findUser = async (clerkId: string) => {
         },
       },
     },
-  })
-}
+  });
+};
 
 export const createUser = async (
   clerkId: string,
@@ -41,12 +41,12 @@ export const createUser = async (
       firstname: true,
       lastname: true,
     },
-  })
-}
+  });
+};
 
 export const updateSubscription = async (
   clerkId: string,
-  props: { customerId?: string; plan?: 'PRO' | 'FREE' }
+  props: { customerId?: string; plan?: "PRO" | "FREE" }
 ) => {
   return await client.user.update({
     where: {
@@ -61,5 +61,5 @@ export const updateSubscription = async (
         },
       },
     },
-  })
-}
+  });
+};

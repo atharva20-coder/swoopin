@@ -1,26 +1,23 @@
-import { InstagramDuoToneBlue, SalesForceDuoToneBlue } from "@/icons"
+import { InstagramDuoToneBlue, SalesForceDuoToneBlue } from "@/icons";
 
 type Props = {
-  title: string
-  icon: React.ReactNode
-  description: string
-  strategy: 'INSTAGRAM' | 'CRM'
-}
+  title: string;
+  icon: React.ReactNode;
+  description: string;
+  strategy: "INSTAGRAM" | "CRM";
+};
 
 export const INTEGRATION_CARDS: Props[] = [
   {
-    title: 'Instagram',
-    description:
-      'Lorem ipsum dolor sit amet consectetur. Mauris scelerisque tincidunt ultrices',
+    title: "Connect Instagram",
+    description: "Integrate your account to an instagram user",
     icon: <InstagramDuoToneBlue />,
-    strategy: 'INSTAGRAM',
-    
+    strategy: "INSTAGRAM",
   },
   {
-    title: 'Salesforce',
-    description:
-      'Lorem ipsum dolor sit amet consectetur. Mauris scelerisque tincidunt ultrices',
+    title: "Connect Salesforce",
+    description: "Integrate your account to a Connect Salesforce user",
     icon: <SalesForceDuoToneBlue />,
-    strategy: 'CRM',
+    strategy: "CRM",
   },
-]
+];

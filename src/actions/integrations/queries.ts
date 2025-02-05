@@ -1,6 +1,6 @@
-'use server'
+"use server";
 
-import { client } from '@/lib/prisma'
+import { client } from "@/lib/prisma";
 
 export const updateIntegration = async (
   token: string,
@@ -13,8 +13,8 @@ export const updateIntegration = async (
       token,
       expiresAt: expire,
     },
-  })
-}
+  });
+};
 
 export const getIntegration = async (clerkId: string) => {
   return await client.user.findUnique({
@@ -24,12 +24,12 @@ export const getIntegration = async (clerkId: string) => {
     select: {
       integrations: {
         where: {
-          name: 'INSTAGRAM',
+          name: "INSTAGRAM",
         },
       },
     },
-  })
-}
+  });
+};
 
 export const createIntegration = async (
   clerkId: string,
@@ -54,5 +54,5 @@ export const createIntegration = async (
       firstname: true,
       lastname: true,
     },
-  })
-}
+  });
+};

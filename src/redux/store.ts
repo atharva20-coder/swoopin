@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import AutmationReducer from '@/redux/slices/automation'
-import { TypedUseSelectorHook, useSelector } from 'react-redux'
-import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import AutomationReducer from "@/redux/slices/automation";
+import { TypedUseSelectorHook, useSelector } from "react-redux";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 
 const rootReducer = combineReducers({
-  AutmationReducer,
-})
+  AutomationReducer,
+});
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -14,9 +14,9 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
     }),
-})
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

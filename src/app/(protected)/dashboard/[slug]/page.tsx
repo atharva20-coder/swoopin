@@ -1,22 +1,18 @@
-import DoubleGradientCard from '@/components/global/double-gradient-card'
-import { DASHBOARD_CARDS } from '@/constants/dashboard'
-import { BarDuoToneBlue } from '@/icons'
-import React from 'react'
-import Chart from './_components/metrics'
-import MetricsCard from './_components/metrics/metrics-card'
+import DoubleGradientCard from "@/components/global/double-gradient-card";
+import { DASHBOARD_CARDS } from "@/constants/dashboard";
+import { BarDuoToneBlue } from "@/icons";
+import React from "react";
+import Chart from "./_components/metrics";
+import MetricsCard from "./_components/metrics/metrics-card";
 
-type Props = {}
+type Props = {};
 
 const Page = (props: Props) => {
-
   return (
     <div className="flex flex-col gap-y-10">
       <div className="flex gap-5 lg:flex-row flex-col">
         {DASHBOARD_CARDS.map((card) => (
-          <DoubleGradientCard
-            key={card.id}
-            {...card}
-          />
+          <DoubleGradientCard key={card.id} {...card} />
         ))}
       </div>
       <div className="border-[1px] relative border-in-active/50 p-5 rounded-xl">
@@ -41,7 +37,7 @@ const Page = (props: Props) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

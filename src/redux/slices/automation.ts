@@ -1,14 +1,14 @@
-import { duplicateValidation } from '@/lib/utils'
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { duplicateValidation } from "@/lib/utils";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type IntialStateTriggerProps = {
   trigger?: {
-    type?: 'COMMENT' | 'DM'
-    keyword?: string
-    types?: string[]
-    keywords?: string[]
-  }
-}
+    type?: "COMMENT" | "DM";
+    keyword?: string;
+    types?: string[];
+    keywords?: string[];
+  };
+};
 
 const InitialState: IntialStateTriggerProps = {
   trigger: {
@@ -17,21 +17,21 @@ const InitialState: IntialStateTriggerProps = {
     types: [],
     keywords: [],
   },
-}
+};
 
 export const AUTOMATION = createSlice({
-  name: 'automation',
+  name: "automation",
   initialState: InitialState,
   reducers: {
     TRIGGER: (state, action: PayloadAction<IntialStateTriggerProps>) => {
       state.trigger!.types = duplicateValidation(
         state.trigger?.types!,
         action.payload.trigger?.type!
-      )
-      return state
+      );
+      return state;
     },
   },
-})
+});
 
-export const { TRIGGER } = AUTOMATION.actions
-export default AUTOMATION.reducer
+export const { TRIGGER } = AUTOMATION.actions;
+export default AUTOMATION.reducer;
