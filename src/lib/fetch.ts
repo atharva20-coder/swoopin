@@ -105,6 +105,7 @@ export const generateTokens = async (code: string) => {
     }
 
     const token = await shortTokenRes.json();
+    console.log("Short-term token generated:", token);
 
     if (!token || !token.access_token) {
       throw new Error("Invalid token response");
@@ -125,6 +126,7 @@ export const generateTokens = async (code: string) => {
         },
       }
     );
+    console.log("Long-term token generated:", longTokenResponse.data);
 
     return longTokenResponse.data;
   } catch (error) {
