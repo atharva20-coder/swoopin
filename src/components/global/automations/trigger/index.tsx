@@ -1,36 +1,35 @@
-'use client'
-import { useQueryAutomation } from '@/hooks/user-queries'
-import React from 'react'
-import ActiveTrigger from './active'
-import { Separator } from '@/components/ui/separator'
-import ThenAction from '../then/then-action'
-import TriggerButton from '../trigger-button'
-import { AUTOMATION_TRIGGERS } from '@/constants/automation'
-import { useTriggers } from '@/hooks/use-automations'
-import { cn } from '@/lib/utils'
-import Keywords from './keywords'
-import { Button } from '@/components/ui/button'
-import Loader from '../../loader'
+"use client";
+import { useQueryAutomation } from "@/hooks/user-queries";
+import React from "react";
+import ActiveTrigger from "./active";
+import { Separator } from "@/components/ui/separator";
+import ThenAction from "../then/then-action";
+import TriggerButton from "../trigger-button";
+import { AUTOMATION_TRIGGERS } from "@/constants/automation";
+import { useTriggers } from "@/hooks/use-automations";
+import { cn } from "@/lib/utils";
+import Keywords from "./keywords";
+import { Button } from "@/components/ui/button";
+import Loader from "../../loader";
 
 type Props = {
-  id: string
-}
+  id: string;
+};
 
 const Trigger = ({ id }: Props) => {
-  const { types, onSetTrigger, onSaveTrigger, isPending } = useTriggers(id)
-  const { data } = useQueryAutomation(id)
-
+  const { types, onSetTrigger, onSaveTrigger, isPending } = useTriggers(id);
+  const { data } = useQueryAutomation(id);
   if (data?.data && data?.data?.trigger.length > 0) {
     return (
       <div className="flex flex-col gap-y-6 items-center">
         <ActiveTrigger
-          type={data.data.trigger[0].type}
-          keywords={data.data.keywords}
+          type={data.data.trigger[0].type as "DM" | "COMMENT" | "KEYWORDS"}
+          automationId={id}
         />
 
         {data?.data?.trigger.length > 1 && (
           <>
-            <div className="relative w-6/12 mt-4">
+            <div className="relative w-6/12 my-4">
               <p className="absolute transform  px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2">
                 or
               </p>
@@ -40,15 +39,28 @@ const Trigger = ({ id }: Props) => {
               />
             </div>
             <ActiveTrigger
-              type={data.data.trigger[1].type}
-              keywords={data.data.keywords}
+              type={data.data.trigger[1].type as "DM" | "COMMENT" | "KEYWORDS"}
+              automationId={id}
             />
           </>
         )}
-
+        <div className="relative w-6/12 my-4">
+          <p className="absolute transform  px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2">
+            with key words
+          </p>
+          <Separator
+            orientation="horizontal"
+            className="border-muted border-[1px]"
+          />
+        </div>
+        <ActiveTrigger
+          type={"KEYWORDS"}
+          keywords={data.data.keywords}
+          automationId={id}
+        />
         {!data.data.listener && <ThenAction id={id} />}
       </div>
-    )
+    );
   }
   return (
     <TriggerButton label="Add Trigger">
@@ -58,10 +70,10 @@ const Trigger = ({ id }: Props) => {
             key={trigger.id}
             onClick={() => onSetTrigger(trigger.type)}
             className={cn(
-              'hover:opacity-80 text-white rounded-xl flex cursor-pointer flex-col p-3 gap-y-2',
+              "hover:opacity-80 text-white rounded-xl flex cursor-pointer flex-col p-3 gap-y-2",
               !types?.find((t) => t === trigger.type)
-                ? 'bg-background-80'
-                : 'bg-gradient-to-br from-[#3352CC] font-medium to-[#1C2D70]'
+                ? "bg-background-80"
+                : "bg-gradient-to-br from-[#3352CC] font-medium to-[#1C2D70]"
             )}
           >
             <div className="flex gap-x-2 items-center">
@@ -81,7 +93,7 @@ const Trigger = ({ id }: Props) => {
         </Button>
       </div>
     </TriggerButton>
-  )
-}
+  );
+};
 
-export default Trigger
+export default Trigger;

@@ -1,38 +1,36 @@
-'use client'
-import { usePaths } from '@/hooks/user-nav'
-import { cn, getMonth } from '@/lib/utils'
-import Link from 'next/link'
-import React, { useMemo } from 'react'
-import GradientButton from '../gradient-button'
-import { Button } from '@/components/ui/button'
-import { useQueryAutomations } from '@/hooks/user-queries'
-import CreateAutomation from '../create-automation'
-import { useMutationDataState } from '@/hooks/use-mutation-data'
+"use client";
+import { usePaths } from "@/hooks/use-nav";
+import { cn, getMonth } from "@/lib/utils";
+import Link from "next/link";
+import React, { useMemo } from "react";
+import GradientButton from "../gradient-button";
+import { Button } from "@/components/ui/button";
+import { useQueryAutomations } from "@/hooks/user-queries";
+import CreateAutomation from "../create-automation";
+import { useMutationDataState } from "@/hooks/use-mutation-data";
 
-type Props = {}
+type Props = {};
 
 const AutomationList = (props: Props) => {
-  const { data } = useQueryAutomations()
+  const { data } = useQueryAutomations();
 
-  const { latestVariable } = useMutationDataState(['create-automation'])
-  console.log(latestVariable)
-  const { pathname } = usePaths()
-  
+  const { latestVariable } = useMutationDataState(["create-automation"]);
+  const { pathname } = usePaths();
+
   const optimisticUiData = useMemo(() => {
-    if ((latestVariable && latestVariable?.variables &&  data)) {
-      const test = [latestVariable.variables, ...data.data]
-      return { data: test }
+    if (latestVariable && latestVariable?.variables && data) {
+      const test = [latestVariable.variables, ...data.data];
+      return { data: test };
     }
-    return data || { data: [] }
-  }, [latestVariable, data])
-
+    return data || { data: [] };
+  }, [latestVariable, data]);
   if (data?.status !== 200 || data.data.length <= 0) {
     return (
       <div className="h-[70vh] flex justify-center items-center flex-col gap-y-3">
         <h3 className="text-lg text-gray-400">No Automations </h3>
         <CreateAutomation />
       </div>
-    )
+    );
   }
 
   return (
@@ -57,15 +55,15 @@ const AutomationList = (props: Props) => {
                     <div
                       key={keyword.id}
                       className={cn(
-                        'rounded-full px-4 py-1 capitalize',
+                        "rounded-full px-4 py-1 capitalize",
                         (0 + 1) % 1 == 0 &&
-                          'bg-keyword-green/15 border-2 border-keyword-green',
+                          "bg-keyword-green/15 border-2 border-keyword-green",
                         (1 + 1) % 2 == 0 &&
-                          'bg-keyword-purple/15 border-2 border-keyword-purple',
+                          "bg-keyword-purple/15 border-2 border-keyword-purple",
                         (2 + 1) % 3 == 0 &&
-                          'bg-keyword-yellow/15 border-2 border-keyword-yellow',
+                          "bg-keyword-yellow/15 border-2 border-keyword-yellow",
                         (3 + 1) % 4 == 0 &&
-                          'bg-keyword-red/15 border-2 border-keyword-red'
+                          "bg-keyword-red/15 border-2 border-keyword-red"
                       )}
                     >
                       {keyword.word}
@@ -81,14 +79,14 @@ const AutomationList = (props: Props) => {
           </div>
           <div className="flex flex-col justify-between">
             <p className="capitalize text-sm font-light text-[#9B9CA0]">
-              {getMonth(automation.createdAt.getUTCMonth() + 1)}{' '}
+              {getMonth(automation.createdAt.getUTCMonth() + 1)}{" "}
               {automation.createdAt.getUTCDate() === 1
                 ? `${automation.createdAt.getUTCDate()}st`
-                : `${automation.createdAt.getUTCDate()}th`}{' '}
+                : `${automation.createdAt.getUTCDate()}th`}{" "}
               {automation.createdAt.getUTCFullYear()}
             </p>
 
-            {automation.listener?.listener === 'SMARTAI' ? (
+            {automation.listener?.listener === "SMARTAI" ? (
               <GradientButton
                 type="BUTTON"
                 className="w-full bg-background-80 text-white hover:bg-background-80"
@@ -104,7 +102,7 @@ const AutomationList = (props: Props) => {
         </Link>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default AutomationList
+export default AutomationList;

@@ -1,24 +1,19 @@
-'use client'
-import React from 'react'
-import PaymentCard from './payment-card'
-import { useQueryUser } from '@/hooks/user-queries'
+"use client";
+import React from "react";
+import PaymentCard from "./payment-card";
+import { useQueryUser } from "@/hooks/user-queries";
 
-type Props = {}
+type Props = {};
 
+/* TODO: implement downgrade, subscription manage and upgrade like in payment button */
 const Billing = (props: Props) => {
-  const { data } = useQueryUser()
+  const { data } = useQueryUser();
   return (
-    <div className="container flex flex-col w-full gap-5 lg:flex-row lg:w-10/12 xl:w-8/12">
-      <PaymentCard
-        current={data?.data?.subscription?.plan!}
-        label="FREE"
-      />
-      <PaymentCard
-        current={data?.data?.subscription?.plan!}
-        label="PRO"
-      />
+    <div className="flex lg:flex-row flex-col gap-5 w-full lg:w-10/12 xl:w-8/12 container">
+      <PaymentCard current={data?.data?.subscription?.plan!} label="PRO" />
+      <PaymentCard current={data?.data?.subscription?.plan!} label="FREE" />
     </div>
-  )
-}
+  );
+};
 
-export default Billing
+export default Billing;
