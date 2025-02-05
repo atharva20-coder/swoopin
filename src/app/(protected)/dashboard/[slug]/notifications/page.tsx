@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useNotifications } from "../../../../../hooks/use-notifications";
 import { Button } from "@/components/ui/button";
 import { Link2, ChevronDown, Loader, Trash2 } from "lucide-react";
 import {
