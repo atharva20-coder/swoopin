@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { useUserUnseenNotifications } from "@/hooks/use-notifications";
+import { useUserUnseenNotifications } from "../../../../hooks/use-notifications";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 
