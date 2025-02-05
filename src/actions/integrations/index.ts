@@ -23,7 +23,7 @@ export const onIntegrate = async (code: string) => {
 
       if (token) {
         const insta_id = await axios.get(
-          `${process.env.INSTAGRAM_BASE_URL}/me?fields=id&access_token=${token.access_token}`
+          `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${token.access_token}`
         );
 
         const today = new Date();
