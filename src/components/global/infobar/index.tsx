@@ -10,7 +10,7 @@ import ClerkAuthState from "../clerk-auth-state";
 import { HelpDuoToneWhite } from "@/icons";
 import { SubscriptionPlan } from "../subscription-plan";
 import UpgradeCard from "../sidebar/upgrade";
-import { LogoSmall } from "@/svgs/logo-small";
+import { LogoSmall } from "../../../app/svgs/logo-small";
 import CreateAutomation from "../create-automation";
 import Search from "./search";
 import { Notifications } from "./notifications";
