@@ -1,48 +1,55 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { onCurrentUser } from "../user";
-import { createIntegration, getIntegration } from "./queries";
 import { generateTokens } from "@/lib/fetch";
-import axios from "axios";
-
-export const onOAuthInstagram = (strategy: "INSTAGRAM" | "CRM") => {
-  if (strategy === "INSTAGRAM") {
-    return redirect(process.env.INSTAGRAM_EMBEDDED_OAUTH_URL as string);
-  }
-};
+import { client } from "@/lib/prisma";
 
 export const onIntegrate = async (code: string) => {
   const user = await onCurrentUser();
   try {
-    const integration = await getIntegration(user.id);
-
-    if (integration && integration.integrations.length === 0) {
-      const token = await generateTokens(code);
-      console.log(token);
-
-      if (token) {
-        const insta_id = await axios.get(
-          `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${token.access_token}`
-        );
-
-        const today = new Date();
-        const expire_date = today.setDate(today.getDate() + 60);
-        const create = await createIntegration(
-          user.id,
-          token.access_token,
-          new Date(expire_date),
-          insta_id.data.user_id
-        );
-        return { status: 200, data: create };
+    // Check for existing integration
+    const existingIntegration = await client.integrations.findFirst({
+      where: { 
+        userId: user.id,
+        name: "INSTAGRAM" 
       }
-      console.log("🔴 401");
-      return { status: 401 };
+    });
+
+    if (existingIntegration) {
+      return { status: 403, message: 'Integration already exists' };
     }
-    console.log("🔴 404");
-    return { status: 404 };
+
+    // Generate tokens
+    const { access_token, instagram_id } = await generateTokens(code);
+    
+    if (!access_token) {
+      return { status: 500, message: 'Token generation failed' };
+    }
+
+    // Create new integration
+    const integration = await client.integrations.create({
+      data: {
+        userId: user.id,
+        token: access_token,
+        instagramId: instagram_id,
+        expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 days
+      },
+      select: {
+        User: {
+          select: {
+            firstname: true,
+            lastname: true
+          }
+        }
+      }
+    });
+
+    return { 
+      status: 200, 
+      data: integration.User 
+    };
   } catch (error) {
-    console.log("🔴 500", error);
-    return { status: 500 };
+    console.error('Instagram Integration Error', error);
+    return { status: 500, message: 'Internal server error' };
   }
 };

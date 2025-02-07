@@ -1,141 +1,55 @@
 import axios from "axios";
 
-export const refreshToken = async (token: string) => {
-  const refresh_token = await axios.get(
-    `${process.env.INSTAGRAM_BASE_URL}/refresh_access_token?grant_type=ig_refresh_token&access_token=${token}`
-  );
-
-  return refresh_token.data;
-};
-
-export const sendDM = async (
-  userId: string,
-  recieverId: string,
-  prompt: string,
-  token: string
-) => {
-  console.log("sending message");
-  return await axios.post(
-    `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/messages`,
-    {
-      recipient: {
-        id: recieverId,
-      },
-      message: {
-        text: prompt,
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-};
-
-export const sendPrivateMessage = async (
-  userId: string,
-  recieverId: string,
-  prompt: string,
-  token: string
-) => {
-  console.log("sending message");
-  return await axios.post(
-    `${process.env.INSTAGRAM_BASE_URL}/${userId}/messages`,
-    {
-      recipient: {
-        comment_id: recieverId,
-      },
-      message: {
-        text: prompt,
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-};
-
 export const generateTokens = async (code: string) => {
+  const formData = new FormData();
+  formData.append("client_id", process.env.INSTAGRAM_CLIENT_ID!);
+  formData.append("client_secret", process.env.INSTAGRAM_CLIENT_SECRET!);
+  formData.append("grant_type", "authorization_code");
+  formData.append("redirect_uri", `${process.env.NEXT_PUBLIC_HOST_URL}/callback/instagram`);
+  formData.append("code", code);
+
   try {
-    // Validate input
-    if (!code) {
-      throw new Error("Authorization code is required");
-    }
-
-    // Validate environment variables
-    const requiredEnvVars = [
-      "INSTAGRAM_CLIENT_ID",
-      "INSTAGRAM_CLIENT_SECRET",
-      "NEXT_PUBLIC_HOST_URL",
-      "INSTAGRAM_TOKEN_URL",
-      "INSTAGRAM_BASE_URL",
-    ];
-
-    requiredEnvVars.forEach((varName) => {
-      if (!process.env[varName]) {
-        throw new Error(`Missing required environment variable: ${varName}`);
-      }
-    });
-
-    const insta_form = new FormData();
-    insta_form.append("client_id", process.env.INSTAGRAM_CLIENT_ID!);
-    insta_form.append("client_secret", process.env.INSTAGRAM_CLIENT_SECRET!);
-    insta_form.append("grant_type", "authorization_code");
-    insta_form.append(
-      "redirect_uri",
-      `${process.env.NEXT_PUBLIC_HOST_URL}/callback/instagram`
+    // Exchange code for short-lived token
+    const tokenResponse = await axios.post(
+      "https://api.instagram.com/oauth/access_token", 
+      formData
     );
-    insta_form.append("code", code);
 
-    const shortTokenRes = await fetch(process.env.INSTAGRAM_TOKEN_URL!, {
-      method: "POST",
-      body: insta_form,
-    });
-
-    if (!shortTokenRes.ok) {
-      const errorText = await shortTokenRes.text();
-      throw new Error(
-        `Token request failed: ${shortTokenRes.status} - ${errorText}`
-      );
-    }
-
-    const token = await shortTokenRes.json();
-    console.log("Short-term token generated:", token);
-
-    if (!token || !token.access_token) {
-      throw new Error("Invalid token response");
-    }
-
-    // Check permissions (if required)
-    if (!token.permissions || token.permissions.length === 0) {
-      throw new Error("Insufficient permissions");
-    }
-
+    // Exchange for long-lived token
     const longTokenResponse = await axios.get(
-      `${process.env.INSTAGRAM_BASE_URL}/access_token`,
+      "https://graph.instagram.com/access_token", 
       {
         params: {
           grant_type: "ig_exchange_token",
           client_secret: process.env.INSTAGRAM_CLIENT_SECRET,
-          access_token: token.access_token,
-        },
+          access_token: tokenResponse.data.access_token
+        }
       }
     );
-    console.log("Long-term token generated:", longTokenResponse.data);
 
-    return longTokenResponse.data;
+    // Fetch Instagram User ID
+    const userProfileResponse = await axios.get(
+      `https://graph.instagram.com/me?fields=id&access_token=${longTokenResponse.data.access_token}`
+    );
+
+    return {
+      access_token: longTokenResponse.data.access_token,
+      instagram_id: userProfileResponse.data.id
+    };
   } catch (error) {
-    console.error("Instagram Token Generation Error:", error);
+    console.error("Token Generation Error:", error);
+    throw error;
+  }
+};
 
-    if (error instanceof Error) {
-      throw error;
-    } else {
-      throw new Error("Unexpected error in token generation");
-    }
+export const refreshToken = async (token: string) => {
+  try {
+    const response = await axios.get(
+      `https://graph.instagram.com/access_token?grant_type=ig_refresh_token&access_token=${token}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Token Refresh Error:", error);
+    throw error;
   }
 };
