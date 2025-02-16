@@ -1,9 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Climate+Crisis&display=swap');
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 @layer base {
   :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -84,14 +87,17 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Climate Crisis', system-ui;
   }
 }
 
 .backdrop--blur__safari {
+  backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
 }
 
@@ -113,65 +119,11 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--scrollbar-width);
-  border: calc(var(--scrollbar-width) / 4) solid var(--page-background);
+  background-color: var(--scrollbar-thumb);
+  border-radius: 20px;
+  border: 3px solid var(--scrollbar-track);
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-.radial--gradient {
-  background-image: radial-gradient(
-    ellipse farthest-side,
-    rgba(51, 82, 204, 0.15) 20%,
-    #09090b 100%
-  );
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-}
-
-.radial--gradient--pink {
-  background-image: radial-gradient(
-    at center,
-    rgba(148, 52, 230, 0.1) 10%,
-    transparent 50%
-  );
-  background-size: 70% 80%;
-  background-repeat: no-repeat;
-}
-
-.radial--gradient--automations {
-  background-image: radial-gradient(
-    at top left,
-    rgba(51, 82, 204, 0.05) 40%,
-    #1d1d1d 60%
-  );
-  background-size: 40% 100%;
-  background-repeat: no-repeat;
-}
-
-.radial--double--gradient--cards--top {
-  background-image: radial-gradient(
-    at top left,
-    rgba(51, 82, 204, 0.3) 50%,
-    transparent 70%
-  );
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-}
-
-.radial--double--gradient--cards--bottom {
-  background-image: radial-gradient(
-    at bottom right,
-    rgba(51, 82, 204, 0.1) 50%,
-    transparent 70%
-  );
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-}
-
-.field-sizing-content {
-  field-sizing: content;
+  background-color: var(--scrollbar-thumb-hover);
 }

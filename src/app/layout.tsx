@@ -27,7 +27,7 @@ export default function RootLayout({
       className={jakarta.className}>
         <ThemeProvider 
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           disableTransitionOnChange>
             <ReduxProvider>
               <ReactQueryProvider>{children}</ReactQueryProvider>

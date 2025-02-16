@@ -1,4 +1,6 @@
-export const Links = () => {
+import { SVGProps } from 'react';
+
+export const Links = ({ className, ...props }: SVGProps<SVGSVGElement>) => {
     return (
         <svg
             width="24"
@@ -6,6 +8,8 @@ export const Links = () => {
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className={className}
+            {...props}
         >
             <path
                 fill-rule="evenodd"
