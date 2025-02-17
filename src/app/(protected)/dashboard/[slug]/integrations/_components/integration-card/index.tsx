@@ -26,7 +26,11 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
   const onInstaOAuth = async () => {
     const ok = await confirm();
     if (!ok) return;
-    onOAuthInstagram(strategy);
+    try {
+      await onOAuthInstagram(strategy);
+    } catch (error) {
+      console.error('OAuth Error:', error);
+    }
   };
 
   const { data } = useQuery({
