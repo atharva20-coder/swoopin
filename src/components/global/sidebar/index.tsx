@@ -39,12 +39,6 @@ const Sidebar = ({ slug }: Props) => {
       </nav>
 
       <div className="mt-auto space-y-4">
-        <div className="flex items-center gap-3 px-4 py-2 mb-2">
-          <div className="flex flex-col">
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">FREE</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">0/1000 contacts</p>
-          </div>
-        </div>
         <div className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer">
           <HelpDuoToneWhite />
           <span>Help</span>

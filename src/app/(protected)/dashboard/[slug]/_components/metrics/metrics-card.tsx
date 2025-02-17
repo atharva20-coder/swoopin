@@ -23,12 +23,12 @@ const MetricsCard = (props: Props) => {
         >
           {i === 1 ? (
             <div>
-              <h2 className="text-3xl text-white font-bold">Comments</h2>
+              <h2 className="text-3xl text-black font-bold">Comments</h2>
               <p className="text-sm text-text-secondary">On your posts</p>
             </div>
           ) : (
             <div className="flex flex-col">
-              <h2 className="text-3xl text-white font-bold">Direct Messages</h2>
+              <h2 className="text-3xl text-black font-bold">Direct Messages</h2>
               <p className="text-sm text-text-secondary">On your account</p>
             </div>
           )}

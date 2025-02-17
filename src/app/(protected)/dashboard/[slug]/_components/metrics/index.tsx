@@ -34,7 +34,7 @@ const chartConfig = {
 
 const Chart = (props: Props) => {
   return (
-    <Card className="border-none p-0">
+    <Card className="border-none p-0 border-opacity-50 mr-4 rounded-sm">
       <CardContent className="p-0">
         <ResponsiveContainer
           height={300}
