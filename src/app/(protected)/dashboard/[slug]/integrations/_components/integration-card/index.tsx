@@ -27,7 +27,11 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
     const ok = await confirm();
     if (!ok) return;
     try {
-      await onOAuthInstagram(strategy);
+      if (strategy === 'INSTAGRAM') {
+        await onOAuthInstagram('INSTAGRAM');
+      } else {
+        console.error('Strategy not implemented:', strategy);
+      }
     } catch (error) {
       console.error('OAuth Error:', error);
     }
