@@ -7,7 +7,7 @@ import { generateTokens } from '@/lib/fetch'
 import axios from 'axios'
 
 // Function to handle OAuth redirection for Instagram
-export const onOAuthInstagram = (strategy: 'INSTAGRAM' | 'CRM') => {
+export const onOAuthInstagram = (strategy: 'INSTAGRAM' | 'CRM' | 'MESSENGER' | 'WHATSAPP' | 'THREADS' | 'NEWSLETTER') => {
   if (strategy === 'INSTAGRAM') {
     return redirect(process.env.INSTAGRAM_EMBEDDED_OAUTH_URL as string)
   }
