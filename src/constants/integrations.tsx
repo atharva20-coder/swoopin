@@ -4,7 +4,7 @@ type Props = {
   title: string;
   icon: React.ReactNode;
   description: string;
-  strategy: "INSTAGRAM" | "CRM" | "MESSENGER" | "NEWSLETTER" | "THREADS";
+  strategy: "INSTAGRAM" | "CRM";
   buttonText: string;
   onConnect: () => Promise<void>;
 };
@@ -25,7 +25,7 @@ export const INTEGRATION_CARDS: Props[] = [
     title: "Connect Messenger",
     description: "Connect with Facebook Messenger to engage with customers",
     icon: <Image src="/icons/messenger.svg" alt="Messenger" width={40} height={40} />,
-    strategy: "MESSENGER",
+    strategy: "CRM",
     buttonText: "Connect Messenger",
     onConnect: async () => {
       // TODO: Implement Messenger connection logic
@@ -36,7 +36,7 @@ export const INTEGRATION_CARDS: Props[] = [
     title: "Connect Threads",
     description: "Expand your reach through Threads integration",
     icon: <Image src="/icons/threads.svg" alt="Threads" width={40} height={40} />,
-    strategy: "THREADS",
+    strategy: "CRM",
     buttonText: "Connect Threads",
     onConnect: async () => {
       // TODO: Implement Threads connection logic
@@ -47,7 +47,7 @@ export const INTEGRATION_CARDS: Props[] = [
     title: "Connect Newsletter",
     description: "Engage your audience through email newsletters",
     icon: <Image src="/icons/email.png" alt="Newsletter" width={40} height={40} />,
-    strategy: "NEWSLETTER",
+    strategy: "CRM",
     buttonText: "Connect Newsletter",
     onConnect: async () => {
       // TODO: Implement Newsletter connection logic

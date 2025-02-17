@@ -4,16 +4,29 @@ import { onUserInfo } from "@/actions/user";
 import { Button } from "@/components/ui/button";
 import useConfirm from "@/hooks/use-confirm";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import React, { useState } from "react";
+import dynamic from "next/dynamic";
+
+const ReactConfetti = dynamic(() => import("react-confetti"), {
+  ssr: false,
+  loading: () => null
+});
 
 type Props = {
   title: string;
   description: string;
   icon: React.ReactNode;
-  strategy: "INSTAGRAM" | "CRM" | "MESSENGER" | "WHATSAPP" | "THREADS" | "NEWSLETTER";
+  strategy: "INSTAGRAM" | "CRM";
 };
 
 const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: onUserInfo,
+  });
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+
   const capitalize = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
@@ -23,10 +36,12 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
       strategy
     )} accounts to avoid unfortunate consequences`
   );
+
   const onInstaOAuth = async () => {
     const ok = await confirm();
     if (!ok) return;
     try {
+      setIsConnecting(true);
       if (strategy === 'INSTAGRAM') {
         await onOAuthInstagram('INSTAGRAM');
       } else {
@@ -34,15 +49,36 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
       }
     } catch (error) {
       console.error('OAuth Error:', error);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
-  const { data } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: onUserInfo,
-  });
+  // Show confetti when integration status changes to connected
+  React.useEffect(() => {
+    const integrated = userData?.data?.integrations.find(
+      (integration) => integration.name === strategy
+    );
+    if (integrated?.name === strategy) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000); // Hide confetti after 5 seconds
+    }
+  }, [userData?.data?.integrations, strategy]);
 
-  const integrated = data?.data?.integrations.find(
+  if (isLoading) {
+    return (
+      <div className="rounded-lg p-6 bg-white shadow-sm flex items-center gap-6 relative overflow-hidden border-2 border-black animate-pulse">
+        <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+        <div className="flex flex-col flex-1 space-y-3">
+          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        <div className="w-[160px] h-10 bg-gray-200 rounded-lg"></div>
+      </div>
+    );
+  }
+
+  const integrated = userData?.data?.integrations.find(
     (integration) => integration.name === strategy
   );
 
@@ -64,20 +100,29 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
   return (
     <>
       <ConfirmDialog />
-      <div className={`rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-200 flex items-center gap-6 ${getBackgroundColor(strategy)}`}>
-        <div className="w-16 h-16 flex items-center justify-center">
+      {showConfetti && (
+        <ReactConfetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.3}
+        />
+      )}
+      <div className="rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-6 relative overflow-hidden border-2 border-black">
+        <div className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
           {icon}
         </div>
         <div className="flex flex-col flex-1">
           <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-          <p className="text-gray-500 text-sm mt-1">{description}</p>
+          <p className="text-gray-500 text-base mt-2">{description}</p>
         </div>
         <Button
           onClick={onInstaOAuth}
-          disabled={integrated?.name === strategy}
-          className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
+          disabled={integrated?.name === strategy || isConnecting}
+          className="bg-black text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
         >
-          {integrated ? "Connected" : "Connect"}
+          {isConnecting ? "Connecting..." : integrated ? "Connected" : `Connect`}
         </Button>
       </div>
     </>

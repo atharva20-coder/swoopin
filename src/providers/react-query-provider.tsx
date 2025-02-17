@@ -1,14 +1,24 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import { useState } from "react";
 
-type Props = { children: React.ReactNode };
+export default function ReactQueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            gcTime: 1000 * 60 * 60 * 24, // 24 hours
+            staleTime: 1000 * 60 * 60 * 24, // 24 hours
+          },
+        },
+      })
+  );
 
-const client = new QueryClient();
-
-const ReactQueryProvider = ({ children }: Props) => {
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-};
-
-export default ReactQueryProvider;
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
