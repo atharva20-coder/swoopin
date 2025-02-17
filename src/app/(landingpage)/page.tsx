@@ -7,16 +7,25 @@ import { ChatInterface } from "@/components/ui/chat-interface";
 import { Climate_Crisis } from "next/font/google";
 import { Bebas_Neue } from "next/font/google";
 import { Brands } from "@/components/ui/brands";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 const climateCrisis = Climate_Crisis({ subsets: ["latin"], weight: ["400"] });
 const bebasNeue = Bebas_Neue({ subsets: ["latin"], weight: ["400"] });
 
 export default function LandingPage() {
+  const heroRef = useScrollReveal();
+  const trustedRef = useScrollReveal();
+  const featuresRef = useScrollReveal();
+  const leadGenRef = useScrollReveal();
+  const statsRef = useScrollReveal();
+  const testimonialRef = useScrollReveal();
+  const getStartedRef = useScrollReveal();
+
   return (
     <main className="min-h-screen bg-background">
       <LandingNav />
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden mt-[72px]">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden mt-[72px] opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <h1 className={`${climateCrisis.className} text-6xl md:text-8xl font-normal mb-8 text-black tracking-tight leading-tight`}>
             Unleash the power of social media marketing
@@ -36,7 +45,7 @@ export default function LandingPage() {
       </section>
 
       {/* Trusted By Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <section ref={trustedRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-2xl font-semibold mb-8">Trusted by 1M+ Businesses</h2>
           <Brands />
@@ -44,10 +53,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <section ref={featuresRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-8 bg-gradient-to-b from-pink-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
+            <div className="p-8 bg-gradient-to-b from-pink-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/instagram.svg" alt="Instagram" width={24} height={24} className="w-6 h-6" />
               </div>
@@ -62,7 +71,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-green-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative">
+            <div className="p-8 bg-gradient-to-b from-green-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={24} height={24} className="w-6 h-6" />
@@ -78,7 +87,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-blue-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative">
+            <div className="p-8 bg-gradient-to-b from-blue-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/messenger.svg" alt="Messenger" width={24} height={24} className="w-6 h-6" />
@@ -94,7 +103,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-purple-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative">
+            <div className="p-8 bg-gradient-to-b from-purple-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/threads.svg" alt="Instagram Threads" width={24} height={24} className="w-6 h-6" />
@@ -114,7 +123,7 @@ export default function LandingPage() {
       </section>
 
       {/* Lead Generation Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+      <section ref={leadGenRef} className="py-20 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
           Use Chat Marketing to drive more sales on autopilot
@@ -122,12 +131,12 @@ export default function LandingPage() {
         </div>
         <div className="max-w-7xl mx-auto space-y-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
+            <div ref={useScrollReveal()} className="relative opacity-0 translate-y-4 transition-all duration-700">
               <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
                 <source src="/images/feature_generate-qualified-leads.webm" type="video/webm" />
               </video>
             </div>
-            <div>
+            <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Supercharge your lead generation
               </h2>
@@ -139,12 +148,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="lg:order-2">
+            <div ref={useScrollReveal()} className="lg:order-2 opacity-0 translate-y-4 transition-all duration-700">
               <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
                 <source src="/images/feature_increase-roi.webm" type="video/webm" />
               </video>
             </div>
-            <div className="lg:order-1">
+            <div ref={useScrollReveal()} className="lg:order-1 opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Increase conversion rates by up to 90%
               </h2>
@@ -156,12 +165,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
+            <div ref={useScrollReveal()} className="relative opacity-0 translate-y-4 transition-all duration-700">
               <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
                 <source src="/images/features_story-mentions-trigger.webm" type="video/webm" />
               </video>
             </div>
-            <div>
+            <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Automatically respond to every message
               </h2>
@@ -173,12 +182,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="lg:order-2">
+          <div ref={useScrollReveal()} className="lg:order-2 opacity-0 translate-y-4 transition-all duration-700">
               <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
                 <source src="/images/feature_deliver-instant-support.webm" type="video/webm" />
               </video>
             </div>
-            <div className="lg:order-1">
+            <div ref={useScrollReveal()} className="lg:order-1 opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Claim back your time & slash costs
               </h2>
@@ -190,12 +199,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
+          <div ref={useScrollReveal()} className="relative opacity-0 translate-y-4 transition-all duration-700">
               <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
                 <source src="/images/feature_manychat-ai.webm" type="video/webm" />
               </video>
             </div>
-            <div>
+            <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
                 Smart AI: A Smarter Way to Chat
               </h2>
@@ -209,7 +218,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <section ref={statsRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
             Discover why 1M+ brands trust Auctorn
@@ -236,7 +245,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <section ref={testimonialRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto">
           <div className="relative bg-white p-8 md:p-12 shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
             <div className="relative z-10">
@@ -273,7 +282,7 @@ export default function LandingPage() {
       </section>
 
       {/* Get Started Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section ref={getStartedRef} className="py-20 px-4 sm:px-6 lg:px-8 bg-white opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
             Get started with Auctorn

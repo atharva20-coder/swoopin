@@ -10,7 +10,7 @@ type Props = {
 
 const DoubleGradientCard = ({ description, label, subLabel }: Props) => {
   return (
-    <div className="relative border-[1px] border-in-active/50 p-5 rounded-xl flex flex-col gap-y-20 overflow-hidden">
+    <div className="relative border-[1px] border-in-active/50 p-5 rounded-xl flex flex-col gap-y-20 overflow-hidden snap-center min-w-[85%] md:min-w-full">
       <div className="flex flex-col z-40">
         <h2 className="text-2xl font-medium">{label}</h2>
         <p className="text-text-secondary text-sm">{subLabel}</p>
