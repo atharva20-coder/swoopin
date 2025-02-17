@@ -7,6 +7,7 @@ type Props = {
   strategy: "INSTAGRAM" | "CRM";
   buttonText: string;
   onConnect: () => Promise<void>;
+  comingSoon?: boolean;
 };
 
 export const INTEGRATION_CARDS: Props[] = [
@@ -31,6 +32,7 @@ export const INTEGRATION_CARDS: Props[] = [
       // TODO: Implement Messenger connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
+    comingSoon: true,
   },
   {
     title: "Connect Threads",
@@ -42,6 +44,7 @@ export const INTEGRATION_CARDS: Props[] = [
       // TODO: Implement Threads connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
+    comingSoon: true,
   },
   {
     title: "Connect Newsletter",
@@ -53,5 +56,6 @@ export const INTEGRATION_CARDS: Props[] = [
       // TODO: Implement Newsletter connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
+    comingSoon: true,
   },
 ];

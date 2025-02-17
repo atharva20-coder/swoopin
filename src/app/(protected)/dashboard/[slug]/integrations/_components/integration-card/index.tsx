@@ -17,9 +17,11 @@ type Props = {
   description: string;
   icon: React.ReactNode;
   strategy: "INSTAGRAM" | "CRM";
+  comingSoon?: boolean;
+  buttonText?: string;
 };
 
-const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
+const IntegrationCard = ({ description, icon, strategy, title, comingSoon, buttonText = "Connect" }: Props) => {
   const { data: userData, isLoading } = useQuery({
     queryKey: ["user-profile"],
     queryFn: onUserInfo,
@@ -54,12 +56,16 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
     }
   };
 
-  // Show confetti when integration status changes to connected
+  // Show confetti only on first successful integration
   React.useEffect(() => {
     const integrated = userData?.data?.integrations.find(
       (integration) => integration.name === strategy
     );
-    if (integrated?.name === strategy) {
+    const storageKey = `integration_${strategy}_connected`;
+    const hasShownConfetti = localStorage.getItem(storageKey);
+    
+    if (integrated?.name === strategy && !hasShownConfetti) {
+      localStorage.setItem(storageKey, 'true');
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000); // Hide confetti after 5 seconds
     }
@@ -109,7 +115,12 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
           gravity={0.3}
         />
       )}
-      <div className="rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 flex items-center gap-6 relative overflow-hidden border-2 border-black">
+      <div className="rounded-lg p-6 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex items-center gap-6 relative overflow-hidden border-2 border-black">
+        {comingSoon && (
+          <div className={`absolute top-2 right-2 ${getBackgroundColor(strategy)} text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded shine-effect`}>
+            Coming Soon
+          </div>
+        )}        
         <div className="w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
           {icon}
         </div>
@@ -119,12 +130,27 @@ const IntegrationCard = ({ description, icon, strategy, title }: Props) => {
         </div>
         <Button
           onClick={onInstaOAuth}
-          disabled={integrated?.name === strategy || isConnecting}
+          disabled={integrated?.name === strategy || isConnecting || comingSoon}
           className="bg-black text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
         >
-          {isConnecting ? "Connecting..." : integrated ? "Connected" : `Connect`}
+          {isConnecting ? "Connecting..." : integrated ? "Connected" : buttonText}
         </Button>
       </div>
+      <style jsx>{`
+        @keyframes shine {
+          0% {
+            background-position: -100% 50%;
+          }
+          100% {
+            background-position: 200% 50%;
+          }
+        }
+        .shine-effect {
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+          background-size: 200% 100%;
+          animation: shine 3s infinite;
+        }
+      `}</style>
     </>
   );
 };

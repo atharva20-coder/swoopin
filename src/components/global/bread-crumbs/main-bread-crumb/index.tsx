@@ -18,7 +18,7 @@ const MainBreadCrumb = ({ page, slug }: Props) => {
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
           <HomeDuoToneBlue />
-          <h1 className="text-[32px] font-medium">{page}</h1>
+          <h1 className="text-[32px] font-medium">{page.charAt(0).toUpperCase() + page.slice(1)}</h1>
         </div>
       </div>
       <Separator className="w-full my-6" />
