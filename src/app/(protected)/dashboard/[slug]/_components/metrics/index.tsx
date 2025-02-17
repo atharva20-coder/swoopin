@@ -14,15 +14,17 @@ import {
   XAxis,
 } from 'recharts'
 
-type Props = {}
+type Props = {
+  hasActivity?: boolean
+}
 
 const chartData = [
-  { month: 'January', desktop: 86 },
-  { month: 'February', desktop: 50 },
-  { month: 'March', desktop: 37 },
-  { month: 'April', desktop: 73 },
-  { month: 'May', desktop: 29 },
-  { month: 'June', desktop: 14 },
+  { month: 'January', comments: 86, dms: 90 },
+  { month: 'February', comments: 50, dms: 45 },
+  { month: 'March', comments: 37, dms: 42 },
+  { month: 'April', comments: 73, dms: 68 },
+  { month: 'May', comments: 29, dms: 35 },
+  { month: 'June', comments: 14, dms: 20 },
 ]
 
 const chartConfig = {
@@ -32,7 +34,19 @@ const chartConfig = {
   },
 }
 
-const Chart = (props: Props) => {
+const Chart = ({ hasActivity = false }: Props) => {
+  if (!hasActivity) {
+    return (
+      <Card className="border-none p-0 border-opacity-50 mr-4 rounded-sm">
+        <CardContent className="p-6 flex items-center justify-center min-h-[300px]">
+          <p className="text-lg text-gray-500 text-center">
+            We&apos;re currently gathering your activity!
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="border-none p-0 border-opacity-50 mr-4 rounded-sm">
       <CardContent className="p-0">

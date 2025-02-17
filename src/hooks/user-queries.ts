@@ -6,10 +6,11 @@ import {
 import { onUserInfo } from "@/actions/user";
 import { useQuery } from "@tanstack/react-query";
 
-export const useQueryAutomations = () => {
+export const useQueryAutomations = (config?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: ["user-automations"],
     queryFn: getAllAutomations,
+    ...config
   });
 };
 

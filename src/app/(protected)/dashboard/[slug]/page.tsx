@@ -19,24 +19,26 @@ const Page = (props: Props) => {
           <DoubleGradientCard key={card.id} {...card} />
         ))}
       </div>
-      <div className="border-[1px] relative border-in-active/50 p-5 rounded-xl">
-        <span className="flex gap-x-1 z-50 items-center">
-          <BarDuoToneBlue />
-          <div className="z-50">
-            <h2 className="text-2xl font-medium text-black">
-              Automated Activity
-            </h2>
-            <p className="text-text-secondary/70 text-sm">
-              Automated 0 out of 1 interactions
-            </p>
-          </div>
-        </span>
-        <div className="w-full flex lg:flex-row flex-col gap-5">
-          <div className="lg:w-6/12">
-            <Chart />
-          </div>
-          <div className="lg:w-6/12">
+      <div className="border-[1px] relative border-gray-200 p-5 rounded-md w-full">
+        <div className="flex justify-between items-start w-full">
+          <span className="flex gap-x-1 items-center">
+            <BarDuoToneBlue />
+            <div>
+              <h2 className="text-2xl font-medium text-black">
+                Automated Activity
+              </h2>
+              <p className="text-text-secondary/70 text-sm">
+                Automated 0 out of 1 interactions
+              </p>
+            </div>
+          </span>
+          <div className="lg:w-5/12">
             <MetricsCard />
+          </div>
+        </div>
+        <div className="w-full mt-5">
+          <div className="w-full">
+            <Chart />
           </div>
         </div>
       </div>
