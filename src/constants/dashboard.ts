@@ -4,26 +4,24 @@ type Props = {
   id: string
   label: string
   subLabel: string
-  description: string
+  isPopular?: boolean
 }
 
 export const DASHBOARD_CARDS: Props[] = [
   {
     id: v4(),
-    label: 'Set-up Auto Replies',
-    subLabel: 'Deliver a product lineup through Instagram DM',
-    description: 'Get products in front of your followers in as many places',
+    label: '<strong>Auto-DM links from comments</strong>',
+    subLabel: 'Send a link when people comment on a post or reel',
+    isPopular: true
   },
   {
     id: v4(),
-    label: 'Answer Questions with AI',
-    subLabel: 'Identify and respond to queries with AI',
-    description: 'The intention of the message will be automatically detected',
+    label: '<strong>Generate leads with stories</strong>',
+    subLabel: 'Use limited-time offers in your Stories to convert leads'
   },
   {
     id: v4(),
-    label: 'Answer Questions with AI',
-    subLabel: 'Identify and respond to queries with AI',
-    description: 'The intention of the message will be automatically detected',
+    label: '<strong>Automate conversations with AI</strong>',
+    subLabel: 'Get AI to collect your follower\'s info, share details or tell it how to reply'
   },
 ]

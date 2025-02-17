@@ -7,7 +7,7 @@ import Sheet from "../sheet";
 import Items from "../sidebar/items";
 import { Separator } from "@/components/ui/separator";
 import ClerkAuthState from "../clerk-auth-state";
-import { HelpDuoToneWhite } from "@/icons";
+import { HelpDuoToneWhite } from "@/icons/help-duotone-white";
 import { SubscriptionPlan } from "../subscription-plan";
 import UpgradeCard from "../sidebar/upgrade";
 import { LogoSmall } from "../../../app/svgs/logo-small";
@@ -28,8 +28,8 @@ const InfoBar = ({ slug }: Props) => {
   return (
     currentPage && (
       <div className="flex flex-col">
-        <div className="flex gap-x-3 lg:gap-x-5 justify-end">
-          <span className="lg:hidden flex items-center flex-1 gap-x-2">
+        <div className="flex gap-x-3 lg:gap-x-5 justify-between items-center">
+          <span className="lg:hidden flex items-center gap-x-2">
             <Sheet trigger={<Menu />} className="lg:hidden" side="left">
               <div className="flex flex-col gap-y-5 w-full h-full p-3 bg-[#0e0e0e] bg-opacity-90 bg-clip-padding backdrop-filter backdrop--blur__safari backdrop-blur-3xl">
                 <div className="flex gap-x-2 items-center p-5 justify-center">
@@ -62,9 +62,6 @@ const InfoBar = ({ slug }: Props) => {
               </div>
             </Sheet>
           </span>
-          <Search slug={slug} />
-          <CreateAutomation />
-          <Notifications slug={slug} />
         </div>
         <MainBreadCrumb page={page === slug ? "Home" : page} slug={slug} />
       </div>

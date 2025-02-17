@@ -1,5 +1,8 @@
 import { PAGE_ICON } from "@/constants/pages";
 import React from "react";
+import { Separator } from "@/components/ui/separator";
+import { HomeDuoToneBlue } from "@/icons/home-duotone-blue";
+import { useUser } from "@clerk/nextjs";
 
 type Props = {
   page: string;
@@ -7,22 +10,25 @@ type Props = {
 };
 
 const MainBreadCrumb = ({ page, slug }: Props) => {
+  const { user } = useUser();
+  const firstName = user?.firstName || "user";
+
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-start w-full">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-2">
+          <HomeDuoToneBlue />
+          <h1 className="text-[32px] font-medium">{page}</h1>
+        </div>
+      </div>
+      <Separator className="w-full my-6" />
       {page === "Home" && (
-        <div className="flex justify-center w-full">
-          <div className="radial--gradient lg:w-4/12 w-full py-5 lg:py-10 flex flex-col items-center">
-            <p className="text-text-secondary text-lg">Welcome back</p>
-            <h2 className="capitalize text-4xl font-medium">
-              {decodeURIComponent(slug ? slug : "user").replace(/[-_]/g, " ")}!
-            </h2>
-          </div>
+        <div className="flex flex-col gap-2 my-16">
+          <h2 style={{ fontFamily: "'Sigmar', serif" }} className="text-[48px] font-normal">
+            Hello, {firstName}!
+          </h2>
         </div>
       )}
-      <span className="radial--gradient inline-flex py-5 lg:py-10 pr-16 gap-x-2 items-center">
-        {PAGE_ICON[page.toUpperCase()]}
-        <h2 className="font-semibold text-3xl capitalize">{page}</h2>
-      </span>
     </div>
   );
 };

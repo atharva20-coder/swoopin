@@ -1,4 +1,6 @@
-export const Bell = ({ ...props }) => {
+import { SVGProps } from "react";
+
+export const Bell = (props: SVGProps<SVGSVGElement>) => {
     return (
       <svg
         width="24"
@@ -16,7 +18,7 @@ export const Bell = ({ ...props }) => {
       </svg>
     );
   };
-  export const BellBlue = ({ ...props }) => {
+  export const BellBlue = (props: SVGProps<SVGSVGElement>) => {
     return (
       <svg
         width="24"

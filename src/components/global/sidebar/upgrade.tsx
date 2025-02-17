@@ -1,30 +1,32 @@
 import React from "react";
 import PaymentButton from "../payment-button";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {};
 
-const UpgradeCard = (props: Props) => {
+export default function UpgradeCard(props: Props) {
   return (
-    <div className="bg-[#252525] p-3 rounded-2xl flex flex-col gap-y-3">
-      <span className="text-sm">
+    <>
+      <Separator className="my-4 opacity-80 bg-gray-300" />
+      <div className="bg-[#F6F7F9] p-4 rounded-xl flex flex-col gap-y-4 shadow-sm">
+      <span className="text-[#111827] text-sm font-medium">
         Upgrade to {""}
         <span
           className="bg-gradient-to-r 
-        from-[#CC3BD4] 
-        to-[#D064AC] 
-        font-bold 
+        from-[#06984F] 
+        to-[#06984F] 
+        font-semibold 
         bg-clip-text 
         text-transparent"
         >
           Smart AI
         </span>
       </span>
-      <p className="text-[#9B9CA0] font-light text-sm">
+      <p className="text-[#4B5563] text-sm">
         Unlock all features <br /> including AI and more
       </p>
       <PaymentButton />
     </div>
+    </>
   );
-};
-
-export default UpgradeCard;
+}
