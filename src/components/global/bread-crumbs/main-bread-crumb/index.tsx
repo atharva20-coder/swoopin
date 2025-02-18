@@ -17,7 +17,9 @@ const MainBreadCrumb = ({ page, slug }: Props) => {
     <div className="flex flex-col items-start w-full">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-2">
-          <HomeDuoToneBlue />
+          <div className="w-8 h-8 flex items-center justify-center">
+            {PAGE_ICON[page.toUpperCase()] || <HomeDuoToneBlue />}
+          </div>
           <h1 className="text-[32px] font-medium">{page.charAt(0).toUpperCase() + page.slice(1)}</h1>
         </div>
       </div>

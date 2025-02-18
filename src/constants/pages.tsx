@@ -34,6 +34,7 @@ export const PLANS = [
     description: "Perfect for getting started",
     price: "$0",
     features: [
+      "Free 200 DM's and Comments",
       "Boost engagement with target responses",
       "Automate comment replies to enhance audience interaction",
       "Turn followers into customers with targeted messaging",
@@ -45,7 +46,7 @@ export const PLANS = [
     description: "Advanced features for power users",
     price: "$99",
     features: [
-      "All features from Free Plan",
+      "Unlimited DM's and Comments",
       "AI-powered response generation",
       "Advanced analytics and insights",
       "Priority customer support",
