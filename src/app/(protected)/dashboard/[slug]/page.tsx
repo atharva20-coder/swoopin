@@ -21,18 +21,20 @@ const Page = (props: Props) => {
       </div>
       <div className="border-[1px] relative border-gray-200 p-5 rounded-md w-full">
         <div className="flex justify-between items-start w-full">
-          <span className="flex gap-x-1 items-center">
-            <BarDuoToneBlue />
+          <span className="flex gap-x-3 items-center">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <BarDuoToneBlue className="w-full h-full" />
+            </div>
             <div>
-              <h2 className="text-2xl font-medium text-black">
-                Automated Activity
+              <h2 className="text-2xl font-bold text-black">
+                <strong>Automated Activity</strong>
               </h2>
-              <p className="text-text-secondary/70 text-sm">
+              <p className="text-text-secondary/70 text-base">
                 Automated 0 out of 1 interactions
               </p>
             </div>
           </span>
-          <div className="lg:w-5/12">
+          <div className="lg:w-4/12 lg:-ml-20">
             <MetricsCard />
           </div>
         </div>
