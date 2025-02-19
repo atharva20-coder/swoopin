@@ -2,9 +2,11 @@
 import React from "react";
 import PaymentCard from "./payment-card";
 import { useQueryUser } from "@/hooks/user-queries";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +24,55 @@ type Props = {};
 const Billing = (props: Props) => {
   const { data } = useQueryUser();
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
   const [deleteConfirmation, setDeleteConfirmation] = React.useState("");
-  const isDeleteConfirmed = deleteConfirmation === "Delete my Account";
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const isDeleteConfirmed = deleteConfirmation === "Delete My Account";
+
+  /** New feature: Handle account deletion with email verification and cleanup */
+  const handleDeleteAccount = async () => {
+    if (!user?.emailAddresses?.[0]?.emailAddress) {
+      toast.error("Unable to verify user email");
+      return;
+    }
+  
+    try {
+      setIsDeleting(true);
+      
+      // First delete user from database
+      const response = await fetch("/api/user/delete", {
+        method: "DELETE",        
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.emailAddresses[0].emailAddress,
+        }),
+      });
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete account");
+      }
+      
+      // Then sign out the user after successful database deletion
+      await signOut();
+      
+      // Redirect to landing page after successful deletion
+      router.push("/");
+      
+      // Show success toast with checkmark
+      toast.success("Account successfully deleted", {
+        icon: "✓"
+      });
+    } catch (error) {
+      console.error("Delete account error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete account. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -58,23 +107,31 @@ const Billing = (props: Props) => {
                   <AlertDialogTitle className="text-2xl font-bold text-gray-900">Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription className="text-gray-600 text-sm leading-relaxed">
                     This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-                    Please type &quot;Delete my Account&quot; to confirm.
+                    Please type &quot;Delete My Account&quot; to confirm.
                   </AlertDialogDescription>
                   <input
                     type="text"
                     value={deleteConfirmation}
                     onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    placeholder="Type 'Delete my Account'"
+                    placeholder="Type 'Delete My Account'"
                     className="w-full px-4 py-2 mt-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </AlertDialogHeader>
                 <AlertDialogFooter className="mt-6 flex gap-3">
                   <AlertDialogCancel className="flex-1 px-4 py-2 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">Cancel</AlertDialogCancel>
                   <AlertDialogAction 
-                    disabled={!isDeleteConfirmed}
+                    onClick={handleDeleteAccount}
+                    disabled={!isDeleteConfirmed || isDeleting}
                     className="flex-1 bg-transparent border border-red-600 text-red-600 hover:bg-red-50 px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                   >
-                    Continue
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Confirm"
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
