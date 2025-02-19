@@ -59,7 +59,7 @@ export default function LandingPage() {
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
             <div className="p-8 bg-gradient-to-b from-pink-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-6">
-                <Image src="/icons/instagram.svg" alt="Instagram" width={24} height={24} className="w-6 h-6" />
+                <Image src="/icons/Instagram.svg" alt="Instagram" width={24} height={24} className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-semibold mb-4">Instagram DMs</h3>
               <p className="text-sm text-muted-foreground mb-6 line-clamp-3">Answer every single question, comment, and story reply 24/7, to attract more leads, increase sales, and drive higher conversions on IG</p>
