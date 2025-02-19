@@ -125,8 +125,8 @@ const Search = ({ slug }: Props) => {
   }, [selectedIndex]);
 
   return (
-    <div className="relative flex-1 w-full max-w-2xl">
-      <div className="flex items-center gap-x-3 px-5 py-3 bg-[#18181B1A] rounded-full transition-all duration-200 hover:bg-[#18181B30]">
+    <div className="relative flex-1 w-full max-w-4xl">
+      <div className="flex items-center gap-x-3 px-5 py-3 bg-[#18181B1A] rounded-lg transition-all duration-200 hover:bg-[#18181B30]">
         <SearchIcon className="w-5 h-5 text-[#9B9CA0]" />
         <Input
           ref={inputRef}
@@ -142,7 +142,7 @@ const Search = ({ slug }: Props) => {
       {isOpen && (
         <ul
           ref={listRef}
-          className="absolute top-full left-0 right-0 mt-2 bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden shadow-xl max-h-[300px] overflow-y-auto z-10"
+          className="absolute top-full left-0 right-0 mt-2 bg-[#18181B0D] rounded-lg overflow-hidden shadow-xl max-h-[300px] overflow-y-auto z-10"
         >
           {isLoading ? (
             <li className="px-4 py-3 text-[#9B9CA0]">
@@ -152,7 +152,7 @@ const Search = ({ slug }: Props) => {
             filteredAutomations.map((automation, index) => (
               <li
                 key={automation.id}
-                className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${index === selectedIndex ? 'bg-[#27272A]' : 'hover:bg-[#27272A]'}`}
+                className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${index === selectedIndex ? 'bg-[#18181B30]' : 'hover:bg-[#18181B30]'}`}
                 onClick={() => handleSuggestionClick(automation.id)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
