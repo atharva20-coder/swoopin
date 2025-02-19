@@ -36,7 +36,7 @@ const ActivateAutomationButton = ({ id }: Props) => {
         disabled={isPending}
         checked={optimisticState}
         onCheckedChange={handleStateChange}
-        className="data-[state=checked]:hover:bg-green-600 data-[state=checked]:bg-green-500 data-[state=unchecked]:hover:bg-slate-500 data-[state=unchecked]:bg-slate-400 h-6 w-11 mx-4 [&>span]:data-[state=checked]:translate-x-6 [&>span]:bg-white transition-colors duration-200"
+        className="data-[state=checked]:hover:bg-green-600 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-slate-400 h-6 w-11 mx-4 [&>span]:data-[state=checked]:translate-x-6 [&>span]:bg-white transition-colors duration-200"
       />
       <span className="text-sm font-medium">
         {isPending ? (

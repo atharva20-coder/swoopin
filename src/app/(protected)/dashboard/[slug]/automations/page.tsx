@@ -7,7 +7,7 @@ type Props = {}
 
 const Page = (props: Props) => {
   return (
-    <div className="flex flex-col gap-y-8 w-full">
+    <div className="flex flex-col gap-y-8 w-full px-8">
       <div className="flex items-center justify-between w-full">
         <div className="flex flex-col gap-y-2">
           <Search slug="" />

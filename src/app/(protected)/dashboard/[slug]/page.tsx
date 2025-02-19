@@ -9,7 +9,7 @@ type Props = {};
 
 const Page = (props: Props) => {
   return (
-    <div className="flex flex-col gap-y-10">
+    <div className="flex flex-col gap-y-10 px-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-semibold text-black">Start Here</h1>
         <a href="#" className="text-blue-500 hover:underline">Explore all Templates</a>

@@ -207,7 +207,7 @@ export default function LandingPage() {
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
-                Smart AI: A Smarter Way to Chat
+                Auctorn AI: A Smarter Way to Chat
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Level up the experiences your followers already love with the new Auctorn AI. Create more engaging and personalized conversations.</p>
               <Link href="/dashboard" className="bg-[#4F46E5] text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-[#4338CA] transition-colors shadow-sm hover:shadow-md inline-block">
