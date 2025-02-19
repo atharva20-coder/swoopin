@@ -125,13 +125,13 @@ const Search = ({ slug }: Props) => {
   }, [selectedIndex]);
 
   return (
-    <div className="relative flex-1">
-      <div className="flex overflow-hidden gap-x-2 border border-gray-300 dark:border-gray-600 rounded-full px-4 py-2 items-center bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400 transition-shadow">
-        <SearchIcon className="text-gray-400 dark:text-gray-500" />
+    <div className="relative flex-1 w-full max-w-2xl">
+      <div className="flex items-center gap-x-3 px-5 py-3 bg-[#18181B1A] rounded-full transition-all duration-200 hover:bg-[#18181B30]">
+        <SearchIcon className="w-5 h-5 text-[#9B9CA0]" />
         <Input
           ref={inputRef}
           placeholder="Search automations by name..."
-          className="border-none outline-none ring-0 focus:ring-0 flex-1 bg-transparent placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100"
+          className="border-none bg-transparent text-base placeholder:text-[#9B9CA0] text-[#9B9CA0] focus-visible:ring-0 p-0 w-full"
           value={searchValue}
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
@@ -142,19 +142,17 @@ const Search = ({ slug }: Props) => {
       {isOpen && (
         <ul
           ref={listRef}
-          className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 z-10 max-h-[300px] overflow-y-auto shadow-lg"
+          className="absolute top-full left-0 right-0 mt-2 bg-[#18181B] border border-[#27272A] rounded-xl overflow-hidden shadow-xl max-h-[300px] overflow-y-auto z-10"
         >
           {isLoading ? (
-            <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
+            <li className="px-4 py-3 text-[#9B9CA0]">
               Loading...
             </li>
           ) : filteredAutomations.length > 0 ? (
             filteredAutomations.map((automation, index) => (
               <li
                 key={automation.id}
-                className={`px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer ${
-                  index === selectedIndex ? "bg-gray-100 dark:bg-gray-700" : ""
-                }`}
+                className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${index === selectedIndex ? 'bg-[#27272A]' : 'hover:bg-[#27272A]'}`}
                 onClick={() => handleSuggestionClick(automation.id)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
@@ -162,7 +160,7 @@ const Search = ({ slug }: Props) => {
               </li>
             ))
           ) : (
-            <li className="px-4 py-2 text-gray-500 dark:text-gray-400">
+            <li className="px-4 py-3 text-[#9B9CA0]">
               No results found
             </li>
           )}
