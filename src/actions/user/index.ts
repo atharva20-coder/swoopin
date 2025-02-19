@@ -10,11 +10,13 @@ import { stripe } from "@/lib/stripe";
 export const onCurrentUser = async () => {
   try {
     const user = await currentUser();
-    if (!user) return redirect("/sign-in");
+    if (!user) {
+      throw new Error("No authenticated user found");
+    }
     return user;
   } catch (error) {
     console.error("Authentication error:", error);
-    return redirect("/sign-in");
+    redirect("/sign-in");
   }
 };
 

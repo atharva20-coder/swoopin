@@ -17,12 +17,12 @@ const PostNode = ({ id }: Props) => {
     data.data.posts.length > 0 && (
       <div className="w-10/12 lg:w-8/12 relative xl:w-4/12 p-5 rounded-xl flex flex-col bg-[#1D1D1D] gap-y-3">
         <div className="absolute h-20 left-1/2 bottom-full flex flex-col items-center z-50">
-          <span className="h-[9px] w-[9px] bg-connector/10 rounded-full" />
+          <span className="h-[9px] w-[9px] bg-black rounded-full" />
           <Separator
             orientation="vertical"
-            className="bottom-full flex-1 border-[1px] border-connector/10"
+            className="bottom-full flex-1 border-[1px] border-dashed border-black"
           />
-          <span className="h-[9px] w-[9px] bg-connector/10 rounded-full" />
+          <span className="h-[9px] w-[9px] bg-black rounded-full" />
         </div>
         <div className="flex gap-x-2">
           <Warning />

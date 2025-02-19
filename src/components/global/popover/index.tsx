@@ -17,7 +17,7 @@ const PopOver = ({ children, trigger, className }: Props) => {
     <Popover>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
-        className={cn('bg-[#1D1D1D] shadow-lg rounded-xl', className)}
+        className={cn('bg-white border-white shadow-[0_4px_20px_-2px_rgba(0,0,0,0.2)] rounded-xl mt-5 w-[450px]', className)}
         align="end"
         side="bottom"
       >

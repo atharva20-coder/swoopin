@@ -25,7 +25,15 @@ const ActivateAutomationButton = ({ id }: Props) => {
     }
   }, [data?.data?.active, isPending]);
 
+  const isActivationAllowed = React.useMemo(() => {
+    if (!data?.data) return false;
+    if (!data.data.trigger || data.data.trigger.length === 0) return false;
+    if (!data.data.keywords || data.data.keywords.length === 0) return false;
+    return true;
+  }, [data?.data]);
+
   const handleStateChange = (checked: boolean) => {
+    if (!isActivationAllowed && checked) return;
     setOptimisticState(checked);
     mutate({ state: checked });
   };
@@ -33,7 +41,7 @@ const ActivateAutomationButton = ({ id }: Props) => {
   return (
     <div className="flex items-center space-x-2">
       <Switch
-        disabled={isPending}
+        disabled={isPending || !isActivationAllowed}
         checked={optimisticState}
         onCheckedChange={handleStateChange}
         className="data-[state=checked]:hover:bg-green-600 data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-slate-400 h-6 w-11 mx-4 [&>span]:data-[state=checked]:translate-x-6 [&>span]:bg-white transition-colors duration-200"

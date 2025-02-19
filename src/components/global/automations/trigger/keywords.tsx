@@ -12,6 +12,8 @@ type Props = {
   id: string;
 };
 
+type KeywordChangeEvent = CustomEvent<{ keyword: string; hasKeywords: boolean }>;
+
 export const Keywords = ({ id }: Props) => {
   const { onValueChange, keyword, onKeyPress, deleteMutation } =
     useKeywords(id);
@@ -21,12 +23,25 @@ export const Keywords = ({ id }: Props) => {
   ]);
   const { data } = useQueryAutomation(id);
 
+  // Expose keyword state to parent component
+  React.useEffect(() => {
+    const event = new CustomEvent('keywordChange', { 
+      detail: { 
+        keyword, 
+        hasKeywords: Boolean(data?.data?.keywords && data.data.keywords.length > 0) 
+      } 
+    }) as KeywordChangeEvent;
+    window.dispatchEvent(event);
+  }, [keyword, data?.data?.keywords]);
+
+  const keywords = data?.data?.keywords ?? [];
+  const hasKeywords = keywords.length > 0;
+
   return (
-    <div className="bg-background-80 flex flex-col gap-y-3 p-3 rounded-xl">
+    <div className="bg-[#F6F7F9] flex flex-col gap-y-3 p-3 rounded-xl">
       <div className="flex flex-wrap justify-start gap-2 items-center">
-        {data?.data?.keywords &&
-          data?.data?.keywords.length > 0 &&
-          data?.data?.keywords.map(
+        {hasKeywords &&
+          keywords.map(
             (word) =>
               word.id !== latestVariable?.variables?.id && (
                 <KeywordItem
@@ -39,10 +54,10 @@ export const Keywords = ({ id }: Props) => {
               )
           )}
         {latestVariable && latestVariable.status === "pending" && (
-          <div className="cursor-progress relative bg-background-90 flex items-center gap-x-2   text-text-secondary py-1 px-4 rounded-full">
-            <div className="absolute inset-0 bg-gray-500 opacity-50 rounded-full" />
+          <div className="cursor-progress relative bg-[#F6F7F9] flex items-center gap-x-2 text-[#59677D] py-1 px-4 rounded-full">
+            <div className="absolute inset-0 bg-[#80C2FF] opacity-30 rounded-full" />
             <p>{latestVariable.variables.keyword}</p>
-            <span className="text-white rounded-full">
+            <span className="text-[#3352CC] rounded-full">
               <Loader2 size={12} className="animate-spin" />
             </span>
           </div>
@@ -50,12 +65,13 @@ export const Keywords = ({ id }: Props) => {
         <Input
           placeholder="Add keyword..."
           style={{
-            width: Math.min(Math.max(keyword.length || 10, 2), 50) + "ch",
+            width: `${Math.max(Math.min(Math.max(keyword.length || 15, 15), 50), 15)}ch`,
           }}
           value={keyword}
-          className="p-0 bg-transparent ring-0 border-none outline-none"
+          className="p-2 bg-gray-100/50 ring-0 border-none outline-none rounded-full"
           onChange={onValueChange}
           onKeyUp={onKeyPress}
+          required
         />
       </div>
     </div>

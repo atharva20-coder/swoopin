@@ -1,4 +1,6 @@
 "use client";
+
+// Import necessary dependencies and components
 import { useQueryAutomation } from "@/hooks/user-queries";
 import React from "react";
 import ActiveTrigger from "./active";
@@ -12,31 +14,48 @@ import Keywords from "./keywords";
 import { Button } from "@/components/ui/button";
 import Loader from "../../loader";
 
+// Define the component's props interface
 type Props = {
-  id: string;
+  id: string; // Automation ID
 };
 
+// Trigger component handles the automation trigger selection and display
 const Trigger = ({ id }: Props) => {
   const { types, onSetTrigger, onSaveTrigger, isPending } = useTriggers(id);
   const { data } = useQueryAutomation(id);
+  const [hasKeywords, setHasKeywords] = React.useState(false);
+  const [keywordInputValue, setKeywordInputValue] = React.useState("");
+
+  React.useEffect(() => {
+    const handleKeywordChange = (event: CustomEvent<{ keyword: string; hasKeywords: boolean }>) => {
+      setKeywordInputValue(event.detail.keyword);
+      setHasKeywords(event.detail.hasKeywords);
+    };
+
+    window.addEventListener('keywordChange', handleKeywordChange as EventListener);
+    return () => {
+      window.removeEventListener('keywordChange', handleKeywordChange as EventListener);
+    };
+  }, []);
+
+  // If triggers exist, display the active trigger configuration
   if (data?.data && data?.data?.trigger.length > 0) {
     return (
       <div className="flex flex-col gap-y-6 items-center">
+        {/* Display the first trigger type */}
         <ActiveTrigger
           type={data.data.trigger[0].type as "DM" | "COMMENT" | "KEYWORDS"}
           automationId={id}
         />
 
+        {/* If there's a second trigger, display it with an 'or' separator */}
         {data?.data?.trigger.length > 1 && (
           <>
             <div className="relative w-6/12 my-4">
-              <p className="absolute transform  px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2">
+              <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 bg-white">
                 or
               </p>
-              <Separator
-                orientation="horizontal"
-                className="border-muted border-[1px]"
-              />
+              <Separator className="border-gray-200" />
             </div>
             <ActiveTrigger
               type={data.data.trigger[1].type as "DM" | "COMMENT" | "KEYWORDS"}
@@ -44,50 +63,60 @@ const Trigger = ({ id }: Props) => {
             />
           </>
         )}
+
+        {/* Display keywords section with separator */}
         <div className="relative w-6/12 my-4">
-          <p className="absolute transform  px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2">
+          <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 bg-white">
             with key words
           </p>
-          <Separator
-            orientation="horizontal"
-            className="border-muted border-[1px]"
-          />
+          <Separator className="border-gray-200" />
         </div>
+
+        {/* Display keywords trigger */}
         <ActiveTrigger
           type={"KEYWORDS"}
           keywords={data.data.keywords}
           automationId={id}
         />
+
+        {/* Show ThenAction component if no listener is configured */}
         {!data.data.listener && <ThenAction id={id} />}
       </div>
     );
   }
+
+  // If no triggers exist, display the trigger selection interface
   return (
     <TriggerButton label="Add Trigger">
-      <div className="flex flex-col gap-y-2">
+      <div className="flex flex-col gap-y-3">
+        {/* Map through available trigger types */}
         {AUTOMATION_TRIGGERS.map((trigger) => (
           <div
             key={trigger.id}
             onClick={() => onSetTrigger(trigger.type)}
             className={cn(
-              "hover:opacity-80 text-white rounded-xl flex cursor-pointer flex-col p-3 gap-y-2",
+              "p-4 rounded-xl flex cursor-pointer flex-col gap-y-2 transition-all duration-200 border",
               !types?.find((t) => t === trigger.type)
-                ? "bg-background-80"
-                : "bg-gradient-to-br from-[#3352CC] font-medium to-[#1C2D70]"
+                ? "border-black hover:bg-gray-50"
+                : "border-green-500 border-2"
             )}
           >
             <div className="flex gap-x-2 items-center">
               {trigger.icon}
-              <p className="font-bold">{trigger.label}</p>
+              <p className="font-medium">{trigger.label}</p>
             </div>
-            <p className="text-sm font-light">{trigger.description}</p>
+            <p className="text-sm opacity-90">{trigger.description}</p>
           </div>
         ))}
+
+        {/* Keywords input component */}
         <Keywords id={id} />
+
+        {/* Save trigger button with loading state */}
         <Button
           onClick={onSaveTrigger}
-          disabled={types?.length === 0}
-          className="bg-gradient-to-br from-[#3352CC] font-medium text-white to-[#1C2D70]"
+          disabled={types?.length === 0 || (!hasKeywords && !keywordInputValue)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
         >
           <Loader state={isPending}>Create Trigger</Loader>
         </Button>

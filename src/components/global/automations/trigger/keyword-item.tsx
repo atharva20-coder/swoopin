@@ -27,9 +27,9 @@ const KeywordItem = ({
   return (
     <div
       className={cn(
-        "group bg-background-90 flex items-center gap-x-2   text-text-secondary py-1 px-4 rounded-full relative",
+        "group bg-[#D6E9FF] hover:bg-[#D6E9FF] border border-[#80C2FF] text-[#59677D] flex items-center gap-x-2 py-1 px-4 rounded-full relative",
         isDeleting && "hidden",
-        isPending && "opacity-50"
+        isPending && "opacity-50 cursor-progress pointer-events-none"
       )}
     >
       <EditContainer>
@@ -45,4 +45,5 @@ const KeywordItem = ({
     </div>
   );
 };
+
 export default KeywordItem;
