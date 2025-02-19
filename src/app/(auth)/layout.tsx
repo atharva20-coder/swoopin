@@ -10,55 +10,34 @@ type Props = {
 
 const motivationalTexts = [
   "Transform your social media presence with intelligent automation.",
-  "Join thousands of creators growing their audience effortlessly.",
-  "Take your content strategy to the next level with AI-powered tools.",
-  "Automate your way to social media success.",
-  "Connect, grow, and engage - all in one place."
+  "Elevate your brand with AI-powered social engagement.",
+  "Streamline your social strategy with smart automation tools.",
+  "Unlock the power of automated social media management."
 ]
 
 const Layout = ({ children }: Props) => {
-  const [motivationalText, setMotivationalText] = useState(motivationalTexts[0])
-  const [isTyping, setIsTyping] = useState(true)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentTextIndex, setCurrentTextIndex] = useState(0)
+  const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    const typingDuration = 3000
-    const erasingDuration = 1500
-    const pauseDuration = 1000
-
-    const animateText = () => {
-      // Start typing animation
-      setIsTyping(true)
+    const interval = setInterval(() => {
+      setIsVisible(false)
       
-      // After typing duration, start erasing
-      const typingTimeout = setTimeout(() => {
-        setIsTyping(false)
-        
-        // After erasing, update to next text and restart cycle
-        const erasingTimeout = setTimeout(() => {
-          const nextIndex = (currentIndex + 1) % motivationalTexts.length
-          setCurrentIndex(nextIndex)
-          setMotivationalText(motivationalTexts[nextIndex])
-        }, erasingDuration + pauseDuration)
-
-        return () => clearTimeout(erasingTimeout)
-      }, typingDuration)
-
-      return () => clearTimeout(typingTimeout)
-    }
-
-    const interval = setInterval(animateText, typingDuration + erasingDuration + pauseDuration * 2)
-    animateText()
+      setTimeout(() => {
+        setCurrentTextIndex((prevIndex) => (prevIndex + 1) % motivationalTexts.length)
+        setIsVisible(true)
+      }, 300) // Wait for fade out before changing text
+    }, 3000) // Change text every 4 seconds
 
     return () => clearInterval(interval)
-  }, [currentIndex])
+  }, [])
 
   return (
     <div className="min-h-screen bg-white">
       <LandingNav />
       <div className="flex min-h-screen pt-[72px]">
         <div className="hidden lg:flex w-1/2 bg-[#F5F7FF] items-center justify-center p-8 flex-col gap-6">
-          <div className="-mt-12">
+          <div className="-mt-24">
             <Image
               src="/images/signin-form.svg"
               alt="Authentication illustration"
@@ -68,9 +47,11 @@ const Layout = ({ children }: Props) => {
               className="max-w-[80%] h-auto"
             />
           </div>
-          <div className="h-20 flex items-center justify-center">
-            <p className={`typewriter text-lg text-gray-600 text-center max-w-md font-medium w-[600px] ${isTyping ? 'animate-[typing_2s_steps(40,end)]' : 'animate-[erasing_1s_steps(40,end)]'}`} style={{ width: '600px', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              {motivationalText}
+          <div className="h-auto flex items-center justify-center">
+            <p 
+              className={`text-lg text-gray-600 text-center font-medium transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            >
+              {motivationalTexts[currentTextIndex]}
             </p>
           </div>
         </div>
