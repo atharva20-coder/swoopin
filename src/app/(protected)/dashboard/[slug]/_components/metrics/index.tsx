@@ -37,9 +37,9 @@ const chartConfig = {
 const Chart = ({ hasActivity = false }: Props) => {
   if (!hasActivity) {
     return (
-      <Card className="border-none p-0 border-opacity-50 mr-4 rounded-sm">
-        <CardContent className="p-6 flex items-center justify-center min-h-[300px]">
-          <p className="text-lg text-gray-500 text-center">
+      <Card className="border-none p-0 border-opacity-50 rounded-sm mx-2 sm:mx-4">
+        <CardContent className="p-4 sm:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[300px]">
+          <p className="text-base sm:text-lg text-gray-500 text-center px-2">
             We&apos;re currently gathering your activity!
           </p>
         </CardContent>
@@ -48,10 +48,10 @@ const Chart = ({ hasActivity = false }: Props) => {
   }
 
   return (
-    <Card className="border-none p-0 border-opacity-50 mr-4 rounded-sm">
+    <Card className="border-none p-0 border-opacity-50 rounded-sm mx-2 sm:mx-4">
       <CardContent className="p-0">
         <ResponsiveContainer
-          height={300}
+          height={250}
           width={'100%'}
         >
           <ChartContainer config={chartConfig}>
@@ -59,8 +59,10 @@ const Chart = ({ hasActivity = false }: Props) => {
               accessibilityLayer
               data={chartData}
               margin={{
-                left: 12,
-                right: 12,
+                left: 8,
+                right: 8,
+                top: 8,
+                bottom: 8
               }}
             >
               <CartesianGrid vertical={false} />
@@ -68,8 +70,9 @@ const Chart = ({ hasActivity = false }: Props) => {
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
+                tickMargin={6}
                 tickFormatter={(value) => value.slice(0, 3)}
+                fontSize={12}
               />
               <ChartTooltip
                 cursor={false}

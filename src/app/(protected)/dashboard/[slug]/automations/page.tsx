@@ -7,12 +7,14 @@ type Props = {}
 
 const Page = (props: Props) => {
   return (
-    <div className="flex flex-col gap-y-8 w-full px-8">
-      <div className="flex items-center justify-between w-full">
-        <div className="flex flex-col gap-y-2">
+    <div className="flex flex-col gap-y-8 w-full px-4 sm:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4 sm:gap-0">
+        <div className="w-full sm:w-auto">
           <Search slug="" />
         </div>
-        <CreateAutomation />
+        <div className="w-full sm:w-auto">
+          <CreateAutomation />
+        </div>
       </div>
       <div className="w-full">
         <AutomationList />

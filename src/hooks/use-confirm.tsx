@@ -36,17 +36,25 @@ const useConfirm = (
 
   const ConfirmDialog = () => (
     <Dialog open={promise !== null} onOpenChange={handleCancel}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{message}</DialogDescription>
+      <DialogContent className="bg-white rounded-lg border shadow-lg p-4 max-w-sm !pr-4 [&>button]:hidden">
+        <DialogHeader className="space-y-1.5">
+          <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
+          <DialogDescription className="text-sm text-gray-600">{message}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="pt-2">
-          <Button onClick={handleCancel} variant={"outline"}>
+        <DialogFooter className="flex flex-row justify-between pt-3">
+          <Button 
+            onClick={handleConfirm}
+            className="bg-white border-red-500 border text-red-500 hover:bg-red-50 transition-colors duration-200 px-4 py-1.5 text-sm"
+          >
+            Proceed
+          </Button>
+          <Button 
+            onClick={handleCancel} 
+            variant={"outline"}
+            className="border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 px-4 py-1.5 text-sm"
+          >
             Cancel
           </Button>
-
-          <Button onClick={handleConfirm}>Proceed</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

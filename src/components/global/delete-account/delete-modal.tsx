@@ -48,9 +48,9 @@ const DeleteModal = ({
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white p-6 rounded-md max-w-md w-full">
-        <AlertDialogHeader className="space-y-3">
-          <AlertDialogTitle className="text-2xl font-bold text-gray-900">Are you absolutely sure?</AlertDialogTitle>
+      <AlertDialogContent className="bg-white p-4 sm:p-6 rounded-md max-w-md w-[95%] sm:w-full mx-auto">
+        <AlertDialogHeader className="space-y-2 sm:space-y-3">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription className="text-gray-600 text-sm leading-relaxed">
             This action cannot be undone. This will permanently delete your account and remove your data from our servers.
             Please type &quot;Delete My Account&quot; to confirm.
@@ -60,15 +60,15 @@ const DeleteModal = ({
             value={deleteConfirmation}
             onChange={(e) => onDeleteConfirmationChange(e.target.value)}
             placeholder="Type 'Delete My Account'"
-            className="w-full px-4 py-2 mt-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full px-3 sm:px-4 py-2 mt-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base"
           />
         </AlertDialogHeader>
-        <AlertDialogFooter className="mt-6 flex gap-3">
-          <AlertDialogCancel className="flex-1 px-4 py-2 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">Cancel</AlertDialogCancel>
+        <AlertDialogFooter className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <AlertDialogCancel className="w-full sm:flex-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-md font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 text-sm sm:text-base">Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onDelete}
             disabled={!isDeleteConfirmed || isDeleting}
-            className="flex-1 bg-transparent border border-red-600 text-red-600 hover:bg-red-50 px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="w-full sm:flex-1 bg-transparent border border-red-600 text-red-600 hover:bg-red-50 px-3 sm:px-4 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent text-sm sm:text-base"
           >
             {isDeleting ? (
               <>
