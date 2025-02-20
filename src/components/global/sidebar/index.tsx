@@ -18,7 +18,7 @@ const Sidebar = ({ slug }: Props) => {
   const { user } = useUser();
   
   return (
-    <div className="fixed left-0 top-0 bottom-0 w-[250px] bg-[#F6F7F9] dark:bg-[#1C1C1C] border-r border-gray-200 dark:border-gray-800 p-4 flex flex-col">
+    <div className="lg:flex fixed left-0 top-0 bottom-0 w-[250px] bg-[#F6F7F9] dark:bg-[#1C1C1C] border-r border-gray-200 dark:border-gray-800 p-4 flex-col hidden">
       <div className="flex items-center justify-center py-8">
         <div className="w-32 h-auto flex items-center justify-center">
           <LogoSmall />

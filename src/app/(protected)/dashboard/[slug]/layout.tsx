@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import InfoBar from "@/components/global/infobar";
 import Sidebar from "@/components/global/sidebar";
+import MobileNav from "@/components/global/mobile-nav";
 import React, { ReactNode } from "react";
 import {
   PrefetchUserAutomations,
@@ -30,6 +31,7 @@ const Layout = async ({ children, params }: Props) => {
     <HydrationBoundary state={dehydrate(query)}>
       <div className="p-3">
         <Sidebar slug={params.slug} />
+        <MobileNav slug={params.slug} />
         <div
           className="
       lg:ml-[250px] 
@@ -38,6 +40,7 @@ const Layout = async ({ children, params }: Props) => {
       flex 
       flex-col 
       overflow-auto
+      pb-24
       "
         >
           <InfoBar slug={params.slug} />

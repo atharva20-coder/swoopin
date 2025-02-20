@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-query";
 
 import React from "react";
-import HamburgerMenu from "./_components/hamburger-menu";
 import DeleteAutomationButton from "./_components/delete-automation-button";
 
 type Props = {
@@ -36,7 +35,6 @@ const Page = async ({ params }: Props) => {
       <section className="relative min-h-screen pb-24">
         <div className="flex flex-col items-center gap-y-20">
           <div className="flex w-full items-center justify-between">
-            <HamburgerMenu slug={params.slug} />
             <AutomationsBreadCrumb id={params.id} />
           </div>
           <div className="w-full lg:w-10/12 xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] gap-y-3">
