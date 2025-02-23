@@ -1,3 +1,5 @@
+"use server"
+
 import { client } from "@/lib/prisma";
 
 export const matchKeyword = async (keyword: string) => {
@@ -124,4 +126,62 @@ export const getChatHistory = async (sender: string, reciever: string) => {
     history: chatSession,
     automationId: history[history.length - 1].automationId,
   };
+};
+
+export const replyToComment = async (automationId: string, commentId: string) => {
+  const automation = await client.automation.findUnique({
+    where: { id: automationId },
+    include: {
+      listener: true,
+      User: {
+        select: {
+          integrations: {
+            where: { name: "INSTAGRAM" },
+            select: {
+              token: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!automation?.listener?.commentReply || !automation.User?.integrations[0]?.token) {
+    throw new Error("No comment reply template or Instagram token found");
+  }
+
+  try {
+    // Make Instagram API call to reply to the comment
+    const response = await fetch(
+      `${process.env.INSTAGRAM_BASE_URL}/${commentId}/replies?access_token=${automation.User.integrations[0].token}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: automation.listener.commentReply,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to reply to comment");
+    }
+
+    // Track the response
+    await client.listener.update({
+      where: { automationId },
+      data: {
+        commentCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error replying to comment:", error);
+    throw error;
+  }
 };

@@ -26,12 +26,12 @@ const PostNode = ({ id }: Props) => {
         </div>
         <div className="flex gap-x-2">
           <Warning />
-          If they comment on...
+          <p className="font-bold text-lg">If they comment on...</p>
         </div>
         <div className="bg-[#ededef] p-3 rounded-xl flex flex-col gap-y-2">
           <div className="flex gap-x-2 items-center">
             <InstagramBlue />
-            <p className="font-bold text-lg">These posts</p>
+            <p>These posts</p>
           </div>
           <div className="flex gap-x-2 flex-wrap mt-3">
             {data.data.posts.map((post) => (

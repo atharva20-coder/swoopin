@@ -3,7 +3,7 @@ import { useQueryAutomationPosts } from "@/hooks/user-queries";
 import React from "react";
 import TriggerButton from "../trigger-button";
 import { InstagramPostProps } from "@/types/posts.type";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, ImageIcon, Film } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,11 @@ const PostButton = ({ id }: Props) => {
   return (
     <TriggerButton label="Attach a post">
       {data?.status === 200 && data?.data?.data?.length > 0 ? (
-        <div className="flex flex-col gap-y-3 w-full">
-          <div className="flex flex-wrap w-full gap-3">
+        <div className="flex flex-col gap-y-4 w-full max-h-[70vh] overflow-y-auto p-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
             {data?.data?.data?.map((post: InstagramPostProps) => (
               <div
-                className="relative w-4/12 aspect-square rounded-lg cursor-pointer overflow-hidden"
+                className="relative aspect-square rounded-xl cursor-pointer overflow-hidden bg-gray-100 group"
                 key={post.id}
                 onClick={() =>
                   onSelectPost({
@@ -35,36 +35,55 @@ const PostButton = ({ id }: Props) => {
                   })
                 }
               >
-                {posts.find((p) => p.postid === post.id) && (
-                  <CheckCircle
-                    fill="white"
-                    stroke="black"
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
-                  />
+                {post.media_type === "VIDEO" ? (
+                  <div className="w-full h-full">
+                    <video
+                      src={post.media_url}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                    />
+                    <Film className="absolute top-2 right-2 text-white z-10" size={20} />
+                  </div>
+                ) : (
+                  <div className="w-full h-full">
+                    <Image
+                      fill
+                      src={post.media_url}
+                      alt={post.caption || "Instagram post"}
+                      className="object-cover transition-all duration-200 group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      priority
+                    />
+                    {post.media_type === "CAROSEL_ALBUM" && (
+                      <ImageIcon className="absolute top-2 right-2 text-white z-10" size={20} />
+                    )}
+                  </div>
                 )}
-                <Image
-                  fill
-                  sizes="100vw"
-                  src={post.media_url}
-                  alt="post image"
-                  className={cn(
-                    "hover:opacity-75 transition duration-100",
-                    posts.find((p) => p.postid === post.id) && "opacity-75"
-                  )}
-                />
+                {posts.find((p) => p.postid === post.id) && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <CheckCircle
+                      className="text-white"
+                      size={24}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
           <Button
             onClick={mutate}
             disabled={posts.length === 0}
-            className="bg-gradient-to-br w-full from-[#3352CC] font-medium text-white to-[#1C2D70]"
+            className="bg-gradient-to-br w-full from-[#3352CC] font-medium text-white to-[#1C2D70] hover:opacity-90 transition-opacity"
           >
-            <Loader state={isPending}>Attach Post</Loader>
+            <Loader state={isPending}>Attach {posts.length} Post{posts.length !== 1 ? 's' : ''}</Loader>
           </Button>
         </div>
       ) : (
-        <p className="text-text-secondary text-center">No posts found!</p>
+        <div className="p-8 text-center">
+          <p className="text-gray-500">No Instagram posts found</p>
+          <p className="text-sm text-gray-400 mt-1">Connect your Instagram account to see your posts</p>
+        </div>
       )}
     </TriggerButton>
   );
