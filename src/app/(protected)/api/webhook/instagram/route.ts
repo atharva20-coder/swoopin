@@ -11,6 +11,7 @@ import { sendDM, sendPrivateMessage } from "@/lib/fetch";
 import { openai } from "@/lib/openai";
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { trackAnalytics } from "@/actions/analytics";
 
 export async function GET(req: NextRequest) {
   const hub = req.nextUrl.searchParams.get("hub.challenge");
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
             if (direct_message.status === 200) {
               const tracked = await trackResponses(automation.id, "DM");
               if (tracked) {
+                await trackAnalytics(automation.userId!, "dm").catch(
+                  console.error
+                );
                 return NextResponse.json(
                   {
                     message: "Message sent",
@@ -116,6 +120,9 @@ export async function POST(req: NextRequest) {
               if (direct_message.status === 200) {
                 const tracked = await trackResponses(automation.id, "DM");
                 if (tracked) {
+                  await trackAnalytics(automation.userId!, "dm").catch(
+                    console.error
+                  );
                   return NextResponse.json(
                     {
                       message: "Message sent",
@@ -181,6 +188,9 @@ export async function POST(req: NextRequest) {
                 const tracked = await trackResponses(automation.id, "COMMENT");
 
                 if (tracked) {
+                  await trackAnalytics(automation.userId!, "comment").catch(
+                    console.error
+                  );
                   return NextResponse.json(
                     {
                       message: "Message sent",
@@ -236,6 +246,9 @@ export async function POST(req: NextRequest) {
                   );
 
                   if (tracked) {
+                    await trackAnalytics(automation.userId!, "comment").catch(
+                      console.error
+                    );
                     return NextResponse.json(
                       {
                         message: "Message sent",
@@ -257,8 +270,11 @@ export async function POST(req: NextRequest) {
         webhook_payload.entry[0].messaging[0].sender.id
       );
 
-      if (customer_history.history.length > 0) {
-        const automation = await findAutomation(customer_history.automationId!);
+      if (
+        customer_history.history.length > 0 &&
+        customer_history.automationId
+      ) {
+        const automation = await findAutomation(customer_history.automationId);
 
         if (
           automation?.User?.subscription?.plan === "PRO" &&
@@ -303,6 +319,9 @@ export async function POST(req: NextRequest) {
             );
 
             if (direct_message.status === 200) {
+              await trackAnalytics(automation.userId!, "dm").catch(
+                console.error
+              );
               return NextResponse.json(
                 {
                   message: "Message sent",
@@ -328,6 +347,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("Webhook error:", error);
     return NextResponse.json(
       {
         message: "Server error",

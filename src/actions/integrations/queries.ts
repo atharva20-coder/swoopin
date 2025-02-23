@@ -51,8 +51,26 @@ export const createIntegration = async (
       },
     },
     select: {
+      id: true,
       firstname: true,
       lastname: true,
+    },
+  });
+};
+
+export const deleteIntegration = async (
+  integrationId: string,
+  userId: string
+) => {
+  return await client.integrations.delete({
+    where: {
+      id: integrationId,
+      userId,
+    },
+
+    select: {
+      userId: true,
+      name: true,
     },
   });
 };

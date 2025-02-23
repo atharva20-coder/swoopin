@@ -1,6 +1,8 @@
 "use server";
 
 import { currentUser } from "@clerk/nextjs/server";
+import { createNotification } from "@/actions/notifications";
+
 import { redirect } from "next/navigation";
 import { createUser, findUser, updateSubscription } from "./queries";
 import { refreshToken } from "@/lib/fetch";
@@ -8,16 +10,10 @@ import { updateIntegration } from "../integrations/queries";
 import { stripe } from "@/lib/stripe";
 
 export const onCurrentUser = async () => {
-  try {
-    const user = await currentUser();
-    if (!user) {
-      throw new Error("No authenticated user found");
-    }
-    return user;
-  } catch (error) {
-    console.error("Authentication error:", error);
-    redirect("/sign-in");
-  }
+  const user = await currentUser();
+
+  if (!user) return redirect("/sign-in");
+  return user;
 };
 
 export const onBoardUser = async () => {
@@ -31,7 +27,6 @@ export const onBoardUser = async () => {
           found.integrations[0].expiresAt?.getTime()! - today.getTime();
 
         const days = Math.round(time_left / (1000 * 3600 * 24));
-        console.log(days, found.integrations);
         if (days < 5) {
           console.log("refresh");
 
@@ -48,6 +43,11 @@ export const onBoardUser = async () => {
           );
           if (!update_token) {
             console.log("Update token failed");
+          } else if (update_token.userId) {
+            createNotification(
+              "You have been reintegrated!",
+              update_token.userId
+            );
           }
         }
       }
@@ -95,7 +95,10 @@ export const onSubscribe = async (session_id: string) => {
         plan: "PRO",
       });
 
-      if (subscribed) return { status: 200 };
+      if (subscribed) {
+        createNotification("You have subscribed to pro!", subscribed.id);
+        return { status: 200 };
+      }
       return { status: 401 };
     }
     return { status: 404 };

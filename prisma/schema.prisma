@@ -24,6 +24,7 @@ model User {
   integrations Integrations[]
   automations  Automation[]
   notification Notification[]
+  analytics    Analytics[]
 }
 
 model Subscription {
@@ -117,6 +118,21 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
+model Analytics {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @db.Uuid
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime  @default(now())
+  dmCount     Int       @default(0)
+  commentCount Int      @default(0)
+  postCount   Int       @default(0)
+  automationCount Int   @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
 
 enum SUBSCRIPTION_PLAN {
   PRO

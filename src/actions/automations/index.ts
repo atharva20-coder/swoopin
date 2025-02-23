@@ -1,5 +1,6 @@
 "use server";
 
+import { createNotification } from "../notifications";
 import { onCurrentUser } from "../user";
 import { findUser } from "../user/queries";
 import {
@@ -197,7 +198,13 @@ export const savePosts = async (
   try {
     const create = await addPost(autmationId, posts);
 
-    if (create) return { status: 200, data: "Posts attached" };
+    if (create) {
+      createNotification(
+        `Your posts have been attached to automation ${create.name}!`,
+        create.userId!
+      );
+      return { status: 200, data: "Posts attached" };
+    }
 
     return { status: 404, data: "Automation not found" };
   } catch (error) {
