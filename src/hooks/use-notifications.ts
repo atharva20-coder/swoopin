@@ -33,7 +33,7 @@ export const useUserUnseenNotifications = () => {
     queryFn: onUserInfo,
   });
   return {
-    notifications: data?.data?.notification ?? [], // Return an empty array if undefined
+    notifications: (data?.data?.notification ?? []) as Notification[],
     status: data?.status,
   };
 };
