@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 
 export const Notifications = ({ slug }: { slug: string }) => {
   const router = useRouter();
-  const { notification } = useUserUnseenNotifications();
-  const unSeenNotification = notification?.filter((n) => n.isSeen == false);
+  const { notifications } = useUserUnseenNotifications();
+  const unSeenNotification = notifications?.filter((n) => n.isSeen == false);
 
   return (
     <Button
