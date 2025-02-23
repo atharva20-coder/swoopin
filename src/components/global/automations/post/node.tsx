@@ -15,7 +15,7 @@ const PostNode = ({ id }: Props) => {
   return (
     data?.data &&
     data.data.posts.length > 0 && (
-      <div className="w-10/12 lg:w-8/12 relative xl:w-4/12 p-5 rounded-xl flex flex-col bg-[#1D1D1D] gap-y-3">
+      <div className="w-10/12 lg:w-8/12 relative xl:w-4/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] gap-y-3">
         <div className="absolute h-20 left-1/2 bottom-full flex flex-col items-center z-50">
           <span className="h-[9px] w-[9px] bg-black rounded-full" />
           <Separator
@@ -28,7 +28,7 @@ const PostNode = ({ id }: Props) => {
           <Warning />
           If they comment on...
         </div>
-        <div className="bg-background-80 p-3 rounded-xl flex flex-col gap-y-2">
+        <div className="bg-[#ededef] p-3 rounded-xl flex flex-col gap-y-2">
           <div className="flex gap-x-2 items-center">
             <InstagramBlue />
             <p className="font-bold text-lg">These posts</p>
@@ -39,7 +39,17 @@ const PostNode = ({ id }: Props) => {
                 key={post.id}
                 className="relative w-4/12 aspect-square rounded-lg cursor-pointer overflow-hidden"
               >
-                <Image fill sizes="100vw" src={post.media} alt="post image" />
+                {post.mediaType === "VIDEO" ? (
+                  <video
+                    className="w-full h-full object-cover"
+                    src={post.media}
+                    muted
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  <Image fill sizes="100vw" src={post.media} alt="post media" />
+                )}
               </div>
             ))}
           </div>
