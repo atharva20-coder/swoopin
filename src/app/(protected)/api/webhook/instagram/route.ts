@@ -183,6 +183,15 @@ export async function POST(req: NextRequest) {
                 automation.User?.integrations[0].token!
               );
 
+              if (automation.listener.commentReply) {
+                await sendPrivateMessage(
+                  webhook_payload.entry[0].id,
+                  webhook_payload.entry[0].changes[0].value.id,
+                  automation.listener.commentReply,
+                  automation.User?.integrations[0].token!
+                );
+              }
+
               console.log("DM SENT", direct_message.data);
               if (direct_message.status === 200) {
                 const tracked = await trackResponses(automation.id, "COMMENT");

@@ -60,6 +60,27 @@ export const sendPrivateMessage = async (
   );
 };
 
+export const sendCommentReply = async (
+  userId: string,
+  commentId: string,
+  reply: string,
+  token: string
+) => {
+  console.log("sending comment reply");
+  return await axios.post(
+    `${process.env.INSTAGRAM_BASE_URL}/${userId}/media/${commentId}/replies`,
+    {
+      message: reply,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
 export const generateTokens = async (code: string) => {
   try {
     // Validate input
