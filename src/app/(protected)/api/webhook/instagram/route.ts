@@ -82,15 +82,24 @@ export async function POST(req: NextRequest) {
           ) {
             console.log("Smart AI", automation);
 
-            const smart_ai_message = await openai.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [
-                {
-                  role: "assistant",
-                  content: `${automation.listener?.prompt}: Keep responses under 2 sentences`,
-                },
-              ],
-            });
+            let smart_ai_message;
+            try {
+              smart_ai_message = await openai.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                messages: [
+                  {
+                    role: "assistant",
+                    content: `${automation.listener?.prompt}: Keep responses under 2 sentences`,
+                  },
+                ],
+              });
+            } catch (error) {
+              console.error("OpenAI API error:", error);
+              return NextResponse.json(
+                { message: "Error generating AI response" },
+                { status: 500 }
+              );
+            }
             console.log("answers?", smart_ai_message);
 
             if (smart_ai_message.choices[0].message.content) {
@@ -204,15 +213,24 @@ export async function POST(req: NextRequest) {
               automation.listener.listener === "SMARTAI" &&
               automation.User?.subscription?.plan === "PRO"
             ) {
-              const smart_ai_message = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [
-                  {
-                    role: "assistant",
-                    content: `${automation.listener?.prompt}: keep responses under 2 sentences`,
-                  },
-                ],
-              });
+              let smart_ai_message;
+              try {
+                smart_ai_message = await openai.chat.completions.create({
+                  model: "gpt-3.5-turbo",
+                  messages: [
+                    {
+                      role: "assistant",
+                      content: `${automation.listener?.prompt}: keep responses under 2 sentences`,
+                    },
+                  ],
+                });
+              } catch (error) {
+                console.error("OpenAI API error:", error);
+                return NextResponse.json(
+                  { message: "Error generating AI response" },
+                  { status: 500 }
+                );
+              }
               console.log("answers?", smart_ai_message);
 
               if (smart_ai_message.choices[0].message.content) {
