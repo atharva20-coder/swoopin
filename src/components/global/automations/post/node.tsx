@@ -46,6 +46,7 @@ const PostNode = ({ id }: Props) => {
                     muted
                     loop
                     playsInline
+                    autoPlay
                   />
                 ) : (
                   <Image fill sizes="100vw" src={post.media} alt="post media" />
