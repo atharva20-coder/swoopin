@@ -126,6 +126,7 @@ model Analytics {
   date        DateTime  @default(now())
   dmCount     Int       @default(0)
   commentCount Int      @default(0)
+  commentReplyCount Int @default(0)
   postCount   Int       @default(0)
   automationCount Int   @default(0)
   createdAt   DateTime  @default(now())

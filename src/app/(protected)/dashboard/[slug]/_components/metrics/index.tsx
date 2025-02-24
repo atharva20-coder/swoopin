@@ -7,11 +7,13 @@ import {
 } from '@/components/ui/chart'
 import React from 'react'
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   ResponsiveContainer,
   XAxis,
+  YAxis,
+  Tooltip
 } from 'recharts'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { useParams } from 'next/navigation'
@@ -22,11 +24,19 @@ type Props = {
 }
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'hsl(var(--chart-1))',
+  dmCount: {
+    label: 'Messages',
+    color: '#2761D8',
   },
-}
+  commentCount: {
+    label: 'Comments',
+    color: '#2DB78A',
+  },
+  commentReply: {
+    label: 'Replies',
+    color: '#105427',
+  },
+} as const
 
 const Chart = ({ hasActivity = false }: Props) => {
   const params = useParams()
@@ -37,35 +47,68 @@ const Chart = ({ hasActivity = false }: Props) => {
       <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm">
         <CardContent className="p-0">
           <ResponsiveContainer height={300} width={'100%'}>
-            <AreaChart
-              data={Array.from({ length: 7 }, (_, i) => ({
-                month: `Day ${i + 1}`,
-                desktop: Math.random() * 50 + 25,
-              }))}
+            <BarChart
+              data={[
+                { date: "2024-07-15", dmCount: 450, commentCount: 300, commentReply: 200 },
+                { date: "2024-07-16", dmCount: 380, commentCount: 420, commentReply: 150 },
+                { date: "2024-07-17", dmCount: 520, commentCount: 120, commentReply: 300 },
+                { date: "2024-07-18", dmCount: 140, commentCount: 550, commentReply: 250 },
+                { date: "2024-07-19", dmCount: 600, commentCount: 350, commentReply: 180 },
+                { date: "2024-07-20", dmCount: 480, commentCount: 400, commentReply: 220 },
+              ]}
               margin={{
-                left: 12,
-                right: 12,
-                top: 12,
-                bottom: 12
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: 24
               }}
             >
-              <CartesianGrid vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={6}
-                tickFormatter={(value) => value.slice(0, 3)}
-                fontSize={12}
+                tickLine={true}
+                axisLine={true}
+                tickMargin={16}
+                fontSize={14}
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8' }}
               />
-              <Area
-                dataKey="desktop"
-                type="natural"
-                fill="hsl(var(--muted))"
-                fillOpacity={0.4}
-                stroke="hsl(var(--muted))"
+              <YAxis
+                tickLine={true}
+                axisLine={true}
+                tickMargin={16}
+                fontSize={14}
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8' }}
               />
-            </AreaChart>
+              <Bar
+                dataKey="dmCount"
+                stackId="stack"
+                fill="#2761D8"
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+                animationDuration={300}
+                minPointSize={3}
+              />
+              <Bar
+                dataKey="commentCount"
+                stackId="stack"
+                fill="#2DB78A"
+                radius={[0, 0, 0, 0]}
+                maxBarSize={40}
+                animationDuration={300}
+                minPointSize={3}
+              />
+              <Bar
+                dataKey="commentReply"
+                stackId="stack"
+                fill="#105427"
+                radius={[0, 0, 4, 4]}
+                maxBarSize={40}
+                animationDuration={300}
+                minPointSize={3}
+              />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -90,38 +133,89 @@ const Chart = ({ hasActivity = false }: Props) => {
         <CardContent className="p-0">
           <ResponsiveContainer height={300} width={'100%'}>
             <ChartContainer config={chartConfig}>
-              <AreaChart
-                accessibilityLayer
+              <BarChart
                 data={analytics.data.chartData}
                 margin={{
-                  left: 12,
-                  right: 12,
-                  top: 12,
-                  bottom: 12
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: 24
                 }}
               >
-                <CartesianGrid vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={6}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                  fontSize={12}
+                  tickLine={true}
+                  axisLine={true}
+                  tickMargin={16}
+                  fontSize={14}
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8' }}
+                  interval={0}
+                />
+                <YAxis
+                  tickLine={true}
+                  axisLine={true}
+                  tickMargin={16}
+                  fontSize={14}
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8' }}
                 />
                 <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      hideLabel
+                      className="w-[180px]"
+                      formatter={(value, name, item, index) => (
+                        <>
+                          <div
+                            className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                            style={{ backgroundColor: chartConfig[name as keyof typeof chartConfig]?.color }}
+                          />
+                          {chartConfig[name as keyof typeof chartConfig]?.label || name}
+                          <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                            {value}
+                          </div>
+                          {index === 2 && (
+                            <div className="mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium text-foreground">
+                              Total
+                              <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                                {item.payload.dmCount + item.payload.commentCount + item.payload.commentReply}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    />
+                  }
                   cursor={false}
-                  content={<ChartTooltipContent indicator="line" />}
+                  defaultIndex={1}
                 />
-                <Area
-                  dataKey="desktop"
-                  type="natural"
-                  fill="var(--color-desktop)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-desktop)"
+                <Bar
+                  dataKey="dmCount"
+                  stackId="stack"
+                  radius={[0, 0, 4, 4]}
+                  maxBarSize={40}
                   animationDuration={300}
+                  fill="#2761D8"
                 />
-              </AreaChart>
+                <Bar
+                  dataKey="commentCount"
+                  stackId="stack"
+                  radius={[0, 0, 0, 0]}
+                  maxBarSize={40}
+                  animationDuration={300}
+                  fill="#2DB78A"
+                />
+                <Bar
+                  dataKey="commentReply"
+                  stackId="stack"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                  animationDuration={300}
+                  fill="#105427"
+                />
+              </BarChart>
             </ChartContainer>
           </ResponsiveContainer>
         </CardContent>

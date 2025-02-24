@@ -42,8 +42,11 @@ export const getUserAnalytics = async (slug: string) => {
     );
 
     const analyticsData = dbUser.analytics.map((item) => ({
-      date: item.date.toLocaleDateString("en-US", { month: "long" }),
+      date: item.date,
+      month: item.date.toLocaleDateString("en-US", { month: "long" }),
       activity: item.dmCount + item.commentCount,
+      dmCount: item.dmCount,
+      commentCount: item.commentCount
     }));
 
     return {
