@@ -62,11 +62,12 @@ export const sendPrivateMessage = async (
 
 export const replyToComment = async (commentId: string, message: string, token: string) => {
   console.log("replying to comment");
+  // Encode the message for URL safety
+  const encodedMessage = encodeURIComponent(message);
+  // Include API version and pass message as a query parameter
   return await axios.post(
-    `${process.env.INSTAGRAM_BASE_URL}/${commentId}/replies`,
-    {
-      message: message,
-    },
+    `${process.env.INSTAGRAM_BASE_URL}/v21.0/${commentId}/replies?message=${encodedMessage}`,
+    {}, // Empty body as required by the API
     {
       headers: {
         Authorization: `Bearer ${token}`,
