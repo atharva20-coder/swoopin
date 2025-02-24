@@ -176,50 +176,46 @@ export async function POST(req: NextRequest) {
                 webhook_payload.entry[0].changes[0].value
               );
 
+              // Handle both comment reply and DM in parallel
+              const actions = [];
+
               if (automation.listener.commentReply) {
                 console.log("Replying to comment with template");
-                
-                const comment_reply = await replyToComment(
-                  webhook_payload.entry[0].changes[0].value.id,
-                  automation.listener.commentReply,
-                  automation.User?.integrations[0].token!
+                actions.push(
+                  replyToComment(
+                    webhook_payload.entry[0].changes[0].value.id,
+                    automation.listener.commentReply,
+                    automation.User?.integrations[0].token!
+                  )
                 );
+              }
 
-                if (comment_reply.status === 200) {
-                  const tracked = await trackResponses(automation.id, "COMMENT");
-                  if (tracked) {
-                    await trackAnalytics(automation.userId!, "comment").catch(console.error);
-                    return NextResponse.json(
-                      {
-                        message: "Comment reply sent",
-                      },
-                      { status: 200 }
-                    );
-                  }
-                }
-              } else {
-                console.log("Sending private message");
-                const direct_message = await sendPrivateMessage(
+              console.log("Sending private message");
+              actions.push(
+                sendPrivateMessage(
                   webhook_payload.entry[0].id,
                   webhook_payload.entry[0].changes[0].value.from.id,
                   automation.listener?.prompt,
                   automation.User?.integrations[0].token!
-                );
+                )
+              );
 
-                if (direct_message.status === 200) {
-                  const tracked = await trackResponses(automation.id, "COMMENT");
+              const results = await Promise.all(actions);
+              const direct_message = results[actions.length - 1];
 
-                  if (tracked) {
-                    await trackAnalytics(automation.userId!, "comment").catch(
-                      console.error
-                    );
-                    return NextResponse.json(
-                      {
-                        message: "Message sent",
-                      },
-                      { status: 200 }
-                    );
-                  }
+              if (direct_message.status === 200) {
+                const tracked = await trackResponses(automation.id, "COMMENT");
+
+                if (tracked) {
+                  await trackAnalytics(automation.userId!, "comment").catch(
+                    console.error
+                  );
+                  return NextResponse.json(
+                    {
+                      message: "Messages sent successfully",
+                    },
+                    { status: 200 }
+                  );
                 }
               }
             }
