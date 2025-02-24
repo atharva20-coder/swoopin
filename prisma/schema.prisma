@@ -25,6 +25,7 @@ model User {
   automations  Automation[]
   notification Notification[]
   analytics    Analytics[]
+  openAiKey    String?        @unique
 }
 
 model Subscription {

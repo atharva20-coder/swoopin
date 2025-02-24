@@ -58,6 +58,7 @@ export const findAutomation = async (id: string) => {
         select: {
           subscription: true,
           integrations: true,
+          openAiKey: true,
         },
       },
     },

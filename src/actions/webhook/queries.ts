@@ -42,6 +42,7 @@ export const getKeywordAutomation = async (
               token: true,
             },
           },
+          openAiKey: true,
         },
       },
     },

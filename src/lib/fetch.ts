@@ -60,17 +60,12 @@ export const sendPrivateMessage = async (
   );
 };
 
-export const sendCommentReply = async (
-  userId: string,
-  commentId: string,
-  reply: string,
-  token: string
-) => {
-  console.log("sending comment reply");
+export const replyToComment = async (commentId: string, message: string, token: string) => {
+  console.log("replying to comment");
   return await axios.post(
-    `${process.env.INSTAGRAM_BASE_URL}/${userId}/media/${commentId}/replies`,
+    `${process.env.INSTAGRAM_BASE_URL}/${commentId}/replies`,
     {
-      message: reply,
+      message: message,
     },
     {
       headers: {

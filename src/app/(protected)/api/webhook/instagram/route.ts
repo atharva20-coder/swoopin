@@ -7,11 +7,12 @@ import {
   matchKeyword,
   trackResponses,
 } from "@/actions/webhook/queries";
-import { sendDM, sendPrivateMessage } from "@/lib/fetch";
+import { sendDM, sendPrivateMessage, replyToComment } from "@/lib/fetch";
 import { openai } from "@/lib/openai";
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { trackAnalytics } from "@/actions/analytics";
+import { OpenAI } from "openai";
 
 export async function GET(req: NextRequest) {
   const hub = req.nextUrl.searchParams.get("hub.challenge");
@@ -82,8 +83,14 @@ export async function POST(req: NextRequest) {
           ) {
             console.log("Smart AI", automation);
 
-            const smart_ai_message = await openai.chat.completions.create({
-              model: "gpt-4o",
+            const openaiClient = automation.User?.openAiKey
+              ? new OpenAI({
+                  apiKey: automation.User.openAiKey,
+                })
+              : openai;
+            
+            const smart_ai_message = await openaiClient.chat.completions.create({
+              model: "gpt-4o-mini",
               messages: [
                 {
                   role: "assistant",
@@ -165,47 +172,54 @@ export async function POST(req: NextRequest) {
             console.log("first if");
             if (automation.listener.listener === "MESSAGE") {
               console.log(
-                "SENDING DM, WEB HOOK PAYLOAD",
-                webhook_payload,
-                "changes",
-                webhook_payload.entry[0].changes[0].value.from
-              );
-
-              console.log(
-                "COMMENT VERSION:",
-                webhook_payload.entry[0].changes[0].value.from.id
-              );
-
-              const direct_message = await sendPrivateMessage(
-                webhook_payload.entry[0].id,
-                webhook_payload.entry[0].changes[0].value.id,
-                automation.listener?.prompt,
-                automation.User?.integrations[0].token!
+                "Processing message automation for comment",
+                webhook_payload.entry[0].changes[0].value
               );
 
               if (automation.listener.commentReply) {
-                await sendPrivateMessage(
-                  webhook_payload.entry[0].id,
+                console.log("Replying to comment with template");
+                
+                const comment_reply = await replyToComment(
                   webhook_payload.entry[0].changes[0].value.id,
                   automation.listener.commentReply,
                   automation.User?.integrations[0].token!
                 );
-              }
 
-              console.log("DM SENT", direct_message.data);
-              if (direct_message.status === 200) {
-                const tracked = await trackResponses(automation.id, "COMMENT");
+                if (comment_reply.status === 200) {
+                  const tracked = await trackResponses(automation.id, "COMMENT");
+                  if (tracked) {
+                    await trackAnalytics(automation.userId!, "comment").catch(console.error);
+                    return NextResponse.json(
+                      {
+                        message: "Comment reply sent",
+                      },
+                      { status: 200 }
+                    );
+                  }
+                }
+              } else {
+                console.log("Sending private message");
+                const direct_message = await sendPrivateMessage(
+                  webhook_payload.entry[0].id,
+                  webhook_payload.entry[0].changes[0].value.from.id,
+                  automation.listener?.prompt,
+                  automation.User?.integrations[0].token!
+                );
 
-                if (tracked) {
-                  await trackAnalytics(automation.userId!, "comment").catch(
-                    console.error
-                  );
-                  return NextResponse.json(
-                    {
-                      message: "Message sent",
-                    },
-                    { status: 200 }
-                  );
+                if (direct_message.status === 200) {
+                  const tracked = await trackResponses(automation.id, "COMMENT");
+
+                  if (tracked) {
+                    await trackAnalytics(automation.userId!, "comment").catch(
+                      console.error
+                    );
+                    return NextResponse.json(
+                      {
+                        message: "Message sent",
+                      },
+                      { status: 200 }
+                    );
+                  }
                 }
               }
             }
@@ -290,7 +304,13 @@ export async function POST(req: NextRequest) {
           automation.listener?.listener === "SMARTAI" &&
           automation.active
         ) {
-          const smart_ai_message = await openai.chat.completions.create({
+          const openaiClient = automation.User?.openAiKey
+            ? new OpenAI({
+                apiKey: automation.User.openAiKey,
+              })
+            : openai;
+          
+          const smart_ai_message = await openaiClient.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
               {
