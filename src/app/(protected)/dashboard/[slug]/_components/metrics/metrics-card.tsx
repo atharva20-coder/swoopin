@@ -19,7 +19,7 @@ const MetricsCard = () => {
   const currentMonth = currentDate.getMonth()
   
   const metrics = useMemo(() => {
-    if (!data?.data) return { comments: 0, dms: 0, commentChange: 0, dmChange: 0 }
+    if (!data?.data) return { comments: 0, dms: 0, commentReply: 0, commentChange: 0, dmChange: 0, commentReplyChange: 0 }
 
     const currentMonthData = data.data.filter(item => {
       const itemDate = new Date(item.createdAt)
@@ -39,11 +39,17 @@ const MetricsCard = () => {
     const previousDms = previousMonthData.reduce((sum, item) => sum + (item.listener?.dmCount || 0), 0)
     const dmChange = previousDms ? ((currentDms - previousDms) / previousDms) * 100 : 0
 
+    const currentCommentReply = currentMonthData.reduce((sum, item) => sum + (item.listener?.commentReply ? 1 : 0), 0)
+    const previousCommentReply = previousMonthData.reduce((sum, item) => sum + (item.listener?.commentReply ? 1 : 0), 0)
+    const commentReplyChange = previousCommentReply ? ((currentCommentReply - previousCommentReply) / previousCommentReply) * 100 : 0
+
     return {
       comments: currentComments,
       dms: currentDms,
+      commentReply: currentCommentReply,
       commentChange: commentChange,
-      dmChange: dmChange
+      dmChange: dmChange,
+      commentReplyChange: commentReplyChange
     }
   }, [data?.data, currentMonth])
 
@@ -53,6 +59,7 @@ const MetricsCard = () => {
         {[
           { title: "Comments", subtitle: "On your posts" },
           { title: "Direct Messages", subtitle: "On your account" },
+          { title: "Comment Replies", subtitle: "On your comments" },
         ].map((item, i) => (
           <div
             key={i}
@@ -73,36 +80,36 @@ const MetricsCard = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-full">
-      {[1, 2].map((i) => (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
+      {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="flex flex-col justify-center items-center py-2 px-4 gap-1 bg-white rounded-lg border border-gray-200 shadow-sm relative w-full"
+          className="flex flex-col justify-center items-center py-3 px-6 gap-2 bg-white rounded-lg border border-gray-200 shadow-sm relative w-full"
         >
-          <div className="flex flex-row items-center gap-2 w-full max-w-[320px] min-h-[40px]">
+          <div className="flex flex-row items-center gap-3 w-full max-w-[360px] min-h-[40px]">
             <div className="flex justify-center items-center p-1 w-10 h-10 -mt-1 bg-[rgba(176,224,230,0.2)] rounded-full shrink-0">
               <svg width="32" height="32" viewBox="0 0 36 36" fill="none" className="w-8 h-8">
-                <path d="M30 6H6C4.35 6 3.015 7.35 3.015 9L3 27C3 28.65 4.35 30 6 30H30C31.65 30 33 28.65 33 27V9C33 7.35 31.65 6 30 6ZM30 27H6V12L18 19.5L30 12V27ZM18 16.5L6 9H30L18 16.5Z" fill={i === 1 ? "#F2994A" : "#4682B4"}/>
+                <path d="M30 6H6C4.35 6 3.015 7.35 3.015 9L3 27C3 28.65 4.35 30 6 30H30C31.65 30 33 28.65 33 27V9C33 7.35 31.65 6 30 6ZM30 27H6V12L18 19.5L30 12V27ZM18 16.5L6 9H30L18 16.5Z" fill={i === 1 ? "#F2994A" : i === 2 ? "#4682B4" : "#27AE60"}/>
               </svg>
             </div>
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span className={`${montserrat.className} text-xl font-semibold leading-7 text-[rgba(0,0,0,0.75)] truncate`}>
-                {i === 1 ? metrics.comments : metrics.dms}
+            <div className="flex flex-col gap-1 min-w-0 flex-1">
+              <span className={`${montserrat.className} text-xl font-semibold leading-7 text-[rgba(0,0,0,0.75)]`}>
+                {i === 1 ? metrics.comments : i === 2 ? metrics.dms : metrics.commentReply}
               </span>
-              <span className={`${montserrat.className} text-sm leading-5 text-[rgba(0,0,0,0.5)] truncate`}>
-                {i === 1 ? 'Comments' : "Message's"}
+              <span className={`${montserrat.className} text-sm leading-5 text-[rgba(0,0,0,0.5)]`}>
+                {i === 1 ? 'Comments' : i === 2 ? "Message's" : "Comment Replies"}
               </span>
             </div>
           </div>
-          <div className="flex flex-row items-center justify-center gap-2 w-full max-w-[320px] h-4">
-            <div className="flex flex-row items-center gap-0.5">
-              {(i === 1 ? metrics.commentChange : metrics.dmChange) >= 0 ? (
+          <div className="flex flex-row items-center justify-start gap-2 w-full max-w-[360px] h-5">
+            <div className="flex flex-row items-center gap-1">
+              {(i === 1 ? metrics.commentChange : i === 2 ? metrics.dmChange : metrics.commentReplyChange) >= 0 ? (
                 <>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M4.5 11.5L11.5 4.5M11.5 4.5H6.5M11.5 4.5V9.5" stroke="#27AE60" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <span className={`${montserrat.className} text-xs leading-[15px] text-[#27AE60]`}>
-                    {Math.abs(i === 1 ? metrics.commentChange : metrics.dmChange).toFixed(2)}%
+                    {Math.abs(i === 1 ? metrics.commentChange : i === 2 ? metrics.dmChange : metrics.commentReplyChange).toFixed(2)}%
                   </span>
                 </>
               ) : (
@@ -111,12 +118,12 @@ const MetricsCard = () => {
                     <path d="M11.5 4.5L4.5 11.5M4.5 11.5H9.5M4.5 11.5V6.5" stroke="#EB5757" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <span className={`${montserrat.className} text-xs leading-[15px] text-[#EB5757]`}>
-                    {Math.abs(i === 1 ? metrics.commentChange : metrics.dmChange).toFixed(2)}%
+                    {Math.abs(i === 1 ? metrics.commentChange : i === 2 ? metrics.dmChange : metrics.commentReplyChange).toFixed(2)}%
                   </span>
                 </>
               )}
             </div>
-            <span className={`${montserrat.className} text-xs leading-[15px] text-[rgba(0,0,0,0.35)] whitespace-nowrap`}>Since last month</span>
+            <span className={`${montserrat.className} text-xs leading-[15px] text-[rgba(0,0,0,0.35)]`}>Since last month</span>
           </div>
         </div>
       ))}

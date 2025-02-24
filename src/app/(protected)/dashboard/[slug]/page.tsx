@@ -34,9 +34,7 @@ const Page = (props: Props) => {
               </p>
             </div>
           </span>
-          <div className="w-full sm:w-4/12 sm:-ml-20">
-            <MetricsCard />
-          </div>
+
         </div>
         <div className="w-full mt-5">
           <div className="w-full">
