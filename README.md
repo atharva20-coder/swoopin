@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Swoopin
+
+A modern Next.js application for social media management and automation.
+
+## Overview
+
+Swoopin is a powerful platform built with Next.js that helps users manage their social media presence, automate interactions, and analyze performance. The application integrates with various social media platforms and provides a comprehensive dashboard for managing digital presence.
+
+## Features
+
+- 🔐 Secure authentication with Clerk
+- 💳 Stripe integration for subscription management
+- 🤖 AI-powered automation capabilities
+- 📊 Analytics dashboard
+- 🔄 Social media platform integrations
+- 📱 Responsive design with modern UI
+- 🎨 Tailwind CSS styling
+
+## Tech Stack
+
+- **Framework:** Next.js 14
+- **Authentication:** Clerk
+- **Database:** Prisma
+- **Styling:** Tailwind CSS
+- **Payment Processing:** Stripe
+- **State Management:** Redux
+- **API Integration:** React Query
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/swoopin.git
+cd swoopin
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up environment variables:
+Create a `.env` file in the root directory and add the following variables:
+```env
+NEXT_PUBLIC_HOST_URL=your_host_url
+STRIPE_SUBSCRIPTION_PRICE_ID=your_stripe_price_id
+# Add other required environment variables
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+src/
+├── actions/        # Server actions
+├── app/            # App router pages
+├── components/     # Reusable components
+├── constants/      # Constants and configurations
+├── hooks/          # Custom React hooks
+├── icons/          # SVG icons
+├── lib/            # Utility functions
+├── providers/      # Context providers
+├── redux/          # Redux store and slices
+└── types/          # TypeScript types
+```
 
-## Learn More
+## API Documentation
 
-To learn more about Next.js, take a look at the following resources:
+The application uses Next.js API routes located in `src/app/api/`. Key endpoints include:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/api/payment` - Handles Stripe payment sessions
+- `/api/webhook` - Processes webhooks from integrated services
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Contributing
 
-## Deploy on Vercel
+Contributions are welcome! Please follow these steps:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature/your-feature`
+3. Make your changes and commit them: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Submit a pull request
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## License
+
+Copyright (c) 2024 Swoopin. All Rights Reserved.
+
+This software and associated documentation files (the "Software") are proprietary and confidential. The Software is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties.
+
+No part of this Software may be reproduced, modified, displayed, stored in a retrieval system, or transmitted in any form or by any means (electronic, mechanical, photocopying, recording or otherwise), without the prior written permission of Swoopin.
+
+Unauthorized copying, modification, distribution, public display, or use of this Software for any purpose is strictly prohibited and may result in severe civil and criminal penalties.
