@@ -190,9 +190,9 @@ export async function POST(req: NextRequest) {
                 );
               }
 
-              console.log("Sending private message");
+              console.log("Sending direct message");
               actions.push(
-                sendPrivateMessage(
+                sendDM(
                   webhook_payload.entry[0].id,
                   webhook_payload.entry[0].changes[0].value.from.id,
                   automation.listener?.prompt,
