@@ -3,6 +3,9 @@ import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { HomeDuoToneBlue } from "@/icons/home-duotone-blue";
 import { useUser } from "@clerk/nextjs";
+import { Sigmar } from 'next/font/google'
+
+const sigmar = Sigmar({ weight: '400', subsets: ['latin'] })
 
 type Props = {
   page: string;
@@ -26,7 +29,7 @@ const MainBreadCrumb = ({ page, slug }: Props) => {
       <Separator className="w-full my-6" />
       {page === "Home" && (
         <div className="flex flex-col gap-2 my-16">
-          <h2 style={{ fontFamily: "'Sigmar', serif" }} className="text-[48px] font-normal">
+          <h2 className={`${sigmar.className} text-4xl font-bold text-gray-900 mb-2`}>
             Hello, {firstName}!
           </h2>
         </div>
