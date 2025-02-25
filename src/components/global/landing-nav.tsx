@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -18,8 +17,8 @@ const LandingNav = () => {
         <div className="flex items-center justify-between h-[72px]">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold flex items-center">
-              <Image src="/images/manychat-logo.svg" alt="Manychat" width={130} height={32} />
+            <Link href="/" className="font-['Brice'] font-bold text-3xl flex items-center text-[#111827]">
+              Auctorn
             </Link>
           </div>
 

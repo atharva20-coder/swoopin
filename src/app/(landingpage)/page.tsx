@@ -4,14 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import LandingNav from "@/components/global/landing-nav";
 import { ChatInterface } from "@/components/ui/chat-interface";
-import { Climate_Crisis } from "next/font/google";
-import { Bebas_Neue } from "next/font/google";
 import { Brands } from "@/components/ui/brands";
 import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import Footer from "@/components/global/footer";
-
-const climateCrisis = Climate_Crisis({ subsets: ["latin"], weight: ["400"] });
-const bebasNeue = Bebas_Neue({ subsets: ["latin"], weight: ["400"] });
 
 export default function LandingPage() {
   const heroRef = useScrollReveal();
@@ -23,13 +18,13 @@ export default function LandingPage() {
   const getStartedRef = useScrollReveal();
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-[#EFE8F7]">
       <LandingNav />
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden mt-[72px] opacity-0 translate-y-4 transition-all duration-700">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background overflow-hidden mt-[72px] opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h1 className={`${climateCrisis.className} text-6xl md:text-8xl font-normal mb-8 text-black tracking-tight leading-tight`}>
-            Unleash the power of social media marketing
+          <h1 className="font-['Brice'] font-bold text-6xl md:text-8xl mb-8 text-black tracking-tight leading-tight">
+            SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto font-light">
             Drive more sales and conversions on Instagram, WhatsApp,<br />and Messenger using automation.
@@ -38,9 +33,59 @@ export default function LandingPage() {
             GET STARTED FOR FREE
           </Link>
     
-          {/* Chat Preview */}
-          <div className="mt-16 relative max-w-lg mx-auto">
-            <ChatInterface />
+          {/* Feature Cards */}
+          <div className="mt-16 relative max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4">
+            {/* Card 1 - Social Media Automation */}
+            <div className="relative bg-[#D4ADFF] rounded-[32px] p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-black min-h-[280px] flex flex-col justify-between transform hover:-translate-y-1 md:scale-90 z-10">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-lg font-medium w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+                #1
+              </div>
+              <div className="flex items-start space-x-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Social Media Automation</h3>
+                  <p className="text-xl font-regular text-gray-800">Automate Your Posts With Just Few <strong className="font-['Brice']">TAPS!</strong></p>
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none flex justify-center items-center">
+                <div className="flex items-center space-x-4 mb-12">
+                  <span className="text-[30px] font-['Brice'] font-bold text-black/5 leading-none">TAP</span>
+                  <span className="text-[30px] font-['Brice'] font-bold text-black leading-none">TAP</span>
+                  <span className="text-[30px] font-['Brice'] font-bold text-black/5 leading-none">TAP</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2 - Sign Up */}
+            <div className="bg-[#FEDE65] rounded-[32px] p-8 shadow-xl hover:shadow-2xl transition-all duration-300 relative border-2 border-black flex flex-col min-h-[320px] justify-between transform md:translate-y-4 md:scale-110 hover:-translate-y-1 z-20">
+              <Image
+                src="/landingpage-images/hand.svg"
+                alt="Hand illustration"
+                width={150}
+                height={180}
+                className="absolute left-1/2 -top-5 transform -translate-x-1/2 z-10 animate-float"
+              />
+              <div className="flex-grow"></div>
+
+              <div className="flex flex-col items-center gap-4 mt-auto relative z-10">
+              <p className="text-black font-medium text-lg animate-pulse">Click to Get Started!</p>
+                <Link href="/dashboard">
+                <button className="wiggle-on-hover bg-white text-black px-6 py-3 rounded-2xl font-['Brice'] hover:bg-gray-100 transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-black transform rotate-3 hover:rotate-0">
+                  SIGN UP NOW
+                </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 3 - Rating */}
+            <div className="bg-white rounded-[32px] p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-black min-h-[280px] flex flex-col justify-between relative transform hover:-translate-y-1 md:scale-90 z-10">
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-lg font-medium w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+                ⚡
+              </div>
+              <div className="flex flex-col items-center justify-center h-full">
+                <h2 className="text-5xl font-['Brice'] font-bold text-gray-900 mb-4">24/7</h2>
+                <p className="text-gray-600 text-center">AI-Powered <strong>Automation<br />& Support</strong></p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -54,10 +99,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section ref={featuresRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
+      <section ref={featuresRef} className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto">
           <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-4 snap-x snap-mandatory">
-            <div className="p-8 bg-gradient-to-b from-pink-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer flex-shrink-0 w-[85vw] md:w-auto snap-start">
+            <div className="p-8 bg-gradient-to-b from-pink-50 to-transparent shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/Instagram.svg" alt="Instagram" width={24} height={24} className="w-6 h-6" />
               </div>
@@ -72,7 +117,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-green-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
+            <div className="p-8 bg-gradient-to-b from-green-50 to-transparent shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/whatsapp.svg" alt="WhatsApp" width={24} height={24} className="w-6 h-6" />
@@ -88,7 +133,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-blue-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
+            <div className="p-8 bg-gradient-to-b from-blue-50 to-transparent shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/messenger.svg" alt="Messenger" width={24} height={24} className="w-6 h-6" />
@@ -104,7 +149,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <div className="p-8 bg-gradient-to-b from-purple-50 to-transparent hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
+            <div className="p-8 bg-gradient-to-b from-purple-50 to-transparent shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative flex-shrink-0 w-[85vw] md:w-auto snap-start">
               <span className="absolute top-4 right-4 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">Upcoming</span>
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
                 <Image src="/icons/threads.svg" alt="Instagram Threads" width={24} height={24} className="w-6 h-6" />
@@ -126,7 +171,7 @@ export default function LandingPage() {
       {/* Lead Generation Section */}
       <section ref={leadGenRef} className="py-20 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
+          <h1 className={`font-['Brice'] font-bold text-6xl md:text-8xl sm:text-6xl mb-16 text-black tracking-tight leading-tight`}>
           Use Chat Marketing to drive more sales on autopilot
           </h1>
         </div>
@@ -138,7 +183,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Supercharge your lead generation
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Capture and nurture leads through automated conversations. Convert website visitors into customers with personalized engagement strategies.</p>
@@ -155,7 +200,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="lg:order-1 opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Increase conversion rates by up to 90%
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Leverage AI-powered automation to optimize your marketing campaigns, boost engagement rates, and maximize your return on investment.</p>
@@ -172,7 +217,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Automatically respond to every message
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Automatically engage with every story mention, comment, and DM. Turn social interactions into meaningful conversations that drive sales.</p>
@@ -189,7 +234,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="lg:order-1 opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
               Claim back your time & slash costs
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Provide 24/7 customer support with automated responses to common questions. Keep your customers satisfied while saving time and resources.</p>
@@ -206,7 +251,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`${bebasNeue.className} text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] font-bold text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
                 Auctorn AI: A Smarter Way to Chat
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Level up the experiences your followers already love with the new Auctorn AI. Create more engaging and personalized conversations.</p>
@@ -221,25 +266,28 @@ export default function LandingPage() {
       {/* Stats Section */}
       <section ref={statsRef} className="py-12 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
+          <h2 className={`font-['Brice'] font-bold text-6xl md:text-8xl sm:text-6xl mb-16 text-black tracking-tight leading-tight`}>
             Discover why 1M+ brands trust Auctorn
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div className="p-6">
-              <div className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>1M+</div>
-              <p className="text-gray-600 text-lg">Businesses chose Auctorn to grow</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-8">
+            <div className="p-8 flex flex-col items-center justify-center">
+              <div className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>1M+</div>
+              <p className="text-gray-600 text-lg">Businesses chose Auctorn</p>
             </div>
-            <div className="p-6">
-              <div className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>4B+</div>
-              <p className="text-gray-600 text-lg">Conversations powered by Auctorn</p>
+            <div className="p-8 flex flex-col items-center justify-center">
+              <div className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>4B+</div>
+              <p className="text-gray-600 text-lg">Messages automated</p>
             </div>
-            <div className="p-6">
-              <div className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>170+</div>
-              <p className="text-gray-600 text-lg">Countries use Auctorn across the world</p>
+            <div className="p-8 flex flex-col items-center justify-center">
+              <div className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>170+</div>
+              <p className="text-gray-600 text-lg">Global reach</p>
             </div>
-            <div className="p-6">
-              <div className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>#1</div>
-              <p className="text-gray-600 text-lg">Platform in leading marketing tool</p>
+            <div className="p-8 flex flex-col items-center justify-center relative">
+              <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full shadow-sm">
+                ★ Featured
+              </div>
+              <div className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-4 text-[#4F46E5]`}>#1</div>
+              <p className="text-gray-600 text-lg">Social automation platform</p>
             </div>
           </div>
         </div>
@@ -283,9 +331,9 @@ export default function LandingPage() {
       </section>
 
       {/* Get Started Section */}
-      <section ref={getStartedRef} className="py-20 px-4 sm:px-6 lg:px-8 bg-white opacity-0 translate-y-4 transition-all duration-700">
+      <section ref={getStartedRef} className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className={`${climateCrisis.className} text-5xl sm:text-6xl font-normal mb-16 text-black tracking-tight leading-tight`}>
+          <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-bold mb-16 text-black tracking-tight leading-tight`}>
             Get started with Auctorn
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">

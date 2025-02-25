@@ -1,10 +1,7 @@
 "use client";
 
-import { Climate_Crisis } from "next/font/google";
 import Link from "next/link";
 import LandingNav from "@/components/global/landing-nav";
-
-const climateCrisis = Climate_Crisis({ subsets: ["latin"], weight: ["400"] });
 
 export default function TOCPage() {
   return (
@@ -49,7 +46,7 @@ export default function TOCPage() {
               <div className="mb-8">
                 <p className="text-sm text-gray-600 mb-4">EFFECTIVE DATE: FEBRUARY 8, 2024</p>
                 <p className="text-sm text-gray-600 mb-8">PREVIOUS VERSION</p>
-                <h1 className={`${climateCrisis.className} text-4xl md:text-5xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+                <h1 className={`font-['Brice'] text-4xl md:text-5xl font-bold mb-8 text-black tracking-tight leading-tight`}>
                   Auctorn, inc. - Terms of Service
                 </h1>
               </div>
