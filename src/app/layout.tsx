@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "sonner";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import ReduxProvider from "@/providers/redux-provider";
+import CookieConsent from '@/components/global/cookie-consent';
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -61,14 +62,10 @@ export default function RootLayout({
       <body
       suppressHydrationWarning 
       className={jakarta.className}>
-        <ThemeProvider 
-          attribute="class"
-          defaultTheme="light"
-          disableTransitionOnChange>
-            <ReduxProvider>
-              <ReactQueryProvider>{children}</ReactQueryProvider>
-            </ReduxProvider>
-            <Toaster/>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {children}
+          <CookieConsent />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

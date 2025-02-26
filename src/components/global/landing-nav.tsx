@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Inter } from "next/font/google";
+import Image from "next/image";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,18 +15,51 @@ const LandingNav = () => {
   return (
     <nav className={`${inter.className} fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-xl border-b border-white/20 shadow-sm`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[72px]">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="font-['Brice'] font-bold text-3xl flex items-center text-[#111827]">
-              Auctorn
+        <div className="flex items-center h-[72px]">
+          {/* Logo and Navigation Links */}
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="font-['Brice'] font-bold text-3xl flex items-center gap-1 text-[#111827]">
+              <Image
+                src="/landingpage-images/Autcorn-logo.svg"
+                alt="Auctorn Logo"
+                width={52}
+                height={52}
+                className="w-12 h-12"
+              />
             </Link>
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+                <span className="relative inline-block">PRODUCT
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
+              </Link>
+              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+                <span className="relative inline-block">SOLUTIONS
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
+              </Link>
+              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+                <span className="relative inline-block">AGENCIES
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
+              </Link>
+              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+                <span className="relative inline-block">PRICING
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
+              </Link>
+              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+                <span className="relative inline-block">RESOURCES
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
+              </Link>
+            </div>
           </div>
 
           {/* Hamburger Menu Button */}
           <button
             onClick={toggleMenu}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 ml-auto"
             aria-expanded={isMenuOpen}
             aria-label="Toggle menu"
           >
@@ -53,32 +87,27 @@ const LandingNav = () => {
             </svg>
           </button>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="#" className="text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors">
-              PRODUCT
-            </Link>
-            <Link href="#" className="text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors">
-              SOLUTIONS
-            </Link>
-            <Link href="#" className="text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors">
-              AGENCIES
-            </Link>
-            <Link href="#" className="text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors">
-              PRICING
-            </Link>
-            <Link href="#" className="text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors">
-              RESOURCES
-            </Link>
-          </div>
-
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="/dashboard" className="text-sm font-medium text-[#111827] hover:text-[#4F46E5] transition-colors">
-              SIGN IN
+          <div className="hidden md:flex items-center space-x-6 ml-auto">
+            <Link href="/dashboard" className="group relative text-sm font-medium text-[#111827] hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-[#111827] hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
+              <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </span>
+                <span className="transform group-hover:translate-x-3 transition-transform duration-300">SIGN IN</span>
+              </span>
             </Link>
-            <Link href="/dashboard" className="bg-[#4F46E5] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#4338CA] transition-colors shadow-sm hover:shadow-md">
-              GET STARTED
+            <Link href="/dashboard" className="group relative bg-black text-white px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none">
+              <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </span>
+                <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
+              </span>
             </Link>
           </div>
         </div>
@@ -89,28 +118,52 @@ const LandingNav = () => {
         >
           <div className="h-[calc(100vh-72px)] overflow-y-auto px-4 pt-2 pb-8 space-y-4 flex flex-col">
             <div className="flex-1 space-y-4">
-              <Link href="#" className="block text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors py-2">
-                PRODUCT
+              <Link href="#" className="block text-[#111827] text-base font-medium relative group py-4 px-3">
+                <span className="relative inline-block">PRODUCT
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
               </Link>
-              <Link href="#" className="block text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors py-2">
-                SOLUTIONS
+              <Link href="#" className="block text-[#111827] text-base font-medium relative group py-4 px-3">
+                <span className="relative inline-block">SOLUTIONS
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
               </Link>
-              <Link href="#" className="block text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors py-2">
-                AGENCIES
+              <Link href="#" className="block text-[#111827] text-base font-medium relative group py-4 px-3">
+                <span className="relative inline-block">AGENCIES
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
               </Link>
-              <Link href="#" className="block text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors py-2">
-                PRICING
+              <Link href="#" className="block text-[#111827] text-base font-medium relative group py-4 px-3">
+                <span className="relative inline-block">PRICING
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
               </Link>
-              <Link href="#" className="block text-[#111827] text-sm font-medium hover:text-[#4F46E5] transition-colors py-2">
-                RESOURCES
+              <Link href="#" className="block text-[#111827] text-base font-medium relative group py-4 px-3">
+                <span className="relative inline-block">RESOURCES
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                </span>
               </Link>
             </div>
             <div className="pt-4 border-t border-gray-200">
-              <Link href="/dashboard" className="block text-sm font-medium text-[#111827] hover:text-[#4F46E5] transition-colors py-2">
-                SIGN IN
+              <Link href="/dashboard" className="group relative block text-sm font-medium text-[#111827] hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-[#111827] hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
+                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                  <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                  <span className="transform group-hover:translate-x-3 transition-transform duration-300">SIGN IN</span>
+                </span>
               </Link>
-              <Link href="/dashboard" className="block bg-[#4F46E5] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#4338CA] transition-colors shadow-sm hover:shadow-md text-center mt-4">
-                GET STARTED
+              <Link href="/dashboard" className="group relative block bg-black text-white px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none mt-4">
+                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                  <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                  <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
+                </span>
               </Link>
             </div>
           </div>
