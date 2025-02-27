@@ -431,7 +431,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`font-['Brice'] font-bold text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] font-normal text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
                 Automatically respond to every message
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Automatically engage with every story mention, comment, and DM. Turn social interactions into meaningful conversations that drive sales.</p>

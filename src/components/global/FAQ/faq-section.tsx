@@ -1,24 +1,24 @@
 "use client"
 
-import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion"
 
 export const FAQSection = () => {
-  const faqRef = useScrollReveal()
-
   return (
-    <section ref={faqRef} className="min-h-screen px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700 flex items-center snap-start snap-always">
-      <div className="max-w-7xl mx-auto">
+    <section className="min-h-screen px-4 sm:px-6 lg:px-8 bg-background flex items-center snap-start snap-always">
+      <div className="max-w-7xl mx-auto w-full py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           {/* Left Column - Heading */}
           <div className="lg:col-span-3 lg:sticky lg:top-24 self-start">
-            <h1 className="text-6xl font-['Brice'] font-bold tracking-tight">FAQs</h1>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-['Brice'] font-bold tracking-tight text-black">FAQs</h2>
           </div>
 
           {/* Right Column - Accordion */}
           <div className="lg:col-span-9">
-            <Accordion type="single" collapsible className="space-y-6" defaultValue="item-1">
-              <AccordionItem value="item-1" className="border-0 border-b">
+          <Accordion type="single" collapsible className="space-y-8" defaultValue="item-1">
+            <AccordionItem 
+              value="item-1" 
+              className="border-0 border-b border-gray-200 [&[data-state=open]]:border-b-0"
+            >
                 <AccordionTrigger className="text-xl font-semibold hover:no-underline py-6">
                   What are the six steps of a product launch plan?
                 </AccordionTrigger>
@@ -32,7 +32,7 @@ export const FAQSection = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-2" className="border-0 border-b">
+              <AccordionItem value="item-2" className="border-0 border-b border-gray-200">
                 <AccordionTrigger className="text-xl font-semibold hover:no-underline py-6">
                   What should a product launch include?
                 </AccordionTrigger>
@@ -43,7 +43,7 @@ export const FAQSection = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-3" className="border-0 border-b">
+              <AccordionItem value="item-3" className="border-0 border-b border-gray-200">
                 <AccordionTrigger className="text-xl font-semibold hover:no-underline py-6">
                   How do you introduce a product launch?
                 </AccordionTrigger>
