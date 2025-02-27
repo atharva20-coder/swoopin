@@ -15,40 +15,40 @@ const LandingNav = () => {
   return (
     <nav className={`${inter.className} fixed top-0 left-0 right-0 z-50 bg-white/30 backdrop-blur-xl border-b border-white/20 shadow-sm`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-[72px]">
+        <div className="flex items-center h-[72px] md:h-[80px] lg:h-[72px]">
           {/* Logo and Navigation Links */}
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="font-['Brice'] font-bold text-3xl flex items-center gap-1 text-[#111827]">
+          <div className="flex items-center space-x-4 md:space-x-6 lg:space-x-8">
+            <Link href="/" className="font-['Brice'] font-bold text-2xl md:text-2xl lg:text-3xl flex items-center gap-1 text-[#111827]">
               <Image
                 src="/landingpage-images/Autcorn-logo.svg"
                 alt="Auctorn Logo"
                 width={52}
                 height={52}
-                className="w-12 h-12"
+                className="w-10 h-10 md:w-11 md:h-11 lg:w-12 lg:h-12"
               />
             </Link>
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+              <Link href="#" className="text-[#111827] text-xs md:text-sm font-medium relative group">
                 <span className="relative inline-block">PRODUCT
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
                 </span>
               </Link>
-              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+              <Link href="#" className="text-[#111827] text-xs md:text-sm font-medium relative group">
                 <span className="relative inline-block">SOLUTIONS
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
                 </span>
               </Link>
-              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+              <Link href="#" className="text-[#111827] text-xs md:text-sm font-medium relative group">
                 <span className="relative inline-block">AGENCIES
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
                 </span>
               </Link>
-              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+              <Link href="#" className="text-[#111827] text-xs md:text-sm font-medium relative group">
                 <span className="relative inline-block">PRICING
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
                 </span>
               </Link>
-              <Link href="#" className="text-[#111827] text-sm font-medium relative group">
+              <Link href="#" className="text-[#111827] text-xs md:text-sm font-medium relative group">
                 <span className="relative inline-block">RESOURCES
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#000000] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
                 </span>
@@ -88,8 +88,8 @@ const LandingNav = () => {
           </button>
 
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-6 ml-auto">
-            <Link href="/dashboard" className="group relative text-sm font-medium text-[#111827] hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-[#111827] hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 ml-auto">
+            <Link href="/dashboard" className="group relative text-xs md:text-sm font-medium text-[#111827] hover:text-[#4F46E5] px-4 md:px-6 py-2 md:py-2.5 rounded-lg border border-[#111827] hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
               <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,7 +99,7 @@ const LandingNav = () => {
                 <span className="transform group-hover:translate-x-3 transition-transform duration-300">SIGN IN</span>
               </span>
             </Link>
-            <Link href="/dashboard" className="group relative bg-black text-white px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none">
+            <Link href="/dashboard" className="group relative bg-black text-white px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none">
               <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

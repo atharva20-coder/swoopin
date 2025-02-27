@@ -53,22 +53,24 @@ export const viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-      <body
-      suppressHydrationWarning 
-      className={jakarta.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {children}
-          <CookieConsent />
-          <Toaster />
-        </ThemeProvider>
+    <html lang="en">
+      <body className={jakarta.className}>
+        <ClerkProvider>
+          <ReactQueryProvider>
+            <ReduxProvider>
+              <ThemeProvider>
+                {children}
+                <Toaster />
+                <CookieConsent />
+              </ThemeProvider>
+            </ReduxProvider>
+          </ReactQueryProvider>
+        </ClerkProvider>
       </body>
     </html>
-    </ClerkProvider>
   );
 }
