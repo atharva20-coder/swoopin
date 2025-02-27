@@ -34,11 +34,11 @@ export default function LandingPage() {
           </div>
           <div className="text-left px-2 sm:px-0">
             <p className="text-black mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
-            <h1 className="font-['Brice'] font-normal text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black tracking-tight leading-tight">
-              Achieve lift-off with our product launch plan template
+            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black tracking-tight leading-tight">
+            SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
             </h1>
             <p className="text-sm sm:text-xl text-gray-800 mb-4 sm:mb-8 max-w-2xl">
-              Whether it&apos;s a new team project, a freelance pitch, or a thrilling side hustle, watch your next project take off with our customizable planning templates.
+            Boost your sales and conversions on Instagram, WhatsApp, and Messenger with our automation tools. Whether you&apos;re launching a new campaign or scaling up your business, watch your success soar with our customizable solutions.
             </p>
             <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
