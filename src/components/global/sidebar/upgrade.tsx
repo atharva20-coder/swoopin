@@ -8,7 +8,7 @@ export default function UpgradeCard(props: Props) {
   return (
     <>
       <Separator className="my-4 opacity-80 bg-gray-300" />
-      <div className="bg-[#F6F7F9] p-4 rounded-xl flex flex-col gap-y-4 shadow-sm">
+      <div className="bg-white p-3 rounded-xl flex flex-col items-center text-center gap-y-3 shadow-sm mt-4 mb-2">
       <span className="text-[#111827] text-sm font-medium">
         Upgrade to {""}
         <span

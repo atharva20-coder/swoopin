@@ -33,10 +33,8 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
   const [ConfirmDialog, confirm] = useConfirm(
-    "Before you proceed!",
-    `Due to our app limitations, we strongly advise you to use clone ${capitalize(
-      strategy
-    )} accounts to avoid unfortunate consequences`
+    "Terms of Service & Privacy",
+    `We comply with ${capitalize(strategy)}'s terms of service and protect your privacy. We do not store sensitive information and ensure secure data handling. By proceeding, you agree to our Terms and Conditions. Learn more at /terms`
   );
 
   const onInstaOAuth = async () => {

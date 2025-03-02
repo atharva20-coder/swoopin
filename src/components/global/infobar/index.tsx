@@ -27,10 +27,8 @@ const InfoBar = ({ slug }: Props) => {
 
   return (
     currentPage && (
-      <div className="flex flex-col">
-        <div className="flex gap-x-3 lg:gap-x-5 justify-between items-center">
-          
-        </div>
+      <div className="flex flex-col p-4 md:p-6">
+
         <MainBreadCrumb page={page === slug ? "Home" : page} slug={slug} />
       </div>
     )

@@ -56,7 +56,7 @@ const MobileNav = ({ slug }: Props) => {
     <>
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black/50 z-[90] transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 z-[999] backdrop-blur-sm transition-opacity duration-300"
           onClick={handleOverlayClick}
         />
       )}

@@ -38,7 +38,7 @@ const DeleteAutomationButton = ({ id }: { id: string }) => {
         className="fixed w-14 h-14 bottom-6 rounded-full right-6 md:bottom-8 md:right-8 shadow-lg hover:shadow-xl transition-shadow duration-200 z-50"
       >
         {isPending ? (
-          <Loader size={6} className="animate-spin" />
+          <Loader size={6} className="animate-spin text-red-500" />
         ) : (
           <TrashIcon className="text-red-500 w-6 h-6" />
         )}

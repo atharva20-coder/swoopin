@@ -48,9 +48,9 @@ const ActivateAutomationButton = ({ id }: Props) => {
       />
       <span className="text-sm font-medium">
         {isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin text-black" />
         ) : (
-          <strong className={optimisticState ? "text-green-500" : ""}>
+          <strong className={optimisticState ? "text-green-500" : "text-black"}>
             {optimisticState ? "Active" : "Inactive"}
           </strong>
         )}

@@ -19,7 +19,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
   const { latestVariable } = useMutationDataState(["update-automation"]);
 
   return (
-    <div className="rounded-full w-full p-5 bg-[#18181B1A] flex items-center">
+    <div className="rounded-full w-full p-5 mr-10 bg-[#18181B1A] flex items-center">
       <div className="flex items-center gap-x-3 min-w-0">
         <p className="text-[#9B9CA0] truncate">Automations</p>
         <ChevronRight className="flex-shrink-0" color="#9B9CA0" />
@@ -30,7 +30,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
               placeholder={
                 isPending ? latestVariable.variables : "Add a new name"
               }
-              className="bg-transparent h-auto outline-none text-base border-none p-0"
+              className="bg-transparent h-auto outline-none text-base border-none p-0 text-black"
             />
           ) : (
             <p className="text-[#9B9CA0] truncate">
@@ -46,7 +46,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
               className="cursor-pointer hover:opacity-75 duration-100 transition flex-shrink-0 mr-4"
               onClick={enableEdit}
             >
-              <PencilIcon size={14} />
+              <PencilIcon size={14} color="#000000" />
             </span>
           )}
         </span>

@@ -26,15 +26,15 @@ type Props = {
 const chartConfig = {
   dmCount: {
     label: 'Messages',
-    color: '#2761D8',
+    color: '#2F329F',
   },
   commentCount: {
     label: 'Comments',
-    color: '#2DB78A',
+    color: '#4B4EC6',
   },
   commentReply: {
     label: 'Replies',
-    color: '#105427',
+    color: '#7273E9',
   },
 } as const
 
@@ -45,71 +45,11 @@ const Chart = ({ hasActivity = false }: Props) => {
   if (isLoading) {
     return (
       <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm">
-        <CardContent className="p-0">
-          <ResponsiveContainer height={300} width={'100%'}>
-            <BarChart
-              data={[
-                { date: "2024-07-15", dmCount: 450, commentCount: 300, commentReply: 200 },
-                { date: "2024-07-16", dmCount: 380, commentCount: 420, commentReply: 150 },
-                { date: "2024-07-17", dmCount: 520, commentCount: 120, commentReply: 300 },
-                { date: "2024-07-18", dmCount: 140, commentCount: 550, commentReply: 250 },
-                { date: "2024-07-19", dmCount: 600, commentCount: 350, commentReply: 180 },
-                { date: "2024-07-20", dmCount: 480, commentCount: 400, commentReply: 220 },
-              ]}
-              margin={{
-                left: 24,
-                right: 24,
-                top: 24,
-                bottom: 24
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={true}
-                axisLine={true}
-                tickMargin={16}
-                fontSize={14}
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8' }}
-              />
-              <YAxis
-                tickLine={true}
-                axisLine={true}
-                tickMargin={16}
-                fontSize={14}
-                stroke="#94a3b8"
-                tick={{ fill: '#94a3b8' }}
-              />
-              <Bar
-                dataKey="dmCount"
-                stackId="stack"
-                fill="#2761D8"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={40}
-                animationDuration={300}
-                minPointSize={3}
-              />
-              <Bar
-                dataKey="commentCount"
-                stackId="stack"
-                fill="#2DB78A"
-                radius={[0, 0, 0, 0]}
-                maxBarSize={40}
-                animationDuration={300}
-                minPointSize={3}
-              />
-              <Bar
-                dataKey="commentReply"
-                stackId="stack"
-                fill="#105427"
-                radius={[0, 0, 4, 4]}
-                maxBarSize={40}
-                animationDuration={300}
-                minPointSize={3}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <CardContent className="p-4 sm:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[300px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-base text-gray-500">Loading chart data...</p>
+          </div>
         </CardContent>
       </Card>
     )
@@ -120,7 +60,7 @@ const Chart = ({ hasActivity = false }: Props) => {
       <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm">
         <CardContent className="p-4 sm:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[300px]">
           <p className="text-base sm:text-lg text-gray-500 text-center px-2">
-            {hasActivity ? 'No activity data available yet.' : 'We\'re currently gathering your activity!'}
+            No activity data available yet.
           </p>
         </CardContent>
       </Card>
@@ -193,36 +133,34 @@ const Chart = ({ hasActivity = false }: Props) => {
                 />
                 <Bar
                   dataKey="dmCount"
-                  stackId="stack"
-                  radius={[0, 0, 4, 4]}
-                  maxBarSize={40}
-                  animationDuration={300}
-                  fill="#2761D8"
+                  stackId="stack1"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={35}
+                  fill="#2F329F"
+                  minPointSize={3}
                 />
                 <Bar
                   dataKey="commentCount"
-                  stackId="stack"
-                  radius={[0, 0, 0, 0]}
-                  maxBarSize={40}
-                  animationDuration={300}
-                  fill="#2DB78A"
+                  stackId="stack2"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={35}
+                  fill="#4B4EC6"
+                  minPointSize={3}
                 />
                 <Bar
                   dataKey="commentReply"
-                  stackId="stack"
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={40}
-                  animationDuration={300}
-                  fill="#105427"
+                  stackId="stack3"
+                  radius={[0, 0, 4, 4]}
+                  maxBarSize={35}
+                  fill="#7273E9"
+                  minPointSize={3}
                 />
               </BarChart>
             </ChartContainer>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <div className="w-full max-w-[1200px] px-2">
-        <MetricsCard />
-      </div>
+      
     </div>
   )
 }

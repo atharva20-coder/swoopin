@@ -116,7 +116,7 @@ const Trigger = ({ id }: Props) => {
         <Button
           onClick={onSaveTrigger}
           disabled={types?.length === 0 || (!hasKeywords && !keywordInputValue)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
         >
           <Loader state={isPending}>Create Trigger</Loader>
         </Button>

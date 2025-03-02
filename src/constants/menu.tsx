@@ -13,7 +13,8 @@ export type FieldProps = {
 }
 
 type SideBarProps = {
-  icon: React.ReactNode
+  icon: React.ReactNode;
+  name?: string;
 } & FieldProps
 
 export const SIDEBAR_MENU: SideBarProps[] = [

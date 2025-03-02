@@ -2,6 +2,7 @@
 import { Separator } from "@/components/ui/separator";
 import { useQueryAutomation } from "@/hooks/user-queries";
 import { PlaneBlue, SmartAi, Warning } from "@/icons";
+import { cn } from "@/lib/utils";
 import React from "react";
 import PostButton from "../post";
 
@@ -27,7 +28,7 @@ const ThenNode = ({ id }: Props) => {
       </div>
       <div className="flex gap-x-2">
         <Warning />
-        <strong>Then...</strong>
+        <strong className="text-black">Then...</strong>
       </div>
       <div className="bg-[#ededef] hover:bg-[#dfdfdf] p-3 rounded-xl flex flex-col gap-y-2">
         <div className="flex gap-x-2 items-center">
@@ -36,15 +37,25 @@ const ThenNode = ({ id }: Props) => {
           ) : (
             <SmartAi />
           )}
-          <p className=" text-lg">
+          <p className="text-lg text-black">
             {data.data.listener.listener === "MESSAGE"
               ? "Send the user a message."
               : "Let Smart AI take over"}
           </p>
         </div>
-        <p className="font-light text-text-secondary">
+        <p className={cn(
+          "font-light text-black",
+          data.data.listener.listener === "SMARTAI" && "border border-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.5)] p-3 rounded-xl"
+        )}>
           {data.data.listener.prompt}
         </p>
+        {data.data.listener.commentReply && (
+          <div className="mt-3 bg-white/50 p-3 rounded-xl border border-gray-200 shadow-sm">
+            <p className="font-light text-black">
+              <span className="font-medium">Reply:</span> {data.data.listener.commentReply}
+            </p>
+          </div>
+        )}
       </div>
       {data.data.posts.length > 0 ? (
         <></>

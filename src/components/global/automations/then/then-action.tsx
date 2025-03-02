@@ -35,9 +35,10 @@ const ThenAction = ({ id }: Props) => {
             className={cn(
               "text-left p-4 rounded-xl flex flex-col gap-y-2 transition-all duration-200",
               Listener === listener.type
-                ? "bg-primary text-white shadow-md"
+                ? "bg-transparent text-black shadow-lg ring-1 ring-primary/30 ring-offset-1 ring-offset-white border border-primary/20"
                 : "bg-gray-50 hover:bg-gray-100",
-              listener.type === "SMARTAI" && !isPro && "opacity-50 cursor-not-allowed"
+              listener.type === "SMARTAI" && !isPro && "opacity-50 cursor-not-allowed",
+              listener.type === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
             )}
           >
             <div className="flex gap-x-2 items-center">
@@ -59,12 +60,15 @@ const ThenAction = ({ id }: Props) => {
                 : "Add a message you want to send to your customers"
             }
             {...register("prompt")}
-            className="min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary"
+            className={cn(
+              "min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary",
+              Listener === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
+            )}
           />
           <Input
             {...register("reply")}
             placeholder="Add a reply for comments (Optional)"
-            className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary"
+            className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary text-black"
           />
           <Button 
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium"

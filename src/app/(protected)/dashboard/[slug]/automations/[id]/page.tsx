@@ -38,9 +38,9 @@ const Page = async ({ params }: Props) => {
             <AutomationsBreadCrumb id={params.id} />
           </div>
           <div className="w-full lg:w-10/12 xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] gap-y-3">
-            <div className="flex gap-x-2">
+            <div className="flex gap-x-2 text-black">
               <Warning />
-              <strong>When...</strong>
+              <strong className="text-black">When...</strong>
             </div>
             <Trigger id={params.id} />
           </div>

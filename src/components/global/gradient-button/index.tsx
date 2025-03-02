@@ -11,20 +11,19 @@ type Props = {
 }
 
 const GradientButton = ({ children, type, className, href }: Props) => {
-  const gradients =
-    'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-[2px]'
+  const buttonStyles = 'bg-gray-100 hover:bg-gray-200 transition-colors duration-200 rounded-xl p-[2px]'
 
   switch (type) {
     case 'BUTTON':
       return (
-        <div className={gradients}>
+        <div className={buttonStyles}>
           <Button className={cn(className, 'rounded-xl')}>{children}</Button>
         </div>
       )
 
     case 'LINK':
       return (
-        <div className={gradients}>
+        <div className={buttonStyles}>
           <Link
             href={href!}
             className={cn(className, 'rounded-xl')}

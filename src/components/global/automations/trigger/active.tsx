@@ -26,7 +26,7 @@ const ActiveTrigger = ({ keywords, type, automationId }: Props) => {
         ) : (
           <PlaneBlue />
         )}
-        <p className="text-lg">
+        <p className="text-lg text-black">
           {type === "COMMENT"
             ? "User comments on my post."
             : type === "KEYWORDS"
@@ -34,7 +34,7 @@ const ActiveTrigger = ({ keywords, type, automationId }: Props) => {
             : "User sends me a direct message."}
         </p>
       </div>
-      <p className="text-text-secondary">
+      <p className="text-gray-600">
         {type === "COMMENT"
           ? "Setup to listen for comments"
           : type === "KEYWORDS"

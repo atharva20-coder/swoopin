@@ -21,14 +21,14 @@ const NotificationItem = ({ notification }: Props) => {
     <div
       key={notification.id}
       className={cn(
-        "group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 hover:from-gray-50 hover:to-gray-100 transition-all duration-300 border border-gray-200 hover:border-gray-300 rounded-xl p-5 shadow-sm",
+        "group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 hover:from-gray-50 hover:to-gray-100 transition-all duration-300 border border-gray-200 hover:border-gray-300 rounded-xl p-3 sm:p-5 shadow-sm",
         isDeleting && "opacity-50"
       )}
     >
-      <div className="flex justify-between items-start gap-4 relative z-10">
+      <div className="flex justify-between items-start gap-3 sm:gap-4 relative z-10">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-sm font-semibold text-gray-900 leading-tight">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 leading-tight break-words">
               {notification.content}
             </h3>
             {!notification.isSeen && (
@@ -44,7 +44,7 @@ const NotificationItem = ({ notification }: Props) => {
                   )
                 }
                 disabled={isMarking}
-                className="relative px-3 py-1 text-[11px] font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded-full transition-all duration-200 flex items-center gap-2"
+                className="relative self-start px-2 sm:px-3 py-1 text-[11px] font-medium bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded-full transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
               >
                 {isMarking ? (
                   <Loader className="animate-spin" size={12} />
@@ -67,22 +67,22 @@ const NotificationItem = ({ notification }: Props) => {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+        <div className="flex items-center gap-1 sm:gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-200">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             onClick={() => {
               navigator.clipboard.writeText(notification.content);
               toast("Copied notification content.");
             }}
           >
-            <Link2 className="h-4 w-4" />
+            <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="h-7 w-7 sm:h-8 sm:w-8 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             onClick={() => {
               deleteMutation(
                 { id: notification.id },
@@ -94,7 +94,7 @@ const NotificationItem = ({ notification }: Props) => {
               );
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>

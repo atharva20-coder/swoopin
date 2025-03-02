@@ -133,7 +133,7 @@ const AutomationList = (props: Props) => {
                 <div className="flex flex-col items-end gap-y-2 absolute -top-6 -right-6">
                   <span className={cn(
                     "text-xs font-medium px-2 py-1 rounded-tr-lg rounded-bl-lg",
-                    automation.active ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
+                    automation.active ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-black"
                   )}>
                     {automation.active ? "Active" : "Inactive"}
                   </span>
@@ -151,9 +151,9 @@ const AutomationList = (props: Props) => {
                 {automation.listener?.listener === "SMARTAI" ? (
                   <GradientButton
                     type="BUTTON"
-                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+                    className="px-4 py-2 bg-white text-blue-600 font-medium rounded-lg transition-all duration-300 shadow-[0_4px_20px_rgba(30,64,175,0.6)] border border-blue-600/30 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-800/10 before:to-indigo-900/10 before:rounded-lg before:animate-pulse before:duration-2000 hover:shadow-[0_4px_25px_rgba(30,64,175,0.75)] hover:scale-[1.02]"
                   >
-                    Smart AI
+                    <strong>Smart AI</strong>
                   </GradientButton>
                 ) : (
                   <Button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">

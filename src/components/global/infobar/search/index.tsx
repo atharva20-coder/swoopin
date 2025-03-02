@@ -52,12 +52,12 @@ const Search = ({ slug }: Props) => {
 
   return (
     <div className="relative flex-1 w-full max-w-4xl">
-      <div className="flex items-center gap-x-3 px-5 py-3 bg-[#18181B1A] rounded-lg transition-all duration-200 hover:bg-[#18181B30]">
-        <SearchIcon className="w-5 h-5 text-[#9B9CA0]" />
+      <div className="flex items-center gap-x-3 px-3 sm:px-5 py-2 sm:py-3 bg-[#18181B1A] rounded-lg transition-all duration-200 hover:bg-[#18181B30]">
+        <SearchIcon className="min-w-[20px] w-5 h-5 text-[#9B9CA0]" />
         <Input
           ref={inputRef}
-          placeholder="Search automations by name..."
-          className="border-none bg-transparent text-base placeholder:text-[#9B9CA0] text-[#000000] focus-visible:ring-0 p-0 w-full"
+          placeholder="Search automations..."
+          className="border-none bg-transparent text-sm sm:text-base placeholder:text-[#9B9CA0] text-[#000000] focus-visible:ring-0 p-0 w-full"
           value={searchValue}
           onChange={handleInputChange}
         />
