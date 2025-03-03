@@ -56,16 +56,16 @@ const MobileNav = ({ slug }: Props) => {
     <>
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black/50 z-[999] backdrop-blur-sm transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 z-[999] backdrop-blur-sm transition-all duration-300 ease-in-out opacity-0 animate-in fade-in-0"
           onClick={handleOverlayClick}
         />
       )}
       <div 
         onClick={handleNavClick}
         className={cn(
-          "lg:hidden fixed left-1/2 -translate-x-1/2 bg-[#E1E5E9] dark:bg-gray-800 rounded-full shadow-lg z-[100] transition-all duration-300",
+          "lg:hidden fixed left-1/2 -translate-x-1/2 bg-[#E1E5E9] dark:bg-gray-800 rounded-full shadow-lg z-[1000] transition-all duration-500 ease-in-out",
           isExpanded ? "top-6" : "bottom-6",
-          isVisible && !isExpanded ? "translate-y-0" : !isExpanded ? "translate-y-full" : ""
+          isVisible && !isExpanded ? "translate-y-0" : !isExpanded ? "translate-y-full opacity-0" : "opacity-100"
         )}
       >
         <div className="flex items-center justify-center gap-1 px-2 py-2">

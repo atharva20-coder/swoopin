@@ -37,13 +37,15 @@ const Layout = async ({ children, params }: Props) => {
         <MobileNav slug={params.slug} />
         <div
           className="
-      lg:ml-[250px] 
+      lg:ml-[var(--sidebar-width,250px)] 
       lg:pl-10 
       lg:py-5 
       flex 
       flex-col 
       overflow-auto
       pb-24
+      transition-all
+      duration-300
       "
         >
           <InfoBar slug={params.slug} />

@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.9.5",
     "@google/generative-ai": "^0.22.0",
+    "@heroui/breadcrumbs": "^2.2.11",
     "@heroui/input": "^2.4.13",
     "@heroui/switch": "^2.2.13",
     "@hookform/resolvers": "^3.9.1",

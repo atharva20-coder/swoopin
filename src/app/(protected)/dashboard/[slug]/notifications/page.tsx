@@ -49,10 +49,12 @@ export default function NotificationsPage() {
         <div className="space-y-3 sm:space-y-4">
           {sortedNotifications && sortedNotifications.length > 0 ? (
             sortedNotifications.map((notification: Notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-              />
+              notification && (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                />
+              )
             ))
           ) : (
             <div className="text-center text-gray-500 py-6 sm:py-8">

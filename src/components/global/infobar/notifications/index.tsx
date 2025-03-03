@@ -25,10 +25,10 @@ export const Notifications = ({ slug }: { slug: string }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className="bg-white rounded-full py-6 relative">
-          <Bell color="#3352CC" fill="#3352CC" />
+        <Button variant="ghost" className="relative p-2 hover:bg-transparent">
+          <Bell className="w-12 h-12 text-gray-600 cursor-pointer hover:text-gray-900 stroke-2" />
           {unSeenNotification && unSeenNotification?.length > 0 ? (
-            <span className="absolute text-white font-semibold bg-blue-800 -top-2 -left-3 size-7 flex items-center justify-center rounded-full">
+            <span className="absolute text-white font-semibold bg-blue-800 -top-2 -right-1 size-5 flex items-center justify-center rounded-full text-xs">
               {unSeenNotification?.length}
             </span>
           ) : null}
@@ -68,10 +68,12 @@ export const Notifications = ({ slug }: { slug: string }) => {
             ) : (
               <>
                 {popoverNotifications?.map((notification) => (
-                  <NotificationItem
-                    notification={notification}
-                    key={notification.id}
-                  />
+                  notification && (
+                    <NotificationItem
+                      notification={notification}
+                      key={notification?.id || `notification-${Math.random()}`}
+                    />
+                  )
                 ))}
                 {hasNextPage && (
                   <Button
