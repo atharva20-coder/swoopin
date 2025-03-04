@@ -13,56 +13,47 @@ type Props = {
 
 const AutomationsBreadCrumb = ({ id }: Props) => {
   const { data } = useQueryAutomation(id);
-
   const { edit, enableEdit, inputRef, isPending } = useEditAutomation(id);
-
   const { latestVariable } = useMutationDataState(["update-automation"]);
 
   return (
-    <div className="rounded-full w-full p-5 mr-10 bg-[#18181B1A] flex items-center">
+    <div className="relative w-full px-6 py-4 bg-white border border-gray-200 rounded-xl shadow-md flex items-center gap-x-4 backdrop-filter backdrop-blur-sm">
       <div className="flex items-center gap-x-3 min-w-0">
-        <p className="text-[#9B9CA0] truncate">Automations</p>
-        <ChevronRight className="flex-shrink-0" color="#9B9CA0" />
-        <span className="flex gap-x-3 items-center min-w-0">
+        <p className="text-gray-500 font-medium hover:text-gray-700 transition-colors cursor-pointer">Automations</p>
+        <ChevronRight className="flex-shrink-0 w-4 h-4" color="#6B7280" />
+        <div className="flex items-center gap-x-2 min-w-0">
           {edit ? (
             <Input
               ref={inputRef}
-              placeholder={
-                isPending ? latestVariable.variables : "Add a new name"
-              }
-              className="bg-transparent h-auto outline-none text-base border-none p-0 text-black"
+              placeholder={isPending ? latestVariable.variables : "Add a new name"}
+              className="bg-transparent h-auto text-base font-medium border-none p-0 focus:ring-2 focus:ring-blue-500/20 rounded transition-all"
             />
           ) : (
-            <p className="text-[#9B9CA0] truncate">
-              {latestVariable?.variables
-                ? latestVariable?.variables.name
-                : data?.data?.name}
+            <p className="text-gray-900 font-medium truncate hover:text-blue-600 transition-colors cursor-default">
+              {latestVariable?.variables ? latestVariable.variables.name : data?.data?.name}
             </p>
           )}
-          {edit ? (
-            <></>
-          ) : (
-            <span
-              className="cursor-pointer hover:opacity-75 duration-100 transition flex-shrink-0 mr-4"
+          {!edit && (
+            <button
               onClick={enableEdit}
+              className="p-1.5 rounded-full hover:bg-gray-100 transition-colors group"
             >
-              <PencilIcon size={14} color="#000000" />
-            </span>
+              <PencilIcon size={14} className="text-gray-400 group-hover:text-gray-600" />
+            </button>
           )}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-x-5 ml-auto">
-        <p className="hidden md:block text-text-secondary/60 text-sm truncate min-w-0">
-          All states are automatically saved
-        </p>
-        <div className="flex gap-x-5 flex-shrink-0">
-          <p className="text-text-secondary text-sm truncate min-w-0">
-            Changes Saved
-          </p>
         </div>
       </div>
-      <ActivateAutomationButton id={id} />
+
+      <div className="flex items-center gap-x-6 ml-auto">
+        <div className="hidden md:flex items-center gap-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <p className="text-gray-500 text-sm font-medium">
+            All changes auto-saved
+          </p>
+        </div>
+        <div className="h-6 w-px bg-gray-200" />
+        <ActivateAutomationButton id={id} />
+      </div>
     </div>
   );
 };
