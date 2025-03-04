@@ -120,60 +120,50 @@ export function OpenAISettings() {
   };
 
   return (
-    <div className="w-full container max-w-4xl mx-auto px-4 sm:px-6">
-      <div className="bg-white border-2 border-gray-100 rounded-lg p-4 sm:p-10 shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="flex flex-col gap-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">OpenAI API Key</h2>
-            <p className="mt-2 text-sm text-gray-600">Your API key should follow this format: <code className="bg-gray-100 px-2 py-1 rounded">sk-abcd...1234</code> or <code className="bg-gray-100 px-2 py-1 rounded">sk-proj-abcd...1234</code></p>
-          </div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="apiKey"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel>API Key</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="sk-..."
-                        className="w-full font-mono text-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription className="text-sm text-gray-500">
-                      Your API key must start with &apos;sk-&apos; or &apos;sk-proj-&apos; followed by characters
-                    </FormDescription>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-between items-center gap-4">
-                <Button 
-                  type="submit" 
-                  disabled={isLoading} 
-                  className="w-full sm:w-auto"
-                >
-                  {isLoading ? 'Saving...' : hasApiKey ? 'Update API Key' : 'Save API Key'}
-                </Button>
-                {hasApiKey && (
-                  <Button 
-                    type="button"
-                    variant="destructive"
-                    onClick={handleDeleteKey}
-                    disabled={isLoading}
-                    className="sm:w-auto"
-                  >
-                    Delete Key
-                  </Button>
-                )}
-              </div>
-            </form>
-          </Form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="apiKey"
+          render={({ field }) => (
+            <FormItem className="space-y-1">
+              <FormLabel>API Key</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="sk-..."
+                  className="w-full font-mono text-sm"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription className="text-sm text-gray-500">
+                Your API key must start with &apos;sk-&apos; or &apos;sk-proj-&apos; followed by characters
+              </FormDescription>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-between items-center gap-4">
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full sm:w-auto"
+          >
+            {isLoading ? 'Saving...' : hasApiKey ? 'Update API Key' : 'Save API Key'}
+          </Button>
+          {hasApiKey && (
+            <Button 
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteKey}
+              disabled={isLoading}
+              className="sm:w-auto"
+            >
+              Delete Key
+            </Button>
+          )}
         </div>
-      </div>
-    </div>
+      </form>
+    </Form>
   );
 }

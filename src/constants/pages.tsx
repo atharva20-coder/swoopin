@@ -13,6 +13,7 @@ export const PAGE_BREAD_CRUMBS: string[] = [
   "integrations",
   "settings",
   "notifications",
+  "billing",
 ];
 
 type Props = {

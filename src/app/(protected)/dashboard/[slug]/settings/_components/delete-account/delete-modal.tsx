@@ -60,7 +60,7 @@ const DeleteModal = ({
             value={deleteConfirmation}
             onChange={(e) => onDeleteConfirmationChange(e.target.value)}
             placeholder="Type 'Delete My Account'"
-            className="w-full px-3 sm:px-4 py-2 mt-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2 mt-2 border bg-white text-black border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base"
           />
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3">

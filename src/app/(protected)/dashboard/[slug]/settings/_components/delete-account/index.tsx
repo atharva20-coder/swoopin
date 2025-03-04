@@ -61,12 +61,12 @@ const DeleteAccount = (props: Props) => {
   };
 
   return (
-    <div className="w-full container max-w-4xl mx-auto px-4 sm:px-6">
-      <div className="bg-white border-2 border-gray-100 rounded-lg p-4 sm:p-10 shadow-lg hover:shadow-xl transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Delete Account</h2>
-            <p className="text-gray-600 text-sm">Permanently delete your account and all associated data</p>
+    <div className="w-full">
+      <div className="bg-white rounded-lg p-6 sm:p-8 border-2 border-red-200 shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Delete Account</h2>
+            <p className="text-sm text-gray-600">Permanently delete your account and all associated data</p>
           </div>
           <DeleteModal
             deleteConfirmation={deleteConfirmation}

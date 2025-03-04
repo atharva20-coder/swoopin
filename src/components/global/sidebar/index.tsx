@@ -84,12 +84,18 @@ const Sidebar = ({ slug }: Props) => {
       <div className={`mt-auto p-6 ${isCollapsed ? 'items-center px-3' : 'space-y-4'} border-t border-gray-100 dark:border-gray-800 flex flex-col`}>        
         {isCollapsed ? (
           <>
-            <Button
-              variant="ghost"
-              className="mb-2 p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            <a
+              href="https://www.instagram.com/sandipjoshi990/"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <HelpCircle className="w-8 h-8" />
-            </Button>
+              <Button
+                variant="ghost"
+                className="mb-2 p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              >
+                <HelpCircle className="w-12 h-12" />
+              </Button>
+            </a>
             <SubscriptionPlan type="FREE">
               <div className="flex-1">
                 <Button 
@@ -103,13 +109,19 @@ const Sidebar = ({ slug }: Props) => {
           </>
         ) : (
           <>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full justify-start px-4 py-2 mb-4"
+            <a
+              href="https://www.instagram.com/sandipjoshi990/"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <HelpCircle className="w-5 h-5" />
-              <span>Help & Support</span>
-            </Button>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full justify-start px-4 py-2 mb-4"
+              >
+                <HelpCircle className="w-5 h-5" />
+                <span>Help & Support</span>
+              </Button>
+            </a>
             <SubscriptionPlan type="FREE">
               <div className="flex-1">
                 <UpgradeCard />
