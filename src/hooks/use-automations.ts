@@ -52,10 +52,10 @@ export const useEditAutomation = (automationId: string) => {
   );
 
   useEffect(() => {
-    function handleClickOutside(this: Document, event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent) {
       if (
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node | null)
+        !inputRef.current.contains(event.target as Node)
       ) {
         if (inputRef.current.value !== "") {
           mutate({ name: inputRef.current.value });
@@ -68,7 +68,7 @@ export const useEditAutomation = (automationId: string) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [mutate]);
 
   return {
     edit,

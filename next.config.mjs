@@ -20,6 +20,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'd365kmhoeske8t.cloudfront.net',
+      },
+      {
+        protocol: 'https',
         hostname: 'scontent-iad3-1.cdninstagram.com',
       },
       {

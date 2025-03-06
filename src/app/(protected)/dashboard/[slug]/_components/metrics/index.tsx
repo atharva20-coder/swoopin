@@ -13,11 +13,9 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
-  Tooltip
 } from 'recharts'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { useParams } from 'next/navigation'
-import MetricsCard from './metrics-card'
 
 type Props = {
   hasActivity?: boolean
@@ -44,11 +42,11 @@ const Chart = ({ hasActivity = false }: Props) => {
 
   if (isLoading) {
     return (
-      <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm">
-        <CardContent className="p-4 sm:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[300px]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-base text-gray-500">Loading chart data...</p>
+      <Card className="border-none rounded-xl shadow-sm bg-white">
+        <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600">Loading chart data...</p>
           </div>
         </CardContent>
       </Card>
@@ -57,9 +55,9 @@ const Chart = ({ hasActivity = false }: Props) => {
 
   if (!analytics?.data?.chartData || analytics.data.chartData.length === 0) {
     return (
-      <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm">
-        <CardContent className="p-4 sm:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[300px]">
-          <p className="text-base sm:text-lg text-gray-500 text-center px-2">
+      <Card className="border-none rounded-xl shadow-sm bg-white">
+        <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
+          <p className="text-sm text-gray-600 text-center">
             No activity data available yet.
           </p>
         </CardContent>
@@ -68,59 +66,66 @@ const Chart = ({ hasActivity = false }: Props) => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full">
-      <Card className="border-none p-0 border-opacity-50 rounded-lg mx-0 sm:mx-2 shadow-sm w-full">
-        <CardContent className="p-0">
-          <ResponsiveContainer height={300} width={'100%'}>
+    <div className="w-full">
+      <Card className="border-none rounded-xl shadow-sm bg-white">
+        <CardContent className="p-4">
+          <ResponsiveContainer height={320} width="100%">
             <ChartContainer config={chartConfig}>
               <BarChart
-                data={analytics.data.chartData}
-                margin={{
-                  left: 24,
-                  right: 24,
-                  top: 24,
-                  bottom: 24
-                }}
+                data={analytics.data.chartData.map((item) => ({
+                  ...item,
+                  date: new Date(item.date).toLocaleDateString('default', {
+                    month: 'short',
+                    day: 'numeric',
+                  }),
+                }))}
+                margin={{ top: 20, right: 10, left: 0, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid
+                  stroke="#e2e8f0"
+                  strokeDasharray="5 5"
+                  vertical={false}
+                />
                 <XAxis
-                  dataKey="month"
-                  tickLine={true}
-                  axisLine={true}
-                  tickMargin={16}
-                  fontSize={14}
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8' }}
-                  interval={0}
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tickMargin={10}
+                  fontSize={12}
+                  tick={{ fill: '#64748b' }}
                 />
                 <YAxis
-                  tickLine={true}
-                  axisLine={true}
-                  tickMargin={16}
-                  fontSize={14}
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tickMargin={10}
+                  fontSize={12}
+                  tick={{ fill: '#64748b' }}
                 />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
                       hideLabel
-                      className="w-[180px]"
+                      className="w-[160px] bg-white shadow-md border border-gray-100 rounded-lg"
                       formatter={(value, name, item, index) => (
                         <>
                           <div
-                            className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: chartConfig[name as keyof typeof chartConfig]?.color }}
+                            className="h-3 w-3 shrink-0 rounded-full"
+                            style={{
+                              backgroundColor:
+                                chartConfig[name as keyof typeof chartConfig]?.color,
+                            }}
                           />
                           {chartConfig[name as keyof typeof chartConfig]?.label || name}
-                          <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                          <div className="ml-auto text-sm font-medium text-gray-900">
                             {value}
                           </div>
                           {index === 2 && (
-                            <div className="mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium text-foreground">
+                            <div className="mt-2 flex items-center border-t border-gray-200 pt-2 text-xs text-gray-700">
                               Total
-                              <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                                {item.payload.dmCount + item.payload.commentCount + item.payload.commentReply}
+                              <div className="ml-auto font-medium">
+                                {item.payload.dmCount +
+                                  item.payload.commentCount +
+                                  item.payload.commentReply}
                               </div>
                             </div>
                           )}
@@ -128,39 +133,40 @@ const Chart = ({ hasActivity = false }: Props) => {
                       )}
                     />
                   }
-                  cursor={false}
-                  defaultIndex={1}
+                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                 />
                 <Bar
                   dataKey="dmCount"
-                  stackId="stack1"
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={35}
-                  fill="#2F329F"
-                  minPointSize={3}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={50}
+                  fill={chartConfig.dmCount.color}
+                  barSize={30}
+                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  minPointSize={5} // Small bump for zero values
                 />
                 <Bar
                   dataKey="commentCount"
-                  stackId="stack2"
-                  radius={[4, 4, 0, 0]}
-                  maxBarSize={35}
-                  fill="#4B4EC6"
-                  minPointSize={3}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={50}
+                  fill={chartConfig.commentCount.color}
+                  barSize={30}
+                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  minPointSize={5} // Small bump for zero values
                 />
                 <Bar
                   dataKey="commentReply"
-                  stackId="stack3"
-                  radius={[0, 0, 4, 4]}
-                  maxBarSize={35}
-                  fill="#7273E9"
-                  minPointSize={3}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={50}
+                  fill={chartConfig.commentReply.color}
+                  barSize={30}
+                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  minPointSize={5} // Small bump for zero values
                 />
               </BarChart>
             </ChartContainer>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      
     </div>
   )
 }

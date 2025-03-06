@@ -14,16 +14,23 @@ import {
 
 import React from "react";
 import DeleteAutomationButton from "./_components/delete-automation-button";
+import DrawerButton from "./_components/drawer-button";
 
 type Props = {
   params: { id: string; slug: string };
 };
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const info = await getAutomationInfo(params.id);
-  return {
-    title: info.data?.name,
-  };
+  try {
+    const info = await getAutomationInfo(params.id);
+    return {
+      title: info.data?.name || 'Automation Details',
+    };
+  } catch (error) {
+    return {
+      title: 'Automation Details',
+    };
+  }
 }
 
 const Page = async ({ params }: Props) => {
@@ -47,7 +54,10 @@ const Page = async ({ params }: Props) => {
           <ThenNode id={params.id} />
           <PostNode id={params.id} />
         </div>
-        <DeleteAutomationButton id={params.id} />
+        <div className="fixed bottom-8 right-8 flex gap-x-4">
+          <DrawerButton id={params.id} />
+          <DeleteAutomationButton id={params.id} />
+        </div>
       </section>
     </HydrationBoundary>
   );
