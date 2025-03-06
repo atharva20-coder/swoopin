@@ -25,6 +25,7 @@ export const GenericTemplate = ({
   automationId 
 }: GenericTemplateProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [showForm, setShowForm] = useState(true);
   const [template, setTemplate] = useState({
     title: '',
     subtitle: '',
@@ -36,15 +37,31 @@ export const GenericTemplate = ({
   const { toast } = useToast();
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    let timeoutId: NodeJS.Timeout | undefined;
+
     const fetchTemplate = async () => {
       try {
-        const response = await fetch(`/api/templates/${automationId}`);
+        const cachedTemplate = sessionStorage.getItem(`template-${automationId}`);
+        if (cachedTemplate) {
+          const parsedTemplate = JSON.parse(cachedTemplate);
+          setTemplate(parsedTemplate);
+          setShowForm(false);
+          onTemplateCreated();
+          return;
+        }
+
+        const response = await fetch(`/api/templates/${automationId}`, { signal });
         const data = await response.json();
         
         if (response.ok && data.template) {
+          sessionStorage.setItem(`template-${automationId}`, JSON.stringify(data.template));
           setTemplate(data.template);
+          setShowForm(false);
           onTemplateCreated();
         } else if (!hasTemplates) {
+          setShowForm(true);
           toast({
             title: "No Template Found",
             description: "Create Generic Template from the Drawer",
@@ -52,11 +69,20 @@ export const GenericTemplate = ({
           });
         }
       } catch (error) {
-        console.error('Error fetching template:', error);
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Error fetching template:', error);
+          setShowForm(true);
+        }
       }
     };
 
-    fetchTemplate();
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(fetchTemplate, 300);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [automationId, hasTemplates, onTemplateCreated, toast]);
 
   const isValid = template.title.length > 0 && 
@@ -132,6 +158,7 @@ export const GenericTemplate = ({
       if (!response.ok) throw new Error(data.message || 'Failed to save template');
 
       toast({ title: "Success", description: "Template saved successfully" });
+      setShowForm(false);
       onTemplateCreated();
     } catch (error) {
       toast({
@@ -143,6 +170,64 @@ export const GenericTemplate = ({
       setIsSaving(false);
     }
   };
+
+  if (!showForm) {
+    return (
+      <div className="mt-4 space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Switch 
+            checked={hasTemplates}
+            onCheckedChange={onTemplateToggle}
+            disabled={false}
+          />
+          <span className="text-sm">Use Facebook Generic Template</span>
+        </div>
+
+        <div className="bg-white p-0 overflow-hidden max-w-sm rounded-lg shadow-lg border border-gray-200">
+          <div className="flex flex-col">
+            {template.imageUrl && (
+              <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
+                <Image 
+                  src={template.imageUrl}
+                  alt={template.title}
+                  fill
+                  className="object-cover transition-transform hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 400px"
+                />
+              </div>
+            )}
+            <div className="p-6 space-y-3">
+              <h3 className="font-semibold text-xl text-gray-900">
+                {template.title}
+              </h3>
+              {template.subtitle && (
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {template.subtitle}
+                </p>
+              )}
+              <div className="space-y-2 pt-3">
+                {template.buttons.map((button, index) => (
+                  <button
+                    key={index}
+                    className="w-full p-3 text-center border-2 rounded-lg text-[#768ADD] border-[#768ADD] hover:bg-[#768ADD]/10 transition-all duration-200 font-medium text-sm"
+                  >
+                    {button.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full p-2 rounded-md transition-colors border border-[#768ADD] text-[#768ADD] hover:bg-[#768ADD]/10"
+        >
+          Edit Template
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 space-y-4">
