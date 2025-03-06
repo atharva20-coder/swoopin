@@ -7,6 +7,7 @@ import { Filter } from "lucide-react";
 import React from "react";
 import { useQueryAutomations } from "@/hooks/user-queries";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 
 interface AutomationMetrics {
   accountsEngaged: number;
@@ -110,7 +111,13 @@ const AutomationSummaryCard = () => {
           </Button>
         </div>
         <div className="flex items-center gap-3">
-          <img src={`/icons/${platform.toLowerCase()}.svg`} alt={platform} className="w-8 h-8" />
+          <Image
+            src={`/icons/${platform.toLowerCase()}.svg`}
+            alt={platform}
+            width={32}
+            height={32}
+            className="w-8 h-8"
+          />
           <div>
             <h3 className="text-lg font-semibold">{title}</h3>
             <p className="text-sm text-gray-600">{description}</p>
