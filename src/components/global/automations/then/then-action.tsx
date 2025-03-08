@@ -53,28 +53,48 @@ const ThenAction = ({ id }: Props) => {
           </button>
         ))}
         <form onSubmit={onFormSubmit} className="flex flex-col gap-y-3 mt-2">
-          <Textarea
-            placeholder={
-              Listener === "SMARTAI"
-                ? "Add a prompt that your smart AI can use..."
-                : "Add a message you want to send to your customers"
-            }
-            {...register("prompt")}
-            className={cn(
-              "min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary",
-              Listener === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
-            )}
-          />
-          <Input
-            {...register("reply")}
-            placeholder="Add a reply for comments (Optional)"
-            className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary text-black"
-          />
+          {Listener === "GENERIC_TEMPLATE" ? (
+            <>
+              <div className="p-4 bg-gray-50 rounded-xl text-gray-600 text-center">
+                <p>{"Generic Template"} template is selected</p>
+              </div>
+              <Textarea
+                {...register("prompt")}
+                placeholder="Add message to attach with the template (Required)"
+                className="min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary"
+              />
+              <Input
+                {...register("reply")}
+                placeholder="Add a reply for comments (Optional)"
+                className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary text-black"
+              />
+            </>
+          ) : (
+            <>
+              <Textarea
+                placeholder={
+                  Listener === "SMARTAI"
+                    ? "Add a prompt that your smart AI can use..."
+                    : "Add a message you want to send to your customers"
+                }
+                {...register("prompt")}
+                className={cn(
+                  "min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary",
+                  Listener === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
+                )}
+              />
+              <Input
+                {...register("reply")}
+                placeholder="Add a reply for comments (Optional)"
+                className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary text-black"
+              />
+            </>
+          )}
           <Button 
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
             disabled={isPending}
           >
-            <Loader state={isPending}>Add listener</Loader>
+            <Loader state={isPending}>Add Listener</Loader>
           </Button>
         </form>
       </div>

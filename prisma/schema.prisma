@@ -26,7 +26,7 @@ model User {
   notification Notification[]
   analytics    Analytics[]
   openAiKey    String?        @unique
-  templates    Template[]
+  templates Template[] // A user can have many templates (through different automations)
 }
 
 model Subscription {
@@ -62,7 +62,7 @@ model Automation {
   User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String?   @db.Uuid
   keywords  Keyword[]
-  templates Template[]
+  template  Template? // Changed from templates to template (singular)
 }
 
 model Dms {
@@ -168,8 +168,8 @@ model Template {
   buttons       Json
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  User          User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String     @db.Uuid
-  Automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
-  automationId  String     @db.Uuid
+  User          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String      @db.Uuid
+  Automation    Automation  @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId  String      @db.Uuid @unique
 }

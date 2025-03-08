@@ -54,6 +54,14 @@ const PostButton = ({ id }: Props) => {
                       className="object-cover transition-all duration-200 group-hover:scale-105"
                       sizes="(max-width: 640px) 50vw, 33vw"
                       priority
+                      onError={(e) => {
+                        // Handle image load error by using a proxy or fallback
+                        const img = e.target as HTMLImageElement;
+                        if (img.src === post.media_url) {
+                          // Try using a proxy service or direct CDN URL
+                          img.src = `/api/instagram-proxy?url=${encodeURIComponent(post.media_url)}`;
+                        }
+                      }}
                     />
                     {post.media_type === "CAROSEL_ALBUM" && (
                       <ImageIcon className="absolute top-2 right-2 text-white z-10" size={20} />

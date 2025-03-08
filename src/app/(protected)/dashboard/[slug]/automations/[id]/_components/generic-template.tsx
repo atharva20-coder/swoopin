@@ -1,9 +1,10 @@
-// components/generics-template.tsx
 import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Image from 'next/image';
+import TemplatePreviewCard from '@/components/global/generic-template-card/template-preview-card';
+
 
 interface Button {
   type: 'web_url' | 'postback';
@@ -26,12 +27,18 @@ export const GenericTemplate = ({
 }: GenericTemplateProps) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [showForm, setShowForm] = useState(true);
-  const [template, setTemplate] = useState({
+  const [template, setTemplate] = useState<{
+    title: string;
+    subtitle: string;
+    imageUrl: string;
+    defaultAction: string;
+    buttons: Button[];
+  }>({    
     title: '',
     subtitle: '',
     imageUrl: '',
     defaultAction: '',
-    buttons: [] as Button[]
+    buttons: [] // Ensure buttons is initialized as an empty array
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -43,15 +50,6 @@ export const GenericTemplate = ({
 
     const fetchTemplate = async () => {
       try {
-        const cachedTemplate = sessionStorage.getItem(`template-${automationId}`);
-        if (cachedTemplate) {
-          const parsedTemplate = JSON.parse(cachedTemplate);
-          setTemplate(parsedTemplate);
-          setShowForm(false);
-          onTemplateCreated();
-          return;
-        }
-
         const response = await fetch(`/api/templates/${automationId}`, { signal });
         const data = await response.json();
         
@@ -60,13 +58,17 @@ export const GenericTemplate = ({
           setTemplate(data.template);
           setShowForm(false);
           onTemplateCreated();
-        } else if (!hasTemplates) {
+        } else {
+          // Clear cached template if it doesn't exist in database
+          sessionStorage.removeItem(`template-${automationId}`);
           setShowForm(true);
-          toast({
-            title: "No Template Found",
-            description: "Create Generic Template from the Drawer",
-            variant: "destructive"
-          });
+          if (!hasTemplates) {
+            toast({
+              title: "No Template Found",
+              description: "Create Generic Template from the Drawer",
+              variant: "destructive"
+            });
+          }
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError') {
@@ -87,6 +89,7 @@ export const GenericTemplate = ({
 
   const isValid = template.title.length > 0 && 
                  template.imageUrl.length > 0 &&
+                 Array.isArray(template.buttons) &&
                  template.buttons.length > 0 &&
                  template.buttons.every(button => 
                    button.title.length > 0 &&
@@ -124,52 +127,57 @@ export const GenericTemplate = ({
     }));
   };
 
-  const handleCreateTemplate = async () => {
-    if (!isValid) {
-      toast({
-        title: "Missing Required Fields",
-        description: "Please fill in title, image URL, and at least one valid button",
-        variant: "destructive"
-      });
-      return;
-    }
-  
-    setIsSaving(true);
-    try {
-      const response = await fetch('/api/templates', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          automationId,
-          template: {
-            ...template,
-            buttons: template.buttons.map(btn => ({
-              ...btn,
-              title: btn.title.substring(0, 20)
-            }))
-          }
-        })
-      });
+const handleCreateTemplate = async () => {
+  if (!isValid) {
+    toast({
+      title: "Missing Required Fields",
+      description: "Please fill in title, image URL, and at least one valid button",
+      variant: "destructive"
+    });
+    return;
+  }
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to save template');
+  setIsSaving(true);
+  try {
+    const response = await fetch('/api/templates', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        automationId,
+        template: {
+          title: template.title,
+          subtitle: template.subtitle,
+          imageUrl: template.imageUrl,
+          defaultAction: template.defaultAction,
+          buttons: template.buttons.map(btn => ({
+            ...btn,
+            title: btn.title.substring(0, 20)
+          }))
+        }
+      })
+    });
 
-      toast({ title: "Success", description: "Template saved successfully" });
-      setShowForm(false);
-      onTemplateCreated();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save template",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Failed to save template');
+
+    // Save to session storage and update UI
+    sessionStorage.setItem(`template-${automationId}`, JSON.stringify(data));
+    toast({ title: "Success", description: "Template saved successfully" });
+    setShowForm(false);
+    onTemplateCreated();
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to save template",
+      variant: "destructive"
+    });
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   if (!showForm) {
     return (
@@ -206,7 +214,7 @@ export const GenericTemplate = ({
                 </p>
               )}
               <div className="space-y-2 pt-3">
-                {template.buttons.map((button, index) => (
+                {Array.isArray(template.buttons) && template.buttons.map((button, index) => (
                   <button
                     key={index}
                     className="w-full p-3 text-center border-2 rounded-lg text-[#768ADD] border-[#768ADD] hover:bg-[#768ADD]/10 transition-all duration-200 font-medium text-sm"
@@ -290,12 +298,12 @@ export const GenericTemplate = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Buttons (Max 3) *</label>
         <div className="space-y-3 max-h-[200px] min-h-[60px] overflow-y-auto scrollbar-thin scrollbar-track-gray-100">
-          {template.buttons.map((button, btnIndex) => (
+          {Array.isArray(template.buttons) && template.buttons.map((button, btnIndex) => (
             <div key={btnIndex} className="flex flex-col gap-2 w-full">
               <select
                 className="w-full p-2 border border-gray-200 rounded-md !bg-white !text-black focus:outline-none"
                 value={button.type}
-                onChange={(e) => handleButtonChange(btnIndex, 'type', e.target.value)}
+                onChange={(e) => handleButtonChange(btnIndex, 'type', e.target.value as 'web_url' | 'postback')}
               >
                 <option value="web_url">Web URL</option>
                 <option value="postback">Postback</option>
@@ -363,52 +371,7 @@ export const GenericTemplate = ({
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="bg-white p-0 overflow-hidden max-w-sm rounded-lg shadow-lg">
-          <div className="flex flex-col">
-            {template.imageUrl ? (
-              <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
-                <Image 
-                  src={template.imageUrl}
-                  alt={template.title}
-                  fill
-                  className="object-cover transition-transform hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 400px"
-                />
-              </div>
-            ) : (
-              <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                <div className="text-gray-400 text-center p-4">
-                  <p className="text-sm">Preview your template</p>
-                  <p className="text-xs mt-1">Add an image URL to see it here</p>
-                </div>
-              </div>
-            )}
-            <div className="p-6 space-y-3">
-              <h3 className="font-semibold text-xl text-gray-900">
-                {template.title || 'Template Title'}
-              </h3>
-              {template.subtitle && (
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {template.subtitle}
-                </p>
-              )}
-              <div className="space-y-2 pt-3">
-                {template.buttons.length > 0 ? (
-                  template.buttons.map((button, index) => (
-                    <button
-                      key={index}
-                      className="w-full p-3 text-center border-2 rounded-lg text-[#768ADD] border-[#768ADD] hover:bg-[#768ADD]/10 transition-all duration-200 font-medium text-sm"
-                    >
-                      {button.title || 'Button Text'}
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-center text-gray-400 text-sm">
-                    <p>Add buttons to see them here</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <TemplatePreviewCard template={template} />
         </DialogContent>
       </Dialog>
     </div>

@@ -161,7 +161,7 @@ export const useKeywords = (id: string) => {
 };
 
 export const useListener = (id: string) => {
-  const [listener, setListener] = useState<"MESSAGE" | "SMARTAI" | null>(null);
+  const [listener, setListener] = useState<"MESSAGE" | "SMARTAI" | "GENERIC_TEMPLATE" | null>(null);
 
   const promptSchema = z.object({
     prompt: z.string().min(1),
@@ -180,6 +180,6 @@ export const useListener = (id: string) => {
     mutate
   );
 
-  const onSetListener = (type: "SMARTAI" | "MESSAGE") => setListener(type);
+  const onSetListener = (type: "SMARTAI" | "MESSAGE" | "GENERIC_TEMPLATE") => setListener(type);
   return { onSetListener, register, onFormSubmit, listener, isPending };
 };

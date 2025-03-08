@@ -92,7 +92,7 @@ export const updateAutomationName = async (
 
 export const saveListener = async (
   automationId: string,
-  listener: "SMARTAI" | "MESSAGE",
+  listener: "SMARTAI" | "MESSAGE" | "GENERIC_TEMPLATE",
   prompt: string,
   reply?: string
 ) => {
