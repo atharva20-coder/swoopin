@@ -2,10 +2,8 @@
 
 import Drawer from "@/components/global/drawer";
 import React, { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { GenericTemplate } from "./generic-template";
 
 type Props = {
   id: string;
@@ -13,46 +11,14 @@ type Props = {
 
 const DrawerButton = ({ id }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasTemplates, setHasTemplates] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
-    'generic': false,
-    'button': false,
-    'menu': false,
-    'product': false,
-    'reply': false,
-    'attachment': false
-  });
-
-  const handleDelete = () => {
-    // Add delete functionality here
-    console.log("Delete automation", id);
-  };
-
-  const { toast } = useToast();
-
-  const handleStateChange = (checked: boolean) => {
-    if (checked && !hasTemplates) {
-      toast({
-        title: "No Templates Found",
-        description: "Please create at least one template before activating.",
-        variant: "destructive",
-      });
-      return;
-    }
-    // Update state or API call when template is toggled
-    console.log('Template activated:', checked);
-  };
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({    'generic': false,    'button': false,    'menu': false,    'product': false,    'reply': false,    'attachment': false  });
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+    setExpandedSections(prev => ({      ...prev,      [section]: !prev[section]    }));
   };
 
   return (
     <>
-      {/* Increased size of drawer button */}
       <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-8 right-24 p-3 rounded-full bg-white hover:bg-gray-50 transition-colors shadow-md z-40"
@@ -76,14 +42,8 @@ const DrawerButton = ({ id }: Props) => {
                 <h3 className="font-medium text-black">Generic Template</h3>
                 {expandedSections['generic'] ? <ChevronUp size={20} className="text-black" /> : <ChevronDown size={20} className="text-black" />}
               </div>
-              {expandedSections['generic'] && <GenericTemplate 
-          onTemplateToggle={(checked) => handleStateChange(checked)}
-          onTemplateCreated={() => setHasTemplates(true)}
-          hasTemplates={hasTemplates}
-          automationId={id}
-        />}
-              {expandedSections['button'] && (
-                <p className="text-sm text-black mt-1">Add interactive buttons to your messages</p>
+              {expandedSections['generic'] && (
+                <p className="text-sm text-black mt-1">Create standard message templates</p>
               )}
             </div>
 

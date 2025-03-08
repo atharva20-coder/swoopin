@@ -6,7 +6,7 @@ export type AutomationListenerProps = {
   label: string;
   icon: JSX.Element;
   description: string;
-  type: "SMARTAI" | "MESSAGE" | "GENERIC_TEMPLATE";
+  type: "SMARTAI" | "MESSAGE";
 };
 export type AutomationsTriggerProps = {
   id: string;
@@ -40,13 +40,6 @@ export const AUTOMATION_LISTENERS: AutomationListenerProps[] = [
     icon: <PlaneBlue />,
     description: "Enter the message that you want to send the user.",
     type: "MESSAGE",
-  },
-  {
-    id: v4(),
-    label: "Use Generic Template",
-    icon: <PlaneBlue />,
-    description: "Select a pre-defined template for your automation.",
-    type: "GENERIC_TEMPLATE",
   },
   {
     id: v4(),
