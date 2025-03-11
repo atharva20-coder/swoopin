@@ -52,10 +52,10 @@ export const useEditAutomation = (automationId: string) => {
   );
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(this: Document, event: MouseEvent) {
       if (
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
+        !inputRef.current.contains(event.target as Node | null)
       ) {
         if (inputRef.current.value !== "") {
           mutate({ name: inputRef.current.value });
@@ -161,17 +161,24 @@ export const useKeywords = (id: string) => {
 };
 
 export const useListener = (id: string) => {
-  const [listener, setListener] = useState<"MESSAGE" | "SMARTAI" | "GENERIC_TEMPLATE" | null>(null);
+  const [listener, setListener] = useState<"MESSAGE" | "SMARTAI" | "CAROUSEL" | null>(null);
 
   const promptSchema = z.object({
     prompt: z.string().min(1),
     reply: z.string(),
+    carouselTemplateId: z.string().optional()
   });
 
   const { isPending, mutate } = useMutationData(
     ["create-lister"],
-    (data: { prompt: string; reply: string }) =>
-      saveListener(id, listener || "MESSAGE", data.prompt, data.reply),
+    (data: { prompt: string; reply: string; carouselTemplateId?: string }) =>
+      saveListener(
+        id,
+        listener || "MESSAGE",
+        data.prompt,
+        data.reply,
+        data.carouselTemplateId
+      ),
     "automation-info"
   );
 
@@ -180,6 +187,6 @@ export const useListener = (id: string) => {
     mutate
   );
 
-  const onSetListener = (type: "SMARTAI" | "MESSAGE" | "GENERIC_TEMPLATE") => setListener(type);
+  const onSetListener = (type: "SMARTAI" | "MESSAGE" | "CAROUSEL") => setListener(type);
   return { onSetListener, register, onFormSubmit, listener, isPending };
 };

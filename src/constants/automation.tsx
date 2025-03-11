@@ -1,12 +1,13 @@
 import { PlaneBlue, SmartAi, TinyInstagram } from "@/icons";
 import { v4 } from "uuid";
+import {LayoutPanelTop} from "lucide-react"
 
 export type AutomationListenerProps = {
   id: string;
   label: string;
   icon: JSX.Element;
   description: string;
-  type: "SMARTAI" | "MESSAGE";
+  type: "SMARTAI" | "MESSAGE" | "CAROUSEL";
 };
 export type AutomationsTriggerProps = {
   id: string;
@@ -47,5 +48,12 @@ export const AUTOMATION_LISTENERS: AutomationListenerProps[] = [
     icon: <SmartAi />,
     description: "Tell AI about your project.  ",
     type: "SMARTAI",
+  },
+  {
+    id: v4(),
+    label: "Send a Generic Template",
+    icon: <LayoutPanelTop />,
+    description: "Create a template with title, subtitle and buttons.",
+    type: "CAROUSEL",
   },
 ];

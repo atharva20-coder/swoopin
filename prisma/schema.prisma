@@ -26,6 +26,7 @@ model User {
   notification Notification[]
   analytics    Analytics[]
   openAiKey    String?        @unique
+  carouselTemplates CarouselTemplate[]
 }
 
 model Subscription {
@@ -61,6 +62,7 @@ model Automation {
   User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String?   @db.Uuid
   keywords  Keyword[]
+  carouselTemplates CarouselTemplate[]
 }
 
 model Dms {
@@ -92,6 +94,8 @@ model Listener {
   commentReply String?
   dmCount      Int        @default(0)
   commentCount Int        @default(0)
+  carouselTemplateId String?         @db.Uuid
+  carouselTemplate  CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id])
 }
 
 model Trigger {
@@ -154,4 +158,44 @@ enum MEDIATYPE {
 enum LISTENERS {
   SMARTAI
   MESSAGE
+  CAROUSEL
+}
+
+enum ButtonType {
+  WEB_URL
+  POSTBACK
+}
+
+
+model CarouselTemplate {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  automationId String?     @db.Uuid
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  userId       String      @db.Uuid
+  User         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  elements     Element[]
+  listeners    Listener[]  // Add this relation
+  createdAt    DateTime    @default(now())
+}
+
+model Element {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String            @db.VarChar(80)
+  subtitle           String?           @db.VarChar(80)
+  imageUrl           String?
+  carouselTemplateId String?           @db.Uuid
+  CarouselTemplate   CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id], onDelete: Cascade)
+  defaultAction      String?
+  buttons            Button[]
+  order              Int               @default(0)
+}
+
+model Button {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      ButtonType
+  title     String    @db.VarChar(20)
+  url       String?
+  payload   String?
+  elementId String?   @db.Uuid
+  Element   Element?  @relation(fields: [elementId], references: [id], onDelete: Cascade)
 }

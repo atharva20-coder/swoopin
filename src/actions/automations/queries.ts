@@ -54,6 +54,18 @@ export const findAutomation = async (id: string) => {
       trigger: true,
       posts: true,
       listener: true,
+      carouselTemplates: {  // Changed from carouselTemplate to carouselTemplates
+        include: {
+          elements: {
+            include: {
+              buttons: true
+            },
+            orderBy: {
+              order: 'asc'
+            }
+          }
+        }
+      },
       User: {
         select: {
           subscription: true,
@@ -83,10 +95,15 @@ export const updateAutomation = async (
 
 export const addListener = async (
   automationId: string,
-  listener: "SMARTAI" | "MESSAGE",
+  listener: "SMARTAI" | "MESSAGE" | "CAROUSEL",
   prompt: string,
-  reply?: string
+  reply?: string,
+  carouselTemplateId?: string
 ) => {
+  if (listener === "CAROUSEL" && !carouselTemplateId) {
+    throw new Error("carouselTemplateId is required for CAROUSEL listener");
+  }
+
   return await client.automation.update({
     where: {
       id: automationId,
@@ -97,9 +114,25 @@ export const addListener = async (
           listener,
           prompt,
           commentReply: reply,
+          ...(listener === "CAROUSEL" && { carouselTemplateId })
         },
       },
     },
+    include: {
+      listener: true,
+      carouselTemplates: {
+        include: {
+          elements: {
+            include: {
+              buttons: true
+            },
+            orderBy: {
+              order: 'asc'
+            }
+          }
+        }
+      }
+    }
   });
 };
 
@@ -192,5 +225,62 @@ export const addPost = async (
         },
       },
     },
+  });
+};
+
+export const addCarouselTemplate = async (automationId: string, userId: string, elements: Array<{
+  title: string;
+  subtitle?: string;
+  imageUrl?: string;
+  defaultAction?: string;
+  buttons: Array<{
+    type: "WEB_URL" | "POSTBACK";
+    title: string;
+    url?: string;
+    payload?: string;
+  }>;
+}>) => {
+  return await client.automation.update({
+    where: {
+      id: automationId,
+    },
+    data: {
+      carouselTemplates: {
+        create: {
+          userId,
+          elements: {
+            create: elements.map((element, index) => ({
+              title: element.title,
+              subtitle: element.subtitle || "",
+              imageUrl: element.imageUrl || "",
+              defaultAction: element.defaultAction || "",
+              order: index,
+              buttons: {
+                create: element.buttons.map(button => ({
+                  type: button.type,
+                  title: button.title,
+                  url: button.type === "WEB_URL" ? button.url : "",
+                  payload: button.type === "POSTBACK" ? button.payload : ""
+                }))
+              }
+            }))
+          }
+        }
+      }
+    },
+    include: {
+      carouselTemplates: {
+        include: {
+          elements: {
+            include: {
+              buttons: true
+            },
+            orderBy: {
+              order: 'asc'
+            }
+          }
+        }
+      }
+    }
   });
 };

@@ -15,6 +15,7 @@ import {
   findAutomation,
   getAutomations,
   updateAutomation,
+  addCarouselTemplate,
 } from "./queries";
 
 export const createAutomations = async (id?: string) => {
@@ -92,13 +93,14 @@ export const updateAutomationName = async (
 
 export const saveListener = async (
   automationId: string,
-  listener: "SMARTAI" | "MESSAGE",
+  listener: "SMARTAI" | "MESSAGE" | "CAROUSEL",
   prompt: string,
-  reply?: string
+  reply?: string,
+  carouselTemplateId?: string
 ) => {
   await onCurrentUser();
   try {
-    const create = await addListener(automationId, listener, prompt, reply);
+    const create = await addListener(automationId, listener, prompt, reply, carouselTemplateId);
     if (create) return { status: 200, data: "Listener created" };
     return { status: 404, data: "Cant save listener" };
   } catch (error) {
@@ -226,3 +228,34 @@ export const activateAutomation = async (id: string, state: boolean) => {
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
+
+
+export const createCarouselTemplate = async (
+  automationId: string,
+  elements: any[]
+) => {
+  const user = await onCurrentUser();
+  try {
+    const userDetails = await findUser(user.id);
+    
+    if (!userDetails) {
+      return { status: 404, data: "User not found" };
+    }
+    
+    const create = await addCarouselTemplate(automationId, userDetails.id, elements);
+    
+    if (create) {
+      return { 
+        status: 200, 
+        data: "Carousel template created successfully",
+        templateId: create.id
+      };
+    }
+
+    return { status: 404, data: "Failed to create carousel template" };
+  } catch (error) {
+    console.error("Carousel template creation error:", error);
+    return { status: 500, data: "Internal server error" };
+  }
+};
+

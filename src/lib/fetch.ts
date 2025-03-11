@@ -77,6 +77,111 @@ export const replyToComment = async (commentId: string, message: string, token: 
   );
 };
 
+export const sendCarouselMessage = async (
+  userId: string,
+  receiverId: string,
+  elements: {
+    title: string;
+    subtitle?: string;
+    imageUrl?: string;
+    defaultAction?: string;
+    buttons?: {
+      type: "web_url" | "postback";
+      title: string;
+      url?: string;
+      payload?: string;
+    }[];
+  }[],
+  token: string
+) => {
+  try {
+    // Validate minimum requirements
+    if (elements.length === 0) {
+      throw new Error("At least one carousel element is required");
+    }
+
+    const formattedElements = elements.map((element, index) => {
+      // Validate element requirements
+      if (!element.title) {
+        throw new Error(`Element ${index + 1} is missing title`);
+      }
+      
+      // At least one additional property required (per Instagram docs)
+      const hasAdditionalProperties = element.subtitle || element.imageUrl || 
+                                    element.defaultAction || element.buttons;
+      if (!hasAdditionalProperties) {
+        throw new Error(`Element ${index + 1} needs at least one of: subtitle, imageUrl, defaultAction, or buttons`);
+      }
+
+      // Format element according to API specs
+      return {
+        title: element.title.substring(0, 80),
+        subtitle: element.subtitle?.substring(0, 80),
+        image_url: element.imageUrl,
+        default_action: element.defaultAction ? {
+          type: "web_url",
+          url: element.defaultAction,
+          webview_height_ratio: "full"
+        } : undefined,
+        buttons: element.buttons?.slice(0, 3).map(button => {
+          if (button.type === "web_url" && !button.url) {
+            throw new Error(`Web URL button in element ${index + 1} is missing URL`);
+          }
+          if (button.type === "postback" && !button.payload) {
+            throw new Error(`Postback button in element ${index + 1} is missing payload`);
+          }
+          
+          return {
+            type: button.type,
+            title: button.title.substring(0, 20),
+            ...(button.url && { url: button.url }),
+            ...(button.payload && { payload: button.payload })
+          };
+        })
+      };
+    }).slice(0, 10); // Instagram's maximum of 10 elements
+
+    // Structure matching the working sendDM pattern
+    const payload = {
+      recipient: { id: receiverId },
+      message: {
+        attachment: {
+          type: "template",
+          payload: {
+            template_type: "generic",
+            elements: formattedElements
+          }
+        }
+      }
+    };
+
+    // Use the same base URL and version pattern as working sendDM
+    const response = await axios.post(
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error sending carousel:", error);
+    
+    let errorMessage = "Failed to send carousel message";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.error?.message || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    throw new Error(errorMessage);
+  }
+};
+
 export const generateTokens = async (code: string) => {
   try {
     // Validate input
@@ -149,11 +254,14 @@ export const generateTokens = async (code: string) => {
   } catch (error) {
     console.error("Instagram Token Generation Error:", error);
 
-    if (error instanceof Error) {
-      throw error;
-    } else {
-      throw new Error("Unexpected error in token generation");
+    let errorMessage = "Unexpected error in token generation";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.error?.message || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
     }
+
+    throw new Error(errorMessage);
   }
 };
 

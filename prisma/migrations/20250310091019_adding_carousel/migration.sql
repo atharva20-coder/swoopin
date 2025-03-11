@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Button" ALTER COLUMN "url" DROP NOT NULL,
+ALTER COLUMN "payload" DROP NOT NULL;

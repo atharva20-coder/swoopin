@@ -29,7 +29,22 @@ export const getKeywordAutomation = async (
           type: dm ? "DM" : "COMMENT",
         },
       },
-      listener: true,
+      listener: {
+        include: {
+          carouselTemplate: {
+            include: {
+              elements: {
+                include: {
+                  buttons: true
+                },
+                orderBy: {
+                  order: 'asc'
+                }
+              }
+            }
+          }
+        }
+      },
       User: {
         select: {
           subscription: {
@@ -50,7 +65,7 @@ export const getKeywordAutomation = async (
 };
 export const trackResponses = async (
   automationId: string,
-  type: "COMMENT" | "DM"
+  type: "COMMENT" | "DM" | "CAROUSEL"
 ) => {
   if (type === "COMMENT") {
     return await client.listener.update({
@@ -63,7 +78,7 @@ export const trackResponses = async (
     });
   }
 
-  if (type === "DM") {
+  if (type === "DM" || type === "CAROUSEL") {
     return await client.listener.update({
       where: { automationId },
       data: {
@@ -186,3 +201,39 @@ export const replyToComment = async (automationId: string, commentId: string) =>
     throw error;
   }
 };
+
+export const getCarouselAutomation = async (automationId: string) => {
+  return await client.automation.findUnique({
+    where: { id: automationId },
+    include: {
+      listener: true,
+      carouselTemplates: {
+        include: {
+          elements: {
+            include: {
+              buttons: true
+            },
+            orderBy: {
+              order: 'asc'
+            }
+          }
+        }
+      },
+      User: {
+        select: {
+          subscription: {
+            select: {
+              plan: true
+            }
+          },
+          integrations: {
+            select: {
+              token: true
+            }
+          }
+        }
+      }
+    }
+  });
+};
+

@@ -6,8 +6,9 @@ import {
   getKeywordPost,
   matchKeyword,
   trackResponses,
+  getCarouselAutomation,
 } from "@/actions/webhook/queries";
-import { sendDM, sendPrivateMessage, replyToComment } from "@/lib/fetch";
+import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage } from "@/lib/fetch";
 import { openai } from "@/lib/openai";
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -49,7 +50,8 @@ export async function POST(req: NextRequest) {
         if (automation && automation.trigger && automation.active) {
           if (
             automation.listener &&
-            automation.listener.listener === "MESSAGE"
+            automation.listener.listener === "MESSAGE" &&
+            (!automation.listener.carouselTemplate || automation.listener.carouselTemplate.elements.length === 0)
           ) {
             console.log("MESSAGE", automation);
 
@@ -76,6 +78,82 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          if (
+            automation.listener &&
+            automation.listener.listener === "CAROUSEL"
+          ) {
+            console.log("CAROUSEL", automation);
+            
+            let carouselSent = false;
+            if (automation.listener.carouselTemplate && automation.listener.carouselTemplate.elements.length > 0) {
+              // Map carousel template elements to the format expected by sendCarouselMessage
+              const carouselElements = automation.listener.carouselTemplate.elements.map(element => ({
+                title: element.title,
+                subtitle: element.subtitle || undefined,
+                imageUrl: element.imageUrl || undefined,
+                defaultAction: element.defaultAction || undefined,
+                buttons: element.buttons.map(button => ({
+                  type: button.type.toLowerCase() as "web_url" | "postback",
+                  title: button.title,
+                  url: button.url || undefined,
+                  payload: button.payload || undefined
+                }))
+              }));
+              
+              try {
+                const carousel_message = await sendCarouselMessage(
+                  webhook_payload.entry[0].id,
+                  webhook_payload.entry[0].messaging[0].sender.id,
+                  carouselElements,
+                  automation.User?.integrations[0].token!
+                );
+                
+                if (carousel_message) {
+                  carouselSent = true;
+                  const tracked = await trackResponses(automation.id, "CAROUSEL");
+                  if (tracked) {
+                    await trackAnalytics(automation.userId!, "dm").catch(
+                      console.error
+                    );
+                    return NextResponse.json(
+                      {
+                        message: "Carousel message sent",
+                      },
+                      { status: 200 }
+                    );
+                  }
+                }
+              } catch (error) {
+                console.error("Error sending carousel message:", error);
+              }
+            }
+
+            // Fallback to regular message if carousel fails or is not available
+            if (!carouselSent && automation.listener.prompt) {
+              const direct_message = await sendDM(
+                webhook_payload.entry[0].id,
+                webhook_payload.entry[0].messaging[0].sender.id,
+                automation.listener.prompt,
+                automation.User?.integrations[0].token!
+              );
+
+              if (direct_message.status === 200) {
+                const tracked = await trackResponses(automation.id, "DM");
+                if (tracked) {
+                  await trackAnalytics(automation.userId!, "dm").catch(
+                    console.error
+                  );
+                  return NextResponse.json(
+                    {
+                      message: "Fallback message sent",
+                    },
+                    { status: 200 }
+                  );
+                }
+              }
+            }
+          }
+          
           if (
             automation.listener &&
             automation.listener.listener === "SMARTAI" &&
@@ -218,7 +296,78 @@ export async function POST(req: NextRequest) {
                   );
                 }
               }
+            } else if (automation.listener.listener === "CAROUSEL") {
+              console.log("CAROUSEL for comment", automation);
+              
+              let carouselSent = false;
+              if (automation.listener.carouselTemplate && automation.listener.carouselTemplate.elements.length > 0) {
+                const carouselElements = automation.listener.carouselTemplate.elements.map(element => ({
+                  title: element.title,
+                  subtitle: element.subtitle || undefined,
+                  imageUrl: element.imageUrl || undefined,
+                  defaultAction: element.defaultAction || undefined,
+                  buttons: element.buttons.map(button => ({
+                    type: button.type.toLowerCase() as "web_url" | "postback",
+                    title: button.title,
+                    url: button.url || undefined,
+                    payload: button.payload || undefined
+                  }))
+                }));
+                
+                try {
+                  const carousel_message = await sendCarouselMessage(
+                    webhook_payload.entry[0].id,
+                    webhook_payload.entry[0].changes[0].value.from.id,
+                    carouselElements,
+                    automation.User?.integrations[0].token!
+                  );
+                  
+                  if (carousel_message) {
+                    carouselSent = true;
+                    const tracked = await trackResponses(automation.id, "CAROUSEL");
+                    if (tracked) {
+                      await trackAnalytics(automation.userId!, "comment").catch(
+                        console.error
+                      );
+                      return NextResponse.json(
+                        {
+                          message: "Carousel message sent for comment",
+                        },
+                        { status: 200 }
+                      );
+                    }
+                  }
+                } catch (error) {
+                  console.error("Error sending carousel message for comment:", error);
+                }
+              }
+
+              // Fallback to regular message if carousel fails or is not available
+              if (!carouselSent && automation.listener.prompt) {
+                const direct_message = await sendDM(
+                  webhook_payload.entry[0].id,
+                  webhook_payload.entry[0].changes[0].value.from.id,
+                  automation.listener.prompt,
+                  automation.User?.integrations[0].token!
+                );
+
+                if (direct_message.status === 200) {
+                  const tracked = await trackResponses(automation.id, "COMMENT");
+                  if (tracked) {
+                    await trackAnalytics(automation.userId!, "comment").catch(
+                      console.error
+                    );
+                    return NextResponse.json(
+                      {
+                        message: "Fallback message sent for comment",
+                      },
+                      { status: 200 }
+                    );
+                  }
+                }
+              }
             }
+            
             if (
               automation.listener.listener === "SMARTAI" &&
               automation.User?.subscription?.plan === "PRO"

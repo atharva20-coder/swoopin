@@ -16,7 +16,7 @@ export const useQueryAutomations = (config?: { refetchInterval?: number }) => {
 
 export const useQueryAutomation = (id: string) => {
   return useQuery({
-    queryKey: ["automation-info"],
+    queryKey: ["automation-info", id],
     queryFn: () => getAutomationInfo(id),
   });
 };
