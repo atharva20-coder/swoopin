@@ -63,7 +63,7 @@ const PostButton = ({ id }: Props) => {
                         }
                       }}
                     />
-                    {post.media_type === "CAROSEL_ALBUM" && (
+                    {post.media_type === "CAROUSEL_ALBUM" && (
                       <ImageIcon className="absolute top-2 right-2 text-white z-10" size={20} />
                     )}
                   </div>
