@@ -8,6 +8,7 @@ import Footer from "@/components/global/footer";
 import { FAQSection } from "@/components/global/FAQ/faq-section";
 import { AnnouncementBanner } from "@/components/global/announcement-banner";
 
+
 export default function LandingPage() {
   const heroRef = useScrollReveal();
   const featuresRef = useScrollReveal();
@@ -234,6 +235,37 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social Technologies Section */}
+      <section id ="Social" className="mt-14 py-32 px-4 sm:px-6 lg:px-8 min-h-[720px] flex items-center" style={{ backgroundImage: "radial-gradient( circle farthest-corner at 3.7% 49.8%,  rgba(143,232,255,1) 21.9%, rgba(209,243,251,1) 52.9% )" }}>
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="font-['Brice'] font-normal text-4xl sm:text-6xl md:text-7xl mb-4 sm:mb-6 text-black tracking-tight leading-tight">
+            Social technologies
+          </h2>
+          <p className="text-base sm:text-xl text-gray-800 mb-12 max-w-2xl mx-auto">
+            Social technologies that help influencers and buisnesses grow, build community and monetize their content.
+          </p>
+          
+          <div className="social-icons-container">
+          <Link href="/social/instagram" className="social-icon">
+              <Image src="/icons/meta/instagram.png" alt="Instagram" width={24} height={24}/>
+            </Link>
+            <Link href="/social/facebook" className="social-icon">
+              <Image src="/icons/meta/facebook.png" alt="Facebook" width={24} height={24} />
+            </Link>
+            <Link href="/social/facebook" className="social-icon">
+              <Image src="/icons/meta/facebook-messenger.png" alt="Messenger" width={24} height={24} />
+            </Link>
+            <Link href="/social/facebook" className="social-icon">
+              <Image src="/icons/meta/whatsapp.png" alt="WhatsApp" width={24} height={24} />
+            </Link>
+            <Link href="/social/facebook" className="social-icon">
+              <Image src="/icons/threads.svg" alt="Threads" width={24} height={24} />
+            </Link>
+          </div>
+          <p className="text-gray-600 text-center mb-8">Automate your favourite apps with no code</p>
+        </div>
+      </section>
+
       {/* Product Launch Timeline Section */}
       <section className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8 bg-background snap-start py-8 sm:py-12 mt-16 sm:mt-0">
         <div className="max-w-7xl mx-auto">
@@ -425,11 +457,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div ref={useScrollReveal()} className="relative opacity-0 translate-y-4 transition-all duration-700">
-              <video autoPlay loop muted playsInline className="w-full rounded-2xl shadow-xl">
-                <source src="/images/features_story-mentions-trigger.webm" type="video/webm" />
-              </video>
-            </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
               <h2 className={`font-['Brice'] font-normal text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
                 Automatically respond to every message
@@ -476,7 +503,8 @@ export default function LandingPage() {
 
       {/* Testimonial Section */}
 
-      {/* IG-Story Image Section */}
+
+      {/* IG-Story Image Section 
       <section className="hidden sm:block relative py-12 sm:py-20 bg-background mt-16 sm:mt-28">
         <div className="w-full px-4 sm:px-0">
           <div className="w-full">
@@ -493,11 +521,13 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      */}
+
 
       {/* FAQ Section */}
-
       <FAQSection />
 
+      {/* FOOTER Section */}
       <Footer />
     </main>
   );
