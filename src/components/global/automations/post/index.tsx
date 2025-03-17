@@ -87,7 +87,7 @@ const PostButton = ({ id }: Props) => {
           <Button
             onClick={mutate}
             disabled={posts.length === 0}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Loader state={isPending}>Attach {posts.length} Post{posts.length !== 1 ? 's' : ''}</Loader>
           </Button>

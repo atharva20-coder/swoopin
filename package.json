@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.4",
-    "@google/generative-ai": "^0.22.0",
+    "@google/generative-ai": "^0.24.0",
     "@heroui/breadcrumbs": "^2.2.11",
     "@heroui/drawer": "^2.2.12",
     "@heroui/input": "^2.4.13",

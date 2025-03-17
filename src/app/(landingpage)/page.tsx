@@ -24,7 +24,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center relative z-10">
           <div className="text-left px-2 sm:px-0">
             <p className="text-black dark:text-white mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
-            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-white tracking-tight leading-tight">
+            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-[#B6FC33] tracking-tight leading-tight">
             SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
             </h1>
             <p className="text-sm sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
@@ -40,17 +40,6 @@ export default function LandingPage() {
                   <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold ">Try Auctorn For Free</span>
                 </span>
               </Link>
-          </div>
-            {/* Mobile Image */}
-            <div className="block lg:hidden w-full mb-8 rounded-lg">
-            <Image
-              src="/landingpage-images/ig-story.png"
-              alt="Instagram Story Interface"
-              width={800}
-              height={600}
-              className="w-full h-auto rounded-3xl"
-              priority
-            />
           </div>
 
           {/* Right Column - Image with 3D Hover Effect */}

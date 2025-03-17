@@ -112,7 +112,7 @@ const ThenAction = ({ id }: Props) => {
             className="bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:border-primary focus:ring-primary text-black dark:text-white"
           />
           <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium"
             disabled={isPending}
           >
             <Loader state={isPending}>Add listener</Loader>
