@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
-const config = {
-  darkMode: ['class'],
+const config: Config = {
+  darkMode: 'class',
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
@@ -26,9 +26,9 @@ const config = {
         'keyword-red': '#EB441F',
         'keyword-green': '#2FE699',
         'light-blue': '#3352CC',
-        'background-90': '#1D1D1D',
-        'background-80': '#252525',
-        'text-secondary': '#9B9CA0',
+        'background-90': '#121212',
+        'background-80': '#1E1E1E',
+        'text-secondary': '#B4B5B9',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -109,7 +109,6 @@ const config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-} satisfies Config
-
+  plugins: [],
+}
 export default config

@@ -19,20 +19,20 @@ const ThenNode = ({ id }: Props) => {
   return !data?.data?.listener ? (
     <></>
   ) : (
-    <div className="w-full lg:w-10/12 relative xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] gap-y-3">
+    <div className="w-full lg:w-10/12 relative xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-gray-900 gap-y-3">
       <div className="absolute h-20 left-1/2 bottom-full flex flex-col items-center z-50">
-        <span className="h-[9px] w-[9px] bg-black rounded-full" />
+        <span className="h-[9px] w-[9px] bg-black dark:bg-white rounded-full" />
         <Separator
           orientation="vertical"
-          className="bottom-full flex-1 border-[1px] border-dashed border-black"
+          className="bottom-full flex-1 border-[1px] border-dashed border-black dark:border-white"
         />
-        <span className="h-[9px] w-[9px] bg-black rounded-full" />
+        <span className="h-[9px] w-[9px] bg-black dark:bg-white rounded-full" />
       </div>
       <div className="flex gap-x-2">
         <Warning />
-        <strong className="text-black">Then...</strong>
+        <strong className="text-black dark:text-white">Then...</strong>
       </div>
-      <div className="bg-[#ededef] hover:bg-[#dfdfdf] p-3 rounded-xl flex flex-col gap-y-2">
+      <div className="bg-[#ededef] hover:bg-[#dfdfdf] dark:bg-gray-800 dark:hover:bg-gray-800 p-3 rounded-xl flex flex-col gap-y-2">
         <div className="flex gap-x-2 items-center">
           {data.data.listener.listener === "MESSAGE" ? (
             <PlaneBlue />
@@ -41,7 +41,7 @@ const ThenNode = ({ id }: Props) => {
           ) : (
             <LayoutPanelTop className="text-blue-500" />
           )}
-          <p className="text-lg text-black">
+          <p className="text-lg text-black dark:text-white">
             {data.data.listener.listener === "MESSAGE"
               ? "Send the user a message."
               : data.data.listener.listener === "SMARTAI"
@@ -53,14 +53,14 @@ const ThenNode = ({ id }: Props) => {
         {/* Display prompt and comment reply for all listener types */}
         <div className="mb-3">
           <p className={cn(
-            "font-light text-black",
+            "font-light text-black dark:text-white",
             data.data.listener.listener === "SMARTAI" && "border border-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.5)] p-3 rounded-xl"
           )}>
             {data.data.listener.prompt}
           </p>
           {data.data.listener.commentReply && (
-            <div className="mt-3 bg-white/50 p-3 rounded-xl border border-gray-200 shadow-sm">
-              <p className="font-light text-black">
+            <div className="mt-3 bg-white/50 dark:bg-gray-600/50 p-3 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
+              <p className="font-light text-black dark:text-white">
                 <span className="font-medium">Reply:</span> {data.data.listener.commentReply}
               </p>
             </div>
@@ -70,11 +70,11 @@ const ThenNode = ({ id }: Props) => {
         {/* Display carousel template if available */}
         {data.data.listener.listener === "CAROUSEL" && data.data.carouselTemplates && data.data.carouselTemplates.length > 0 && (
           <div className="space-y-3 mt-4 border-t border-gray-200 pt-4">
-            <p className="font-medium text-black mb-2">Template Preview:</p>
+            <p className="font-medium text-black dark:text-white mb-2">Template Preview:</p>
             {data.data.carouselTemplates[0]?.elements.map((element: any, index: number) => (
-              <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div key={index} className="bg-white dark:bg-black p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 {element.imageUrl && (
-                  <div className="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
+                  <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden relative">
                     <Image
                       src={element.imageUrl}
                       alt={element.title || "Template element"}
@@ -84,9 +84,9 @@ const ThenNode = ({ id }: Props) => {
                     />
                   </div>
                 )}
-                <h3 className="font-medium text-lg mb-1">{element.title}</h3>
+                <h3 className="text-black dark:text-white font-medium text-lg mb-1">{element.title}</h3>
                 {element.subtitle && (
-                  <p className="text-gray-600 text-sm mb-3">{element.subtitle}</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{element.subtitle}</p>
                 )}
                 {element.buttons?.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -94,7 +94,7 @@ const ThenNode = ({ id }: Props) => {
                       <div
                         key={btnIndex}
                         className={cn(
-                          "px-3 py-1.5 text-sm rounded-full",
+                          "px-3 py-1.5 text-sm rounded-lg",
                           button.type === "WEB_URL"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-green-100 text-green-700"

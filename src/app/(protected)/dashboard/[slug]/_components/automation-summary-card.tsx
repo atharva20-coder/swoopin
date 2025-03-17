@@ -33,9 +33,9 @@ const AutomationSummaryCard = () => {
 
   if (isLoading) {
     return (
-      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100">
+      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent dark:border-blue-400 rounded-full animate-spin"></div>
         </div>
       </Card>
     );
@@ -95,17 +95,17 @@ const AutomationSummaryCard = () => {
   const formattedDate = new Date(createdAt).toLocaleDateString();
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100">
+    <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-gray-800 dark:bg-gray-900">
       <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Automation & Posts</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Automation & Posts</h2>
         <div className="flex items-center justify-between">
           <Tabs defaultValue="automation" className="w-[300px]">
-            <TabsList>
-              <TabsTrigger value="automation">Automation</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
+            <TabsList className="dark:bg-gray-800">
+              <TabsTrigger value="automation" className="dark:text-gray-300 dark:data-[state=active]:text-white">Automation</TabsTrigger>
+              <TabsTrigger value="posts" className="dark:text-gray-300 dark:data-[state=active]:text-white">Posts</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
             <Filter className="h-4 w-4" />
             Filter
           </Button>
@@ -119,33 +119,33 @@ const AutomationSummaryCard = () => {
             className="w-8 h-8"
           />
           <div>
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <p className="text-sm text-gray-600">{description}</p>
+            <h3 className="text-lg font-semibold dark:text-gray-100">{title}</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
           </div>
-          <Badge variant={getBadgeVariant(status)} className="ml-auto">
+          <Badge variant={getBadgeVariant(status)} className="ml-auto dark:border-gray-700">
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+          <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
           </svg>
-          <span className="text-sm text-gray-600">{accountCount} Accounts</span>
-          <span className="text-gray-400 mx-1">•</span>
-          <span className="text-sm text-gray-600">{formattedDate}</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{accountCount} Accounts</span>
+          <span className="text-gray-400 dark:text-gray-500 mx-1">•</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{formattedDate}</span>
         </div>
-        <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div>
-            <p className="text-2xl font-bold">{metrics.accountsEngaged}</p>
-            <p className="text-sm text-gray-500">Account Engaged</p>
+            <p className="text-2xl font-bold dark:text-gray-100">{metrics.accountsEngaged}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Account Engaged</p>
           </div>
           <div>
-            <p className="text-2xl font-bold">{metrics.totalLikes}</p>
-            <p className="text-sm text-gray-500">Total Likes Given</p>
+            <p className="text-2xl font-bold dark:text-gray-100">{metrics.totalLikes}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Likes Given</p>
           </div>
           <div>
-            <p className="text-2xl font-bold">{metrics.followersRange}</p>
-            <p className="text-sm text-gray-500">Followers Range</p>
+            <p className="text-2xl font-bold dark:text-gray-100">{metrics.followersRange}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Followers Range</p>
           </div>
         </div>
       </div>

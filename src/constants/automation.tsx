@@ -1,6 +1,6 @@
-import { PlaneBlue, SmartAi, TinyInstagram } from "@/icons";
+import { PlaneBlue, SmartAi } from "@/icons";
 import { v4 } from "uuid";
-import {LayoutPanelTop} from "lucide-react"
+import { Instagram, LayoutPanelTop } from "lucide-react"
 
 export type AutomationListenerProps = {
   id: string;
@@ -21,14 +21,14 @@ export const AUTOMATION_TRIGGERS: AutomationsTriggerProps[] = [
   {
     id: v4(),
     label: "User comments on my post",
-    icon: <TinyInstagram />,
+    icon: <Instagram className="text-indigo-600" />,
     description: "Select if you want to automate comments on your post",
     type: "COMMENT",
   },
   {
     id: v4(),
     label: "User sends me a dm with a keyword",
-    icon: <TinyInstagram />,
+    icon: <Instagram className="text-indigo-600" />,
     description: "Select if you want to automate DMs on your profile",
     type: "DM",
   },

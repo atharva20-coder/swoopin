@@ -16,7 +16,7 @@ const CreateAutomation = (props: Props) => {
 
   return (
     <Button
-      className="flex items-center gap-2 px-4 py-2 bg-[#4361EE] hover:bg-[#3352CC] text-white rounded-lg transition-colors duration-200"
+      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white rounded-lg transition-colors duration-200"
       onClick={() =>
         mutate({
           name: "Untitled",

@@ -38,11 +38,11 @@ const ThenAction = ({ id }: Props) => {
             className={cn(
               "text-left p-4 rounded-xl flex flex-col gap-y-2 transition-all duration-200",
               Listener === listener.type
-                ? "bg-transparent text-black shadow-lg ring-1 ring-primary/30 ring-offset-1 ring-offset-white border border-primary/20"
-                : "bg-gray-50 hover:bg-gray-100",
+                ? "bg-transparent text-black dark:text-white shadow-lg ring-1 ring-primary/30 ring-offset-1 ring-offset-white dark:ring-offset-gray-800 border border-primary/20"
+                : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-600",
               listener.type === "SMARTAI" && !isPro && "opacity-50 cursor-not-allowed",
               listener.type === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]",
-              listener.type === "CAROUSEL" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
+              listener.type === "CAROUSEL" && "border border-white"
             )}
           >
             <div className="flex gap-x-2 items-center">
@@ -60,9 +60,9 @@ const ThenAction = ({ id }: Props) => {
           {Listener === "CAROUSEL" && hasCarouselTemplates && (
             <div className="space-y-3">
               {automationData?.data?.carouselTemplates[0]?.elements.map((element: any, index: number) => (
-                <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div key={index} className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                   {element.imageUrl && (
-                    <div className="w-full h-48 bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
+                    <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden relative">
                       <Image
                         src={element.imageUrl}
                         alt={element.title || "Template element"}
@@ -74,7 +74,7 @@ const ThenAction = ({ id }: Props) => {
                   )}
                   <h3 className="font-medium text-lg mb-1">{element.title}</h3>
                   {element.subtitle && (
-                    <p className="text-gray-600 text-sm mb-3">{element.subtitle}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{element.subtitle}</p>
                   )}
                   {element.buttons?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
@@ -102,14 +102,14 @@ const ThenAction = ({ id }: Props) => {
             placeholder={Listener === "SMARTAI" ? "Add a prompt that your smart AI can use..." : "Add a message you want to send to your customers"}
             {...register("prompt")}
             className={cn(
-              "min-h-[100px] bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary",
+              "min-h-[100px] bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:border-primary focus:ring-primary dark:text-white",
               Listener === "SMARTAI" && "border border-blue-200 shadow-[0_4px_20px_rgba(59,130,246,0.25)]"
             )}
           />
           <Input
             {...register("reply")}
             placeholder="Add a reply for comments (Optional)"
-            className="bg-gray-50 border-gray-200 focus:border-primary focus:ring-primary text-black"
+            className="bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus:border-primary focus:ring-primary text-black dark:text-white"
           />
           <Button 
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium"

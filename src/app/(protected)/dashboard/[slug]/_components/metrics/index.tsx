@@ -42,11 +42,11 @@ const Chart = ({ hasActivity = false }: Props) => {
 
   if (isLoading) {
     return (
-      <Card className="border-none rounded-xl shadow-sm bg-white">
+      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-800">
         <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
           <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-600">Loading chart data...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading chart data...</p>
           </div>
         </CardContent>
       </Card>
@@ -55,9 +55,9 @@ const Chart = ({ hasActivity = false }: Props) => {
 
   if (!analytics?.data?.chartData || analytics.data.chartData.length === 0) {
     return (
-      <Card className="border-none rounded-xl shadow-sm bg-white">
+      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-800">
         <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
             No activity data available yet.
           </p>
         </CardContent>
@@ -67,7 +67,7 @@ const Chart = ({ hasActivity = false }: Props) => {
 
   return (
     <div className="w-full">
-      <Card className="border-none rounded-xl shadow-sm bg-white">
+      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-900">
         <CardContent className="p-4">
           <ResponsiveContainer height={320} width="100%">
             <ChartContainer config={chartConfig}>
@@ -82,30 +82,33 @@ const Chart = ({ hasActivity = false }: Props) => {
                 margin={{ top: 20, right: 10, left: 0, bottom: 10 }}
               >
                 <CartesianGrid
-                  stroke="#e2e8f0"
+                  stroke="currentColor"
                   strokeDasharray="5 5"
                   vertical={false}
+                  className="opacity-10 dark:opacity-20"
                 />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
-                  axisLine={{ stroke: '#e2e8f0' }}
+                  axisLine={{ stroke: 'currentColor' }}
                   tickMargin={10}
                   fontSize={12}
-                  tick={{ fill: '#64748b' }}
+                  tick={{ fill: 'currentColor' }}
+                  className="text-gray-600 dark:text-gray-400"
                 />
                 <YAxis
                   tickLine={false}
-                  axisLine={{ stroke: '#e2e8f0' }}
+                  axisLine={{ stroke: 'currentColor' }}
                   tickMargin={10}
                   fontSize={12}
-                  tick={{ fill: '#64748b' }}
+                  tick={{ fill: 'currentColor' }}
+                  className="text-gray-600 dark:text-gray-400"
                 />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
                       hideLabel
-                      className="w-[160px] bg-white shadow-md border border-gray-100 rounded-lg"
+                      className="w-[160px] bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-lg"
                       formatter={(value, name, item, index) => (
                         <>
                           <div
@@ -116,11 +119,11 @@ const Chart = ({ hasActivity = false }: Props) => {
                             }}
                           />
                           {chartConfig[name as keyof typeof chartConfig]?.label || name}
-                          <div className="ml-auto text-sm font-medium text-gray-900">
+                          <div className="ml-auto text-sm font-medium text-gray-900 dark:text-gray-100">
                             {value}
                           </div>
                           {index === 2 && (
-                            <div className="mt-2 flex items-center border-t border-gray-200 pt-2 text-xs text-gray-700">
+                            <div className="mt-2 flex items-center border-t border-gray-200 dark:border-gray-600 pt-2 text-xs text-gray-700 dark:text-gray-300">
                               Total
                               <div className="ml-auto font-medium">
                                 {item.payload.dmCount +
@@ -141,7 +144,7 @@ const Chart = ({ hasActivity = false }: Props) => {
                   maxBarSize={50}
                   fill={chartConfig.dmCount.color}
                   barSize={30}
-                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
                   minPointSize={5} // Small bump for zero values
                 />
                 <Bar
@@ -150,7 +153,7 @@ const Chart = ({ hasActivity = false }: Props) => {
                   maxBarSize={50}
                   fill={chartConfig.commentCount.color}
                   barSize={30}
-                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
                   minPointSize={5} // Small bump for zero values
                 />
                 <Bar
@@ -159,7 +162,7 @@ const Chart = ({ hasActivity = false }: Props) => {
                   maxBarSize={50}
                   fill={chartConfig.commentReply.color}
                   barSize={30}
-                  background={{ fill: '#f1f5f9', radius: 6 }}
+                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
                   minPointSize={5} // Small bump for zero values
                 />
               </BarChart>

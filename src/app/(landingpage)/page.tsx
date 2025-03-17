@@ -16,32 +16,21 @@ export default function LandingPage() {
 
 
   return (
-    <main className="min-h-screen snap-y snap-mandatory overflow-y-auto">
+    <main className="min-h-screen snap-y snap-mandatory overflow-y-auto dark:black">
       <LandingNav />
       <AnnouncementBanner />
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-8 sm:py-20 px-4 sm:px-6 lg:px-8 bg-[#8794FF] overflow-hidden mt-[52px] sm:mt-[144px] opacity-0 translate-y-4 transition-all duration-700">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-8 sm:py-20 px-4 sm:px-6 lg:px-8 bg-indigo-400 dark:bg-black overflow-hidden mt-[52px] sm:mt-[144px] opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center relative z-10">
-          {/* Mobile Image */}
-          <div className="block lg:hidden w-full mb-8">
-            <Image
-              src="/landingpage-images/ig-story.png"
-              alt="Instagram Story Interface"
-              width={800}
-              height={600}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
           <div className="text-left px-2 sm:px-0">
-            <p className="text-black mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
-            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black tracking-tight leading-tight">
+            <p className="text-black dark:text-white mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
+            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-white tracking-tight leading-tight">
             SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
             </h1>
-            <p className="text-sm sm:text-xl text-gray-800 mb-4 sm:mb-8 max-w-2xl">
-            Boost your sales and conversions on Instagram, WhatsApp, and Messenger with our automation tools. Whether you&apos;re launching a new campaign or scaling up your business, watch your success soar with our customizable solutions.
+            <p className="text-sm sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
+            Seamlessly automate your Instagram engagement, grow your audience, and convert followers into customers with intelligent workflows designed for creators, influencers, and businesses.
             </p>
-            <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center">
+            <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 dark:border-white/20 dark:hover:border-white/40">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +41,18 @@ export default function LandingPage() {
                 </span>
               </Link>
           </div>
-          
+            {/* Mobile Image */}
+            <div className="block lg:hidden w-full mb-8 rounded-lg">
+            <Image
+              src="/landingpage-images/ig-story.png"
+              alt="Instagram Story Interface"
+              width={800}
+              height={600}
+              className="w-full h-auto rounded-3xl"
+              priority
+            />
+          </div>
+
           {/* Right Column - Image with 3D Hover Effect */}
           <div 
             className="relative w-full h-full min-h-[400px] hidden lg:flex items-center justify-center perspective-1500"
@@ -138,13 +138,13 @@ export default function LandingPage() {
       <section className="relative py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background mt-16 sm:mt-28">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-[#4F46E5] mb-3 sm:mb-4 font-medium tracking-wide text-sm">POWERFUL DASHBOARD</p>
-          <h2 className="font-['Brice'] font-normal text-4xl sm:text-6xl md:text-7xl mb-4 sm:mb-6 text-black tracking-tight leading-tight max-w-4xl mx-auto mt-6 sm:mt-10">
+          <h2 className="font-['Brice'] font-normal text-4xl sm:text-6xl md:text-7xl mb-4 sm:mb-6 text-black dark:text-white tracking-tight leading-tight max-w-4xl mx-auto mt-6 sm:mt-10">
             Manage your social presence with our intuitive dashboard
           </h2>
-          <p className="text-base sm:text-xl text-gray-800 mb-8 sm:mb-12 max-w-2xl mx-auto mt-6 sm:mt-10">
+          <p className="text-base sm:text-xl text-gray-800 dark:text-gray-400 mb-8 sm:mb-12 max-w-2xl mx-auto mt-6 sm:mt-10">
             Take control of your social media strategy with our comprehensive dashboard. Monitor engagement, track performance, and make data-driven decisions to grow your online presence.
           </p>
-          <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center">
+          <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 dark:border-white/20 dark:hover:border-white/40">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,11 +235,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Technologies Section */}
+      {/*
+      Social Technologies Section 
       <section id ="Social" className="mt-14 py-32 px-4 sm:px-6 lg:px-8 min-h-[720px] flex items-center" style={{ backgroundImage: "radial-gradient( circle farthest-corner at 3.7% 49.8%,  rgba(143,232,255,1) 21.9%, rgba(209,243,251,1) 52.9% )" }}>
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="font-['Brice'] font-normal text-4xl sm:text-6xl md:text-7xl mb-4 sm:mb-6 text-black tracking-tight leading-tight">
-            Social technologies
+            Social Technologies
           </h2>
           <p className="text-base sm:text-xl text-gray-800 mb-12 max-w-2xl mx-auto">
             Social technologies that help influencers and buisnesses grow, build community and monetize their content.
@@ -256,42 +257,40 @@ export default function LandingPage() {
               <Image src="/icons/meta/facebook-messenger.png" alt="Messenger" width={24} height={24} />
             </Link>
             <Link href="/social/facebook" className="social-icon">
-              <Image src="/icons/meta/whatsapp.png" alt="WhatsApp" width={24} height={24} />
-            </Link>
-            <Link href="/social/facebook" className="social-icon">
               <Image src="/icons/threads.svg" alt="Threads" width={24} height={24} />
             </Link>
           </div>
           <p className="text-gray-600 text-center mb-8">Automate your favourite apps with no code</p>
         </div>
       </section>
+      */}
 
       {/* Product Launch Timeline Section */}
       <section className="relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8 bg-background snap-start py-8 sm:py-12 mt-16 sm:mt-0">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-24 items-center">
             <div className="text-left px-2 sm:px-0">
-              <h4 className="font-['Brice'] font-normal text-3xl sm:text-5xl md:text-6xl mb-4 sm:mb-6 text-black tracking-tight leading-tight">
+              <h4 className="font-['Brice'] font-normal text-3xl sm:text-5xl md:text-6xl mb-4 sm:mb-6 text-black dark:text-white tracking-tight leading-tight">
                 Automate Your Success
               </h4>
-              <p className="text-base sm:text-xl text-gray-800 mb-4 sm:mb-6 leading-relaxed">
+              <p className="text-base sm:text-xl text-gray-800 dark:text-gray-400 mb-4 sm:mb-6 leading-relaxed">
                 Transform your social media presence with intelligent automation that handles engagement, grows your audience, and drives conversions 24/7.
               </p>
               <div className="mt-6 sm:mt-8 space-y-6 sm:space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black">Smart Scheduling:</span>
-                  <p className="text-gray-700 text-base sm:text-base leading-relaxed">Set up automated responses and engagement patterns that work around the clock, ensuring you never miss an opportunity to connect.</p>
+                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black dark:text-gray-400">Smart Scheduling:</span>
+                  <p className="text-gray-700 dark:text-gray-300 text-base sm:text-base leading-relaxed">Set up automated responses and engagement patterns that work around the clock, ensuring you never miss an opportunity to connect.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black">AI-Powered Engagement:</span>
-                  <p className="text-gray-700 text-base sm:text-base leading-relaxed">Let our AI handle comments, DMs, and story mentions with personalized responses that feel authentic and drive meaningful conversations.</p>
+                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black dark:text-gray-400">AI-Powered Engagement:</span>
+                  <p className="text-gray-700 dark:text-gray-300 text-base sm:text-base leading-relaxed">Let our AI handle comments, DMs, and story mentions with personalized responses that feel authentic and drive meaningful conversations.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black">Analytics & Growth:</span>
-                  <p className="text-gray-700 text-base sm:text-base leading-relaxed">Track your performance metrics and audience growth in real-time, making data-driven decisions to optimize your social strategy.</p>
+                  <span className="font-semibold text-base sm:text-base sm:min-w-[140px] text-black dark:text-gray-400">Analytics & Growth:</span>
+                  <p className="text-gray-700 dark:text-gray-300 text-base sm:text-base leading-relaxed">Track your performance metrics and audience growth in real-time, making data-driven decisions to optimize your social strategy.</p>
                 </div>
               </div>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 dark:border-2 dark:border-white/20 dark:hover:border-white/40">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -332,8 +331,8 @@ export default function LandingPage() {
             </div>
             <div className="text-left lg:order-2">
               <p className="text-[#4F46E5] mb-2 sm:mb-4 font-semibold text-base sm:text-sm tracking-wide">AUTOMATION SUITE</p>
-              <h4 className="font-['Brice'] font-normal text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-4 sm:mb-6 text-black tracking-tight leading-[1.15]">Your All-in-One Social Automation Hub</h4>
-              <p className="text-base sm:text-lg md:text-xl text-gray-800 mb-6 sm:mb-8 leading-relaxed max-w-2xl">
+              <h4 className="font-['Brice'] font-normal text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-4 sm:mb-6 text-black dark:text-white tracking-tight leading-[1.15]">Your All-in-One Social Automation Hub</h4>
+              <p className="text-base sm:text-lg md:text-xl text-gray-800 dark:text-gray-400 mb-6 sm:mb-8 leading-relaxed max-w-2xl">
                 Transform your Instagram presence today with our powerful AI automation, while preparing for tomorrow with upcoming integrations for Threads, Facebook, WhatsApp, Newsletter, Telegram, X, and LinkedIn. Our intelligent platform helps you create engaging conversations, deliver 24/7 customer support, and scale your social media engagement effortlessly across all channels.
               </p>
               <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
@@ -354,14 +353,14 @@ export default function LandingPage() {
       {/* Features Section */}
       <section ref={featuresRef} className="mt-16 sm:mt-32 relative min-h-screen flex items-center px-4 sm:px-6 lg:px-8 bg-background snap-start opacity-0 translate-y-4 transition-all duration-700 py-12 sm:py-20">
         <div className="max-w-7xl mx-auto">
-          <h1 className="font-['Brice'] font-bold text-4xl sm:text-6xl md:text-8xl mb-8 sm:mb-16 text-black tracking-tight leading-tight text-center">
+          <h1 className="font-['Brice'] font-bold text-4xl sm:text-6xl md:text-8xl mb-8 sm:mb-16 text-black dark:text-white tracking-tight leading-tight text-center">
             For an out-of-this-world success
           </h1>
-          <p className="text-base sm:text-xl text-gray-600 mb-8 sm:mb-16 max-w-3xl mx-auto text-center">
+          <p className="text-base sm:text-xl text-gray-600 dark:text-gray-300 mb-8 sm:mb-16 max-w-3xl mx-auto text-center">
             Fuel your project with a simplified product launch plan. Then, dive into the specifics with templates from our Community.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-white p-4 sm:p-8 -mx-4 sm:mx-0">
+            <div className="bg-white dark:bg-black p-4 sm:p-8 -mx-4 sm:mx-0">
               <Image
                 src="/landingpage-images/target-audience.png"
                 alt="Target Audience"
@@ -369,11 +368,11 @@ export default function LandingPage() {
                 height={400}
                 className="w-full h-auto"
               />
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Target audience</h3>
-              <p className="text-gray-600 text-sm sm:text-base">Understand the needs of a promising customer base before launch.</p>
+              <h3 className="text-black dark:text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Target audience</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Understand the needs of a promising customer base before launch.</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-8 -mx-4 sm:mx-0">
+            <div className="bg-white dark:bg-black p-4 sm:p-8 -mx-4 sm:mx-0">
               <Image
                 src="/landingpage-images/likes-comment-expression.png"
                 alt="Social Media Planner"
@@ -381,11 +380,11 @@ export default function LandingPage() {
                 height={400}
                 className="w-full h-auto"
               />
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Social media planner</h3>
-              <p className="text-gray-600 text-sm sm:text-base">Strengthen your messaging with a consistent posting schedule.</p>
+              <h3 className="text-black dark:text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Social media planner</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Strengthen your messaging with a consistent posting schedule.</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-8 -mx-4 sm:mx-0">
+            <div className="bg-white dark:bg-black p-4 sm:p-8 -mx-4 sm:mx-0">
               <Image
                 src="/landingpage-images/flow-builder.png"
                 alt="Other Templates"
@@ -393,8 +392,8 @@ export default function LandingPage() {
                 height={400}
                 className="w-full h-auto"
               />
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Other templates from the community</h3>
-              <p className="text-gray-600 text-sm sm:text-base">Endeavor in new directions with business insights from all angles.</p>
+              <h3 className="text-black dark:text-white text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 mt-4 sm:mt-6">Flow Builder</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Endeavor in new directions with business insights from all angles.</p>
             </div>
           </div>
         </div>
@@ -403,8 +402,8 @@ export default function LandingPage() {
       {/* Lead Generation Section */}
       <section ref={leadGenRef} className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-background opacity-0 translate-y-4 transition-all duration-700 mt-16 sm:mt-32">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className={`font-['Brice'] font-bold text-4xl sm:text-6xl md:text-8xl mb-24 text-black tracking-tight leading-tight`}>
-          Use Chat Marketing to drive more sales on autopilot
+          <h1 className={`font-['Brice'] font-bold text-4xl sm:text-6xl md:text-8xl mb-24 text-black dark:text-white tracking-tight leading-tight`}>
+          Power your messaging by automating replies on autopilot
           </h1>
         </div>
         <div className="max-w-7xl mx-auto space-y-16 sm:space-y-32">
@@ -415,7 +414,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700 px-4">
-              <h2 className="font-['Brice'] text-3xl sm:text-5xl md:text-6xl mb-4 sm:mb-8 text-black tracking-tight leading-tight">
+              <h2 className="font-['Brice'] text-3xl sm:text-5xl md:text-6xl mb-4 sm:mb-8 text-black dark:text-white tracking-tight leading-tight">
                 Supercharge your lead generation
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">Capture and nurture leads through automated conversations. Convert website visitors into customers with personalized engagement strategies.</p>
@@ -439,7 +438,7 @@ export default function LandingPage() {
               </video>
             </div>
             <div ref={useScrollReveal()} className="lg:order-1 opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] text-5xl sm:text-6xl font-normal mb-8 text-black dark:text-white tracking-tight leading-tight`}>
                 Increase conversion rates by up to 90%
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Leverage AI-powered automation to optimize your marketing campaigns, boost engagement rates, and maximize your return on investment.</p>
@@ -458,7 +457,7 @@ export default function LandingPage() {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`font-['Brice'] font-normal text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] font-normal text-5xl sm:text-6xl mb-8 text-black dark:text-white tracking-tight leading-tight`}>
                 Automatically respond to every message
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Automatically engage with every story mention, comment, and DM. Turn social interactions into meaningful conversations that drive sales.</p>
@@ -477,7 +476,7 @@ export default function LandingPage() {
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div ref={useScrollReveal()} className="opacity-0 translate-y-4 transition-all duration-700">
-              <h2 className={`font-['Brice'] font-bold text-5xl sm:text-6xl mb-8 text-black tracking-tight leading-tight`}>
+              <h2 className={`font-['Brice'] font-bold text-5xl sm:text-6xl mb-8 text-black dark:text-white tracking-tight leading-tight`}>
                 Auctorn AI: A Smarter Way to Chat
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Level up the experiences your followers already love with the new Auctorn AI. Create more engaging and personalized conversations.</p>

@@ -24,23 +24,23 @@ const MetricCard = ({ label, value, change, previousValue, isLoading = false }: 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-1">
-        <div className="h-6 w-32 bg-gray-200 animate-pulse rounded"></div>
-        <div className="h-10 w-24 bg-gray-200 animate-pulse rounded"></div>
-        <div className="h-4 w-40 bg-gray-200 animate-pulse rounded"></div>
+        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
       </div>
     )
   }
   
   return (
     <div className="flex flex-col">
-      <span className="text-gray-600 text-xs">{label}</span>
+      <span className="text-gray-600 dark:text-gray-400 text-xs">{label}</span>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-black">{value}</span>
-        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${isPositive ? 'bg-[#ECFDF3] text-[#27AE60]' : 'bg-[#FEE4E2] text-[#EB5757]'}`}>
+        <span className="text-2xl font-bold text-black dark:text-white">{value}</span>
+        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${isPositive ? 'bg-[#ECFDF3] dark:bg-[#0D3321] text-[#27AE60]' : 'bg-[#FEE4E2] dark:bg-[#3A1618] text-[#EB5757]'}`}>
           {isPositive ? '+' : '-'}{formattedChange}%
         </span>
       </div>
-      <span className="text-gray-500 text-xs">{previousValue} from previous month</span>
+      <span className="text-gray-500 dark:text-gray-400 text-xs">{previousValue} from previous month</span>
     </div>
   )
 }
@@ -125,9 +125,9 @@ const AnalyticsSummary = () => {
   }, [analytics?.data])
   
   return (
-    <div className="w-full bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div className="p-3 sm:p-0 bg-white rounded-lg border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
+        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
           <MetricCard 
             label="Total DMs" 
             value={processedMetrics.totalDms.value} 
@@ -136,7 +136,7 @@ const AnalyticsSummary = () => {
             isLoading={isLoading} 
           />
         </div>
-        <div className="p-3 sm:p-0 bg-white rounded-lg border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
+        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
           <MetricCard 
             label="Total Comments" 
             value={processedMetrics.totalComments.value} 
@@ -145,7 +145,7 @@ const AnalyticsSummary = () => {
             isLoading={isLoading} 
           />
         </div>
-        <div className="p-3 sm:p-0 bg-white rounded-lg border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
+        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
           <MetricCard 
             label="Engagement Rate" 
             value={processedMetrics.engagement.value} 
@@ -154,7 +154,7 @@ const AnalyticsSummary = () => {
             isLoading={isLoading} 
           />
         </div>
-        <div className="p-3 sm:p-0 bg-white rounded-lg border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
+        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
           <MetricCard 
             label="Activity" 
             value={processedMetrics.activity.value} 
@@ -163,7 +163,7 @@ const AnalyticsSummary = () => {
             isLoading={isLoading} 
           />
         </div>
-        <div className="p-3 sm:p-0 bg-white rounded-lg border border-gray-100 sm:border-0 shadow-sm sm:shadow-none">
+        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
           <MetricCard 
             label="Total Interactions" 
             value={processedMetrics.interactions.value} 

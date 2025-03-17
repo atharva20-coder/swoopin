@@ -17,9 +17,7 @@ const NotificationItem = ({ notification }: Props) => {
   return (
     <div
       key={notification.id}
-      className={`group relative flex flex-col gap-2 p-4 hover:bg-muted/50 transition-all duration-200 cursor-pointer ${
-        !notification.isSeen ? "bg-muted border-l-2 border-primary" : ""
-      } ${isMarking || isDeleting ? "opacity-50" : ""}`}
+      className={`group relative flex flex-col gap-2 p-4 hover:bg-muted/50 dark:hover:bg-muted/20 transition-all duration-200 cursor-pointer ${!notification.isSeen ? "bg-muted dark:bg-muted/10 border-l-2 border-primary" : ""} ${isMarking || isDeleting ? "opacity-50" : ""}`}
       onClick={() => {
         if (!notification.isSeen) {
           markAsSeen(
@@ -45,25 +43,21 @@ const NotificationItem = ({ notification }: Props) => {
             }
           );
         }}
-        className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive"
+        className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-destructive dark:hover:text-red-400"
       >
         <Trash2 className="h-4 w-4" />
       </button>
       <div className="flex items-start justify-between gap-4">
         <p
-          className={`text-sm ${
-            !notification.isSeen
-              ? "text-foreground font-medium"
-              : "text-muted-foreground"
-          }`}
+          className={`text-sm ${!notification.isSeen ? "text-foreground dark:text-gray-200 font-medium" : "text-muted-foreground dark:text-gray-400"}`}
         >
           {notification.content}
         </p>
         {!notification.isSeen && !isMarking && (
-          <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-primary dark:bg-blue-400 flex-shrink-0 mt-1 animate-pulse" />
         )}
       </div>
-      <span className="text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground dark:text-gray-500">
         {format(new Date(notification.createdAt), "PPp")}
       </span>
     </div>

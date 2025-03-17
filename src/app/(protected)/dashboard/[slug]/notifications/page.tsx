@@ -26,17 +26,17 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-black">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-4 sm:mb-7">
           <Select
             value={sortOrder}
             onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
           >
-            <SelectTrigger className="w-[140px] sm:w-[180px] bg-white border-gray-200">
+            <SelectTrigger className="w-[140px] sm:w-[180px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center">
-                <ChevronDown className="mr-2 h-4 w-4 text-gray-500" />
-                <span className="text-gray-700 text-sm sm:text-base">Sort by Date</span>
+                <ChevronDown className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="text-gray-700 dark:text-gray-300 text-sm sm:text-base">Sort by Date</span>
               </div>
             </SelectTrigger>
             <SelectContent>
@@ -57,14 +57,14 @@ export default function NotificationsPage() {
               )
             ))
           ) : (
-            <div className="text-center text-gray-500 py-6 sm:py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-6 sm:py-8">
               No notifications found.
             </div>
           )}
           {hasNextPage && (
             <Button
               variant="ghost"
-              className="w-full text-gray-600 hover:text-gray-900 font-medium h-10 sm:h-12"
+              className="w-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium h-10 sm:h-12"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
             >

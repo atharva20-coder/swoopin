@@ -39,15 +39,15 @@ const Page = async ({ params }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
-      <section className="relative min-h-screen pb-24">
+      <section className="relative min-h-screen pb-24 dark:bg-black">
         <div className="flex flex-col items-center gap-y-20">
           <div className="flex w-full items-center justify-between">
             <AutomationsBreadCrumb id={params.id} />
           </div>
-          <div className="w-full lg:w-10/12 xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] gap-y-3">
-            <div className="flex gap-x-2 text-black">
+          <div className="w-full lg:w-10/12 xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-gray-900 gap-y-3">
+            <div className="flex gap-x-2 text-black dark:text-white">
               <Warning />
-              <strong className="text-black">When...</strong>
+              <strong className="text-black dark:text-white">When...</strong>
             </div>
             <Trigger id={params.id} />
           </div>

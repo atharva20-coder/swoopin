@@ -27,7 +27,7 @@ const KeywordItem = ({
   return (
     <div
       className={cn(
-        "group bg-[#D6E9FF] hover:bg-[#D6E9FF] border border-[#80C2FF] text-[#59677D] flex items-center gap-x-2 py-1 px-4 rounded-full relative",
+        "group bg-[#D6E9FF] dark:bg-blue-900 hover:bg-[#D6E9FF] dark:hover:bg-blue-800 border border-[#80C2FF] dark:border-blue-700 text-[#59677D] dark:text-gray-300 flex items-center gap-x-2 py-1 px-4 rounded-full relative",
         isDeleting && "hidden",
         isPending && "opacity-50 cursor-progress pointer-events-none"
       )}
@@ -36,7 +36,7 @@ const KeywordItem = ({
         <p>{currentValue}</p>
       </EditContainer>
       <button
-        className="group-hover:opacity-100 opacity-0 absolute top-0 right-0 rounded-full bg-red-500"
+        className="group-hover:opacity-100 opacity-0 absolute top-0 right-0 rounded-full bg-red-500 dark:bg-red-600"
         onClick={onDelete}
         disabled={isPending}
       >

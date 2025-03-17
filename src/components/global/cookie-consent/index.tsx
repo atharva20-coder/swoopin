@@ -28,18 +28,18 @@ const CookieConsent = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-200 shadow-lg"
+          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg"
         >
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-                <a href="/privacy_policy" className="text-[#4F46E5] hover:underline ml-1">Learn more</a>
+                <a href="/privacy_policy" className="text-[#4F46E5] dark:text-blue-400 hover:underline ml-1">Learn more</a>
               </p>
             </div>
             <Button
               onClick={handleAccept}
-              className="bg-black hover:bg-gray-800 text-white px-8 py-2 rounded-lg transition-colors w-full sm:w-auto"
+              className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-gray-900 px-8 py-2 rounded-lg transition-colors w-full sm:w-auto"
             >
               Okay
             </Button>

@@ -25,23 +25,23 @@ export const Notifications = ({ slug }: { slug: string }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="relative p-2 hover:bg-transparent">
-          <Bell className="w-12 h-12 text-gray-600 cursor-pointer hover:text-gray-900 stroke-2" />
+        <Button variant="ghost" className="relative p-2 hover:bg-transparent dark:hover:bg-transparent">
+          <Bell className="w-12 h-12 text-gray-600 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 stroke-2" />
           {unSeenNotification && unSeenNotification?.length > 0 ? (
-            <span className="absolute text-white font-semibold bg-blue-800 -top-2 -right-1 size-5 flex items-center justify-center rounded-full text-xs">
+            <span className="absolute text-white font-semibold bg-blue-800 dark:bg-blue-600 -top-2 -right-1 size-5 flex items-center justify-center rounded-full text-xs">
               {unSeenNotification?.length}
             </span>
           ) : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[350px] shadow-border rounded-md p-0 shadow-md border border-border bg-background">
-        <div className="flex items-center justify-between p-4 bg-muted">
-          <h3 className="font-semibold text-lg text-foreground">
+      <PopoverContent className="w-[350px] shadow-border rounded-md p-0 shadow-md border border-border bg-background dark:bg-gray-900">
+        <div className="flex items-center justify-between p-4 bg-muted dark:bg-gray-800/50">
+          <h3 className="font-semibold text-lg text-foreground dark:text-gray-100">
             Notifications
           </h3>
           <Button
             variant="ghost"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm text-muted-foreground hover:text-foreground dark:text-gray-400 dark:hover:text-gray-100"
             onClick={() => router.push(`/dashboard/${slug}/notifications`)}
           >
             <svg
@@ -59,10 +59,10 @@ export const Notifications = ({ slug }: { slug: string }) => {
             </svg>
           </Button>
         </div>
-        <div className="scrollbar-thumb overflow-y-auto max-h-[350px] min-h-[95px]">
-          <div className=" bg-black space-y-0.5">
+        <div className="scrollbar-thumb overflow-y-auto max-h-[350px] min-h-[95px] bg-background dark:bg-gray-900">
+          <div className="space-y-0.5">
             {popoverNotifications?.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
+              <div className="py-8 text-center text-muted-foreground dark:text-gray-400">
                 No notifications yet
               </div>
             ) : (

@@ -79,7 +79,7 @@ const AutomationList = (props: Props) => {
       {optimisticUiData.data!.map((automation) => (
         <div
           key={automation.id}
-          className="bg-white hover:bg-gray-50 transition-all duration-200 rounded-lg p-6 border border-gray-200 shadow-sm flex gap-6 relative"
+          className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-6 relative"
         >
           {automation.id !== 'no-results' ? (
             <Link
@@ -94,8 +94,8 @@ const AutomationList = (props: Props) => {
               )}
               {/* Left section with automation details */}
               <div className="flex flex-col flex-1 items-start">
-                <h2 className="text-2xl font-medium text-gray-900 mb-1">{automation.name}</h2>
-                <p className="text-gray-600 text-sm mb-4">
+                <h2 className="text-2xl font-medium text-gray-900 dark:text-white mb-1">{automation.name}</h2>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                   {automation.listener?.listener === "SMARTAI" 
                     ? "AI-powered automation with smart responses" 
                     : automation.keywords.length > 0 
@@ -122,8 +122,8 @@ const AutomationList = (props: Props) => {
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-full border border-gray-300 border-dashed px-3 py-1">
-                    <p className="text-sm text-gray-500">No Keywords</p>
+                  <div className="rounded-full border border-gray-300 dark:border-gray-600 border-dashed px-3 py-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No Keywords</p>
                   </div>
                 )}
               </div>
@@ -156,7 +156,7 @@ const AutomationList = (props: Props) => {
                     <strong>Smart AI</strong>
                   </GradientButton>
                 ) : (
-                  <Button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                  <Button className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-lg transition-colors">
                     Standard
                   </Button>
                 )}

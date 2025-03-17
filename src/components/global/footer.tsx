@@ -1,9 +1,13 @@
-import Link from "next/link";
+'use client';
 
+import Link from "next/link";
+import { useTheme } from "@/contexts/theme-context";
 
 export default function Footer() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <footer className="py-20 px-4 sm:px-6 lg:px-8 bg-black mt-20 relative bg-[url('/landingpage-images/footer-bg.png')] bg-cover bg-center bg-no-repeat before:content-[''] before:absolute before:inset-0 before:bg-black/60 before:z-0">
+    <footer className="py-20 px-4 sm:px-6 lg:px-8 bg-black dark:bg-gray-900 mt-20 relative bg-[url('/landingpage-images/footer-bg.png')] bg-cover bg-center bg-no-repeat before:content-[''] before:absolute before:inset-0 before:bg-black/60 dark:before:bg-black/80 before:z-0">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
         {/* Left Column */}
         <div className="flex flex-col justify-between">
@@ -14,7 +18,7 @@ export default function Footer() {
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl font-light">
               Transform more conversations into sales, leads,<br />and conversions today
             </p>
-            <Link href="/dashboard" className="group relative bg-black text-white px-12 py-6 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block mb-12">
+            <Link href="/dashboard" className="group relative bg-black dark:bg-gray-800 text-white px-12 py-6 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block mb-12">
               <span className="relative z-10 flex items-center justify-center gap-2">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,6 +30,21 @@ export default function Footer() {
             </Link>
           </div>
           <div className="flex gap-6">
+            <button
+              onClick={toggleTheme}
+              className="text-gray-400 hover:text-white transition-colors"
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              )}
+            </button>
             <Link href="#" className="text-gray-400 hover:text-white transition-colors">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
@@ -52,7 +71,7 @@ export default function Footer() {
         {/* Right Column */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-left">
           <div className="col-span-1">
-            <h3 className="text-sm font-semibold mb-4 uppercase text-white">Auctorn</h3>
+            <h3 className="text-sm font-semibold mb-4 uppercase text-white dark:text-gray-100">Auctorn</h3>
             <ul className="space-y-3">
               <li><Link href="/about" className="text-sm text-gray-400 hover:text-white transition-colors">About</Link></li>
               <li><Link href="/careers" className="text-sm text-gray-400 hover:text-white transition-colors">Careers</Link></li>
@@ -94,7 +113,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="col-span-1 lg:col-span-2 flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-600 mt-12">
+        <div className="col-span-1 lg:col-span-2 flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-600 dark:border-gray-700 mt-12">
           <p className="text-sm text-gray-400 mb-4 md:mb-0">©2025, AUCTORN, INC.</p>
           <div className="flex space-x-6">
             <Link href="./privacy_policy" className="text-sm text-gray-400 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">PRIVACY POLICY</Link>

@@ -24,9 +24,9 @@ const ClerkAuthState = (props: Props) => {
         <SignInButton>
           <Button
             className="rounded-xl 
-          bg-[#252525] 
+          bg-[#252525] dark:bg-gray-800
           text-white 
-          hover:bg-[#252525]/70
+          hover:bg-[#252525]/70 dark:hover:bg-gray-700
           "
           >
             <User />
@@ -39,7 +39,7 @@ const ClerkAuthState = (props: Props) => {
           <UserButton.UserProfileLink
             label="Dashboard"
             url={`/dashboard`}
-            labelIcon={<User size={16} />}
+            labelIcon={<User size={16} className="text-gray-900 dark:text-gray-100" />}
           />
         </UserButton>
       </SignedIn>

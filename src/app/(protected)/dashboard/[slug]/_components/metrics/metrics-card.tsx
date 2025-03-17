@@ -65,15 +65,15 @@ const MetricsCard = () => {
         ].map((item, i) => (
           <div
             key={i}
-            className="p-5 border border-gray-200 flex flex-col gap-y-20 rounded-xl w-full lg:w-6/12"
+            className="p-5 border border-gray-200 dark:border-gray-700 flex flex-col gap-y-20 rounded-xl w-full lg:w-6/12 bg-white dark:bg-gray-800"
           >
             <div>
-              <h2 className="text-3xl text-gray-900 font-bold">{item.title}</h2>
-              <p className="text-sm text-gray-500">{item.subtitle}</p>
+              <h2 className="text-3xl text-gray-900 dark:text-gray-100 font-bold">{item.title}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{item.subtitle}</p>
             </div>
             <div>
-              <div className="h-9 w-24 bg-muted rounded-md animate-pulse" />
-              <div className="h-5 w-48 bg-muted rounded-md mt-2 animate-pulse" />
+              <div className="h-9 w-24 bg-muted dark:bg-gray-700 rounded-md animate-pulse" />
+              <div className="h-5 w-48 bg-muted dark:bg-gray-700 rounded-md mt-2 animate-pulse" />
             </div>
           </div>
         ))}
@@ -86,15 +86,15 @@ const MetricsCard = () => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-          <span className={`${montserrat.className} text-lg font-semibold text-gray-900`}>{platform}</span>
+          <span className={`${montserrat.className} text-lg font-semibold text-gray-900 dark:text-gray-100`}>{platform}</span>
         </div>
-        <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">Coming Soon</span>
+        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">Coming Soon</span>
       </div>
       <div className="flex-1 flex flex-col justify-center space-y-4">
         <div className="space-y-3">
-          <div className="h-6 bg-gray-100 rounded-md w-24 animate-pulse" />
-          <div className="h-4 bg-gray-100 rounded-md w-32 animate-pulse" />
-          <div className="h-4 bg-gray-100 rounded-md w-20 animate-pulse" />
+          <div className="h-6 bg-gray-100 dark:bg-gray-700 rounded-md w-24 animate-pulse" />
+          <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-md w-32 animate-pulse" />
+          <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-md w-20 animate-pulse" />
         </div>
       </div>
     </div>
@@ -103,10 +103,10 @@ const MetricsCard = () => {
   return ( 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Instagram Card - Dynamic Data */}
-        <div className="flex flex-col p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex flex-col p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2.5 h-2.5 rounded-full bg-[#E1306C]" />
-            <span className={`${montserrat.className} text-base font-semibold text-gray-900`}>Instagram</span>
+            <span className={`${montserrat.className} text-base font-semibold text-gray-900 dark:text-gray-100`}>Instagram</span>
           </div>
           <div className="flex flex-col gap-2">
             {[
@@ -115,8 +115,8 @@ const MetricsCard = () => {
               { label: 'Comment Replies', value: metrics.commentReply, change: metrics.commentReplyChange }
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between">
-                <span className={`${montserrat.className} text-xs text-gray-500`}>{item.label}</span>
-                <span className={`${montserrat.className} text-sm font-bold text-gray-900`}>{item.value}</span>
+                <span className={`${montserrat.className} text-xs text-gray-500 dark:text-gray-400`}>{item.label}</span>
+                <span className={`${montserrat.className} text-sm font-bold text-gray-900 dark:text-gray-100`}>{item.value}</span>
                 <div className="flex items-center gap-1">
                   {item.change >= 0 ? (
                     <>

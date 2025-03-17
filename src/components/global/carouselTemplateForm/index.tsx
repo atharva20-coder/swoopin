@@ -141,8 +141,8 @@ export default function CarouselTemplateForm({ automationId, onSuccess }: Props)
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Create Carousel Template</h2>
-        <Button onClick={addElement} size="sm" variant="outline">
+        <h2 className="text-black dark:text-white text-xl font-semibold">Create Carousel Template</h2>
+        <Button onClick={addElement} size="sm" variant="outline" className="text-black dark:text-white">
           <Plus className="h-4 w-4 mr-2" /> Add Element
         </Button>
       </div>
@@ -302,7 +302,7 @@ export default function CarouselTemplateForm({ automationId, onSuccess }: Props)
       
       <Button 
         onClick={handleSubmit} 
-        className="w-full" 
+        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white" 
         disabled={loading}
       >
         {loading ? "Creating..." : "Create Carousel Template"}

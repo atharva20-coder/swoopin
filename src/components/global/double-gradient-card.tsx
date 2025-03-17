@@ -50,34 +50,34 @@ const DoubleGradientCard = ({
       <a 
         onClick={handleCardClick}
         href={href}
-        className="block relative bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition-all duration-200 w-full lg:w-[calc(33.33%-1rem)] cursor-pointer hover:border-blue-200"
+        className="block relative bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 w-full lg:w-[calc(33.33%-1rem)] cursor-pointer hover:border-blue-200 dark:hover:border-blue-700"
       >
       <div className="flex flex-col h-full justify-between gap-y-4">
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-gray-900" dangerouslySetInnerHTML={{ __html: label }} />
-          <p className="text-gray-600 text-base">{subLabel}</p>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white" dangerouslySetInnerHTML={{ __html: label }} />
+          <p className="text-gray-600 dark:text-gray-300 text-base">{subLabel}</p>
         </div>
         
         {metrics && (
           <div className="flex flex-col mt-2">
             <div className="flex items-baseline gap-2">
-              <span className={`${montserrat.className} text-2xl font-bold text-black`}>
+              <span className={`${montserrat.className} text-2xl font-bold text-black dark:text-white`}>
                 {metrics.value || '0'}
               </span>
               <span className={`${montserrat.className} text-sm font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
                 {isPositive ? '+' : '-'}{formattedChange}%
               </span>
             </div>
-            <span className={`${montserrat.className} text-xs text-gray-500`}>
+            <span className={`${montserrat.className} text-xs text-gray-500 dark:text-gray-400`}>
               {metrics.previousValue || '0'} from previous month
             </span>
           </div>
         )}
         
         <div className="flex items-center justify-between mt-2">
-          <span className="text-sm font-medium text-blue-600">Quick Automation</span>
+          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Quick Automation</span>
           {isPopular && (
-            <span className="bg-[#FFF1E2] text-[#F7A151] px-3 py-1 rounded-full text-xs font-medium">
+            <span className="bg-[#FFF1E2] dark:bg-amber-900/30 text-[#F7A151] dark:text-amber-400 px-3 py-1 rounded-full text-xs font-medium">
               POPULAR
             </span>
           )}
@@ -87,7 +87,7 @@ const DoubleGradientCard = ({
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row relative">
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 z-10"
@@ -109,9 +109,9 @@ const DoubleGradientCard = ({
             </div>
 
             <div className="w-full md:w-1/2 p-6 overflow-y-auto max-h-[60vh] md:max-h-[80vh]">
-              <h2 className="text-2xl font-semibold mb-4" dangerouslySetInnerHTML={{ __html: label }} />
-              <p className="text-gray-600 mb-4">{subLabel}</p>
-              {description && <div className="text-gray-700">{description}</div>}
+              <h2 className="text-2xl font-semibold mb-4 dark:text-white" dangerouslySetInnerHTML={{ __html: label }} />
+              <p className="text-gray-600 dark:text-gray-300 mb-4">{subLabel}</p>
+              {description && <div className="text-gray-700 dark:text-gray-200">{description}</div>}
             </div>
           </div>
         </div>

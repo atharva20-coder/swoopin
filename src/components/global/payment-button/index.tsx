@@ -11,13 +11,7 @@ const PaymentButton = (props: Props) => {
     <Button
       disabled={isProcessing}
       onClick={onSubscribe}
-      className="bg-gradient-to-br
-     text-white 
-     rounded-full 
-    from-[#6d60a3] 
-    via-[#9434E6] 
-    font-bold 
-    to-[#CC3BD4]"
+      className="bg-gradient-to-br text-white rounded-full from-[#6d60a3] via-[#9434E6] to-[#CC3BD4] dark:from-[#8a7cc9] dark:via-[#b15cf0] dark:to-[#d95fe0] font-bold hover:opacity-90 transition-all duration-300"
     >
       {isProcessing ? <Loader2 className="animate-spin" /> : <CreditCardIcon />}
       Upgrade

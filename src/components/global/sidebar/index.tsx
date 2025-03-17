@@ -6,10 +6,11 @@ import { HelpDuoToneWhite } from "@/icons";
 import ClerkAuthState from "../clerk-auth-state";
 import { SubscriptionPlan } from "../subscription-plan";
 import { useUser } from "@clerk/nextjs";
+import { useTheme } from "@/contexts/theme-context";
 import UpgradeCard from "./upgrade";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Settings, HelpCircle } from "lucide-react";
+import { CreditCard, Settings, HelpCircle, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 const Sidebar = ({ slug }: Props) => {
   const { page } = usePaths();
   const { user } = useUser();
+  const { theme, toggleTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   
   React.useEffect(() => {
@@ -27,7 +29,7 @@ const Sidebar = ({ slug }: Props) => {
   }, [isCollapsed]);
 
   return (
-    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[80px]' : 'w-[280px]'} bg-[#F6F5F8] dark:bg-[#1C1C1C] flex-col hidden transition-all duration-300`}>
+    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[80px]' : 'w-[280px]'} bg-[#F6F5F8] dark:bg-[#1C1C1C] flex-col hidden transition-all duration-300 border-r border-gray-200 dark:border-gray-800`}>
       <div className={`p-6 space-y-6 ${isCollapsed ? 'items-center px-3' : ''}`}>
         {/* Logo */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full relative`}>
@@ -84,6 +86,13 @@ const Sidebar = ({ slug }: Props) => {
       <div className={`mt-auto p-6 ${isCollapsed ? 'items-center px-3' : 'space-y-4'} border-t border-gray-100 dark:border-gray-800 flex flex-col`}>        
         {isCollapsed ? (
           <>
+            <Button
+              variant="ghost"
+              className="mb-2 p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? <Sun className="w-12 h-12" /> : <Moon className="w-12 h-12" />}
+            </Button>
             <a
               href="https://www.instagram.com/sandipjoshi990/"
               target="_blank"
@@ -109,6 +118,14 @@ const Sidebar = ({ slug }: Props) => {
           </>
         ) : (
           <>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full justify-start px-4 py-2 mb-4"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <span> {theme === 'dark' ? 'Light' : 'Dark'} Theme</span>
+            </Button>
             <a
               href="https://www.instagram.com/sandipjoshi990/"
               target="_blank"

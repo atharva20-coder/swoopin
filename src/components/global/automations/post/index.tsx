@@ -20,11 +20,11 @@ const PostButton = ({ id }: Props) => {
   return (
     <TriggerButton label="Attach a post">
       {data?.status === 200 && data?.data?.data?.length > 0 ? (
-        <div className="flex flex-col gap-y-4 w-full max-h-[70vh] overflow-y-auto p-2">
+        <div className="flex flex-col gap-y-6 w-full max-h-[70vh] overflow-y-auto p-4 dark:bg-gray-900/95 backdrop-blur-sm">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
             {data?.data?.data?.map((post: InstagramPostProps) => (
               <div
-                className="relative aspect-square rounded-xl cursor-pointer overflow-hidden bg-gray-100 group"
+                className="relative aspect-square rounded-xl cursor-pointer overflow-hidden bg-gray-50 dark:bg-gray-800/80 group ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:ring-primary/30 dark:hover:ring-primary/30"
                 key={post.id}
                 onClick={() =>
                   onSelectPost({
@@ -39,11 +39,17 @@ const PostButton = ({ id }: Props) => {
                   <div className="w-full h-full">
                     <video
                       src={post.media_url}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       muted
                       playsInline
+                      onError={(e) => {
+                        const video = e.target as HTMLVideoElement;
+                        if (video.src === post.media_url) {
+                          video.src = `/api/instagram-proxy?url=${encodeURIComponent(post.media_url)}`;
+                        }
+                      }}
                     />
-                    <Film className="absolute top-2 right-2 text-white z-10" size={20} />
+                    <Film className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md" size={20} />
                   </div>
                 ) : (
                   <div className="w-full h-full">
@@ -51,38 +57,37 @@ const PostButton = ({ id }: Props) => {
                       fill
                       src={post.media_url}
                       alt={post.caption || "Instagram post"}
-                      className="object-cover transition-all duration-200 group-hover:scale-105"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
                       sizes="(max-width: 640px) 50vw, 33vw"
                       priority
                       onError={(e) => {
-                        // Handle image load error by using a proxy or fallback
                         const img = e.target as HTMLImageElement;
                         if (img.src === post.media_url) {
-                          // Try using a proxy service or direct CDN URL
                           img.src = `/api/instagram-proxy?url=${encodeURIComponent(post.media_url)}`;
                         }
                       }}
                     />
                     {post.media_type === "CAROUSEL_ALBUM" && (
-                      <ImageIcon className="absolute top-2 right-2 text-white z-10" size={20} />
+                      <ImageIcon className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md" size={20} />
                     )}
                   </div>
                 )}
                 {posts.find((p) => p.postid === post.id) && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[2px]">
                     <CheckCircle
-                      className="text-white"
+                      className="text-white drop-shadow-lg"
                       size={24}
                     />
                   </div>
                 )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
             ))}
           </div>
           <Button
             onClick={mutate}
             disabled={posts.length === 0}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Loader state={isPending}>Attach {posts.length} Post{posts.length !== 1 ? 's' : ''}</Loader>
           </Button>

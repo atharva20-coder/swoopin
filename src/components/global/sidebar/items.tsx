@@ -14,7 +14,7 @@ const Items = ({ page, slug, isCollapsed }: Props) => {
 
   return (
     <div className="space-y-4">
-      <h2 className="px-3 text-sm font-semibold text-gray-500 dark:text-gray-400">Menu</h2>
+      <h2 className="px-3 text-sm font-bold text-gray-700 dark:text-gray-300">Menu</h2>
       <div className="space-y-1">
         {menuItems.map((item) => {
           const isHome = item.label === "home";
@@ -29,7 +29,7 @@ const Items = ({ page, slug, isCollapsed }: Props) => {
                 "flex items-center gap-x-6 p-2 transition-all duration-300 rounded-lg",
                 isActive
                   ? "bg-white dark:bg-gray-800 text-[#4B4EC6] font-bold border border-black/10 dark:border-white/10"
-                  : "text-gray-700 hover:bg-white dark:hover:bg-gray-800",
+                  : "text-gray-800 font-medium hover:bg-white dark:text-gray-200 dark:hover:bg-gray-800",
                 isCollapsed && "justify-center"
               )}
             >

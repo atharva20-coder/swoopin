@@ -103,7 +103,7 @@ export const ChatInterface = () => {
                     {/* User Message 2 */}
                     <div className="flex items-end justify-end space-x-2">
                         <div className="bg-[#F4DAFF] rounded-[28px] px-6 py-4 shadow-md transform hover:scale-105 transition-all duration-300 hover:z-30 relative max-w-[240px]">
-                            <p className="text-black text-sm">josie@manychat.com</p>
+                            <p className="text-black text-sm">josie@auctorn.com</p>
                         </div>
                         <div className="w-10 h-10 rounded-full overflow-hidden shadow-md">
                             <Image

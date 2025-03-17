@@ -33,7 +33,7 @@ export const AnnouncementBanner = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="sticky top-[72px] w-full bg-black z-40 overflow-hidden py-2">
+    <div className="sticky top-[72px] w-full bg-fuchsia-500 z-40 overflow-hidden py-2">
       <button
         onClick={() => setIsVisible(false)}
         className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"

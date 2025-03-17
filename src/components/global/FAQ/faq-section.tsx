@@ -16,35 +16,55 @@ export const FAQSection = () => {
               className="border-0 border-b border-gray-200 [&[data-state=open]]:border-b-0"
             >
                 <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
-                  What are the six steps of a product launch plan?
+                  Is this against Instagram&apos;s terms of service? 
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600 pb-6">
-                  1. List out the facts – Gather your team and agree upon logistics such as launch date, product type, key deliverables, and more.<br/><br/>
-                  2. Understand the big picture – Jot down overall objectives on your product launch strategy template.<br/><br/>
-                  3. Create internal awareness – Ensure your team is on the same page with launch details. Delegate action steps to prepare for the big day.<br/><br/>
-                  4. Generate external buzz – Design an outreach plan involving partners, the press, and other sources.<br/><br/>
-                  5. Build market awareness – Expand your presence in the market as your product gains momentum.<br/><br/>
-                  6. Respond to feedback – Evaluate key metrics and keep iterating.
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  No, our platform works within Instagram&apos;s API guidelines. We don&apos;t use any unauthorized methods of automation that could put your account at risk.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-2" className="border-0 border-b border-gray-200">
                 <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
-                  What should a product launch include?
+                  Do I need an Instagram Business accont?
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600 pb-6">
-                  <p className="mb-4">Using product launch templates can help you keep all the specifics straight during this exciting time. A product launch plan example typically includes:</p>
-                  <p className="mb-4"><strong>The product itself</strong> – Understand your audience, divide tasks among your team, and ensure your production pipeline and delivery processes run smoothly before the launch date.</p>
-                  <p><strong>The go-to-market strategy</strong> – Prep your sales team, design marketing activities, clarify your messaging, and hash it out with collaborators as you approach the big day.</p>
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  Yes, our platform requires an Instagram Business or Creator account to access the necessary API features for automation.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-3" className="border-0 border-b border-gray-200">
                 <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
-                  How do you introduce a product launch?
+                  Will people know the response are automated?
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600 pb-6">
-                  Clarifying your selling point is essential in introducing your product to the market. Bring your team together and jot down ideas on a new product launch template. Work toward a consistent message that will align every department and help you achieve your shared goals.
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  Our AI powered responses are designed to mimic human-like responses, making it seem as if the responses are coming from a human.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4" className="border-0 border-b border-gray-200">
+                <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
+                  How much time will I save?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  Most users report saving 15-20 hours per week on engagement tasks, allowing them to focus on creating quality content instead
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5" className="border-0 border-b border-gray-200">
+                <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
+                  Can I customize the automated responses?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  Absolutely! You have full control ovet all automated messages and can create different response templates for various scenerios.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6" className="border-0 border-b border-gray-200">
+                <AccordionTrigger className="text-xl font-bold text-black hover:no-underline py-6">
+                  Is there any limits on the number of automated responses?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-600 pb-6 text-lg">
+                  Different plans have different limits. Please check your plan details for more information. 
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

@@ -222,7 +222,7 @@ const InstagramPage = () => {
                 <p>Great! Please confirm your email address below so I can send you the coupon code 🔥</p>
               </div>
               <div className="bg-purple-500 text-white rounded-lg p-3 mb-2 text-sm text-center">
-                <p>max@manychat.com</p>
+                <p>max@auctorn.com</p>
               </div>
               <div className="bg-slate-800 text-white rounded-lg p-3 mb-2 text-sm">
                 <p>Thanks! Please confirm your phone number 👇</p>
@@ -403,7 +403,7 @@ const InstagramPage = () => {
               {activeSection === 'stories' && (
                 <div className="pt-6">
                   <p className="text-black mb-6">
-                    Use Manychat as your personal assistant that sounds exactly like you! Automatically answer every reaction, story reply, and story mention, and keep your viewers begging for more.
+                    Use Auctorn as your personal assistant that sounds exactly like you! Automatically answer every reaction, story reply, and story mention, and keep your viewers begging for more.
                   </p>
                 </div>
               )}
@@ -445,7 +445,7 @@ const InstagramPage = () => {
               {activeSection === 'live' && (
                 <div className="pt-6">
                   <p className="text-black mb-6">
-                  Manychat delivers hot deals, coupon codes and more directly to your audience&apos;s DMs — all while you&apos;re live! Best of all, you don&apos;t have to do a thing, just go live and tell your viewers to type a word in the chat to get instant access to the info.
+                  Auctorn delivers hot deals, coupon codes and more directly to your audience&apos;s DMs — all while you&apos;re live! Best of all, you don&apos;t have to do a thing, just go live and tell your viewers to type a word in the chat to get instant access to the info.
                   </p>
                 </div>
               )}
@@ -533,7 +533,7 @@ const InstagramPage = () => {
                         <p>In case you&apos;re our lucky winner, we&apos;d like to notify you via email. Please confirm your email address below 👇</p>
                       </div>
                       <div className="bg-yellow-500 text-white rounded-xl p-3 mb-2 text-center">
-                        <p>nathan@manychat.com</p>
+                        <p>nathan@Auctorn.com</p>
                       </div>
                       <div className="bg-slate-800 text-white rounded-xl p-3 mb-2">
                         <p>Thank you so much! We&apos;ll be back soon with the results</p>
@@ -565,7 +565,7 @@ const InstagramPage = () => {
                         <p>Please enter your email address (I&apos;ll also leave a link here, but this is your back-up copy.) 👇</p>
                       </div>
                       <div className="bg-purple-500 text-white rounded-xl p-3 mb-2 text-center">
-                        <p>alex@manychat.com</p>
+                        <p>alex@Auctorn.com</p>
                       </div>
                       <div className="bg-slate-800 text-white rounded-xl p-3 mb-2">
                         <p>Thanks for that! ❤️ I&apos;ll send it right away. Hope you like it!</p>

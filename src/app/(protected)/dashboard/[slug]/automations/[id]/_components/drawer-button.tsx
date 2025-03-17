@@ -31,12 +31,12 @@ const DrawerButton = ({ id }: Props) => {
 
     return (
       <div className="mt-3 space-y-3">
-        <p className="text-sm font-medium text-green-600">Carousel template created</p>
+        <p className="text-sm font-medium text-green-600 dark:text-green-400">Carousel template created</p>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {template.elements.map((element: any, index: number) => (
-            <div key={index} className="min-w-[200px] bg-white p-3 rounded-md border border-gray-200 flex-shrink-0 shadow-sm">
+            <div key={index} className="min-w-[200px] bg-white dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex-shrink-0 shadow-sm">
               {element.imageUrl && (
-                <div className="w-full h-24 bg-gray-100 rounded mb-2 overflow-hidden relative">
+                <div className="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded mb-2 overflow-hidden relative">
                   <Image 
                     src={element.imageUrl} 
                     alt={element.title || "Carousel element"}
@@ -45,14 +45,14 @@ const DrawerButton = ({ id }: Props) => {
                   />
                 </div>
               )}
-              <p className="font-medium text-sm truncate">{element.title}</p>
-              {element.subtitle && <p className="text-xs text-gray-500 truncate">{element.subtitle}</p>}
+              <p className="font-medium text-sm truncate text-gray-900 dark:text-gray-100">{element.title}</p>
+              {element.subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{element.subtitle}</p>}
               {element.buttons?.length > 0 && (
                 <div className="mt-2 flex flex-col gap-1">
                   {element.buttons.map((button: any, btnIndex: number) => (
-                    <div key={btnIndex} className="text-xs bg-gray-100 p-1 rounded truncate flex items-center">
+                    <div key={btnIndex} className="text-xs bg-gray-100 dark:bg-gray-700 p-1 rounded truncate flex items-center">
                       <span className={`w-2 h-2 rounded-full mr-1 ${button.type === 'WEB_URL' ? 'bg-blue-500' : 'bg-green-500'}`}></span>
-                      {button.title}
+                      <span className="text-gray-700 dark:text-gray-300">{button.title}</span>
                     </div>
                   ))}
                 </div>
@@ -60,7 +60,7 @@ const DrawerButton = ({ id }: Props) => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500">This template will be used in your automation flow.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">This template will be used in your automation flow.</p>
       </div>
     );
   };
@@ -69,32 +69,32 @@ const DrawerButton = ({ id }: Props) => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-24 p-3 rounded-full bg-white hover:bg-gray-50 transition-colors shadow-md z-40"
+        className="fixed bottom-8 right-24 p-3 rounded-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-md z-40"
       >
         <Image
           src="/icons/drawer.svg"
           alt="Open Drawer"
           width={32}
           height={32}
-          className="opacity-70"
+          className="opacity-70 dark:opacity-60"
         />
       </button>
 
       <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className="flex flex-col gap-6">
-          <h2 className="text-xl font-semibold text-black">Message Templates</h2>
+          <h2 className="text-xl font-semibold text-black dark:text-white">Message Templates</h2>
           
           <div className="space-y-4">
-            <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="p-4 border dark:border-gray-700 rounded-lg transition-colors">
               <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleSection('generic')}>
-                <h3 className="font-medium text-black">Carousel Template</h3>
-                {expandedSections['generic'] ? <ChevronUp size={20} className="text-black" /> : <ChevronDown size={20} className="text-black" />}
+                <h3 className="font-medium text-black dark:text-white">Carousel Template</h3>
+                {expandedSections['generic'] ? <ChevronUp size={20} className="text-black dark:text-white" /> : <ChevronDown size={20} className="text-black dark:text-white" />}
               </div>
               {expandedSections['generic'] && (
                 <div className="mt-3">
-                  <p className="text-sm text-black mb-3">Create interactive carousel messages with multiple elements</p>
+                  <p className="text-sm text-black dark:text-gray-300 mb-3">Create interactive carousel messages with multiple elements</p>
                   {!isPro ? (
-                    <div className="p-3 bg-gray-50 rounded-md text-sm text-gray-600">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md text-sm text-gray-600 dark:text-gray-400">
                       Upgrade to PRO to use this feature
                     </div>
                   ) : hasCarouselTemplate || optimisticTemplate ? (
@@ -111,14 +111,13 @@ const DrawerButton = ({ id }: Props) => {
               )}
             </div>
 
-            {/* Other template sections remain unchanged */}
-            <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+            <div className="p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
               <div className="flex justify-between items-center" onClick={() => toggleSection('button')}>
-                <h3 className="font-medium text-black">Button Template</h3>
-                {expandedSections['button'] ? <ChevronUp size={20} className="text-black" /> : <ChevronDown size={20} className="text-black" />}
+                <h3 className="font-medium text-black dark:text-white">Button Template</h3>
+                {expandedSections['button'] ? <ChevronUp size={20} className="text-black dark:text-white" /> : <ChevronDown size={20} className="text-black dark:text-white" />}
               </div>
               {expandedSections['button'] && (
-                <p className="text-sm text-black mt-1">Add interactive buttons to your messages</p>
+                <p className="text-sm text-black dark:text-gray-300 mt-1">Add interactive buttons to your messages</p>
               )}
             </div>
             

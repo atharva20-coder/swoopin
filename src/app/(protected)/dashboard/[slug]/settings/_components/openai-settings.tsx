@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/contexts/theme-context';
 
 const formSchema = z.object({
   apiKey: z.string()
@@ -21,6 +22,7 @@ export function OpenAISettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -127,19 +129,19 @@ export function OpenAISettings() {
           name="apiKey"
           render={({ field }) => (
             <FormItem className="space-y-1">
-              <FormLabel>API Key</FormLabel>
+              <FormLabel className="dark:text-gray-200">API Key</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   placeholder="sk-..."
-                  className="w-full font-mono text-sm"
+                  className="w-full font-mono text-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
                   {...field}
                 />
               </FormControl>
-              <FormDescription className="text-sm text-gray-500">
+              <FormDescription className="text-sm text-gray-500 dark:text-gray-400">
                 Your API key must start with &apos;sk-&apos; or &apos;sk-proj-&apos; followed by characters
               </FormDescription>
-              <FormMessage className="text-xs" />
+              <FormMessage className="text-xs dark:text-red-400" />
             </FormItem>
           )}
         />
@@ -147,7 +149,7 @@ export function OpenAISettings() {
           <Button 
             type="submit" 
             disabled={isLoading} 
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
           >
             {isLoading ? 'Saving...' : hasApiKey ? 'Update API Key' : 'Save API Key'}
           </Button>
@@ -157,7 +159,7 @@ export function OpenAISettings() {
               variant="destructive"
               onClick={handleDeleteKey}
               disabled={isLoading}
-              className="sm:w-auto"
+              className="sm:w-auto dark:bg-red-600 dark:hover:bg-red-700 dark:text-white"
             >
               Delete Key
             </Button>
