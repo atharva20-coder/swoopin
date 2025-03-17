@@ -30,14 +30,14 @@ export default function LandingPage() {
             <p className="text-sm sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
             Seamlessly automate your Instagram engagement, grow your audience, and convert followers into customers with intelligent workflows designed for creators, influencers, and businesses.
             </p>
-            <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 dark:border-white/20 dark:hover:border-white/40">
+            <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </span>
-                  <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold">Try Auctorn For Free</span>
+                  <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold ">Try Auctorn For Free</span>
                 </span>
               </Link>
           </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
           <p className="text-base sm:text-xl text-gray-800 dark:text-gray-400 mb-8 sm:mb-12 max-w-2xl mx-auto mt-6 sm:mt-10">
             Take control of your social media strategy with our comprehensive dashboard. Monitor engagement, track performance, and make data-driven decisions to grow your online presence.
           </p>
-          <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 dark:border-white/20 dark:hover:border-white/40">
+          <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,7 +290,7 @@ export default function LandingPage() {
                   <p className="text-gray-700 dark:text-gray-300 text-base sm:text-base leading-relaxed">Track your performance metrics and audience growth in real-time, making data-driven decisions to optimize your social strategy.</p>
                 </div>
               </div>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 dark:border-2 dark:border-white/20 dark:hover:border-white/40">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 dark:border-2 border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -335,7 +335,7 @@ export default function LandingPage() {
               <p className="text-base sm:text-lg md:text-xl text-gray-800 dark:text-gray-400 mb-6 sm:mb-8 leading-relaxed max-w-2xl">
                 Transform your Instagram presence today with our powerful AI automation, while preparing for tomorrow with upcoming integrations for Threads, Facebook, WhatsApp, Newsletter, Telegram, X, and LinkedIn. Our intelligent platform helps you create engaging conversations, deliver 24/7 customer support, and scale your social media engagement effortlessly across all channels.
               </p>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 border border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -418,7 +418,7 @@ export default function LandingPage() {
                 Supercharge your lead generation
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">Capture and nurture leads through automated conversations. Convert website visitors into customers with personalized engagement strategies.</p>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 border border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -442,7 +442,7 @@ export default function LandingPage() {
                 Increase conversion rates by up to 90%
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Leverage AI-powered automation to optimize your marketing campaigns, boost engagement rates, and maximize your return on investment.</p>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 border border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -461,7 +461,7 @@ export default function LandingPage() {
                 Automatically respond to every message
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Automatically engage with every story mention, comment, and DM. Turn social interactions into meaningful conversations that drive sales.</p>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 border border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -480,7 +480,7 @@ export default function LandingPage() {
                 Auctorn AI: A Smarter Way to Chat
               </h2>
               <p className="text-lg text-muted-foreground mb-8">Level up the experiences your followers already love with the new Auctorn AI. Create more engaging and personalized conversations.</p>
-              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12">
+              <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center mt-8 sm:mt-12 border border-black dark:border-white">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

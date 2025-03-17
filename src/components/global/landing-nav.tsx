@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import { useTheme } from "@/contexts/theme-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const LandingNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -56,39 +58,76 @@ const LandingNav = () => {
             </div>
           </div>
 
-          {/* Hamburger Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 ml-auto"
-            aria-expanded={isMenuOpen}
-            aria-label="Toggle menu"
-          >
-            <svg
-              className="h-6 w-6 text-gray-600 dark:text-gray-300 transform transition-transform duration-300 ease-in-out"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {/* Hamburger Menu */}
+          <div className="flex items-center gap-4 ml-auto">
+            <button
+              onClick={toggleMenu}
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
+              aria-expanded={isMenuOpen}
+              aria-label="Toggle menu"
             >
-              <path
-                className={`transform transition-transform duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}
-                d="M4 6h16"
-              />
-              <path
-                className={`transform transition-opacity duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
-                d="M4 12h16"
-              />
-              <path
-                className={`transform transition-transform duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}
-                d="M4 18h16"
-              />
-            </svg>
-          </button>
+              <svg
+                className="h-6 w-6 text-gray-600 dark:text-gray-300 transform transition-transform duration-300 ease-in-out"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  className={`transform transition-transform duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}
+                  d="M4 6h16"
+                />
+                <path
+                  className={`transform transition-opacity duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
+                  d="M4 12h16"
+                />
+                <path
+                  className={`transform transition-transform duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}
+                  d="M4 18h16"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg
+                  className="w-5 h-5 text-gray-900 dark:text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5 text-gray-900 dark:text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 ml-auto">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 ml-4">
             <Link href="/dashboard" className="group relative text-xs md:text-sm font-medium text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] px-4 md:px-6 py-2 md:py-2.5 rounded-lg border border-gray-900 dark:border-white hover:border-[#4F46E5] dark:hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
               <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
@@ -109,6 +148,41 @@ const LandingNav = () => {
                 <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
               </span>
             </Link>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg
+                  className="w-5 h-5 text-gray-900 dark:text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5 text-gray-900 dark:text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
@@ -165,6 +239,7 @@ const LandingNav = () => {
                   <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
                 </span>
               </Link>
+
             </div>
           </div>
         </div>

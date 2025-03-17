@@ -18,7 +18,7 @@ export default function Footer() {
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl font-light">
               Transform more conversations into sales, leads,<br />and conversions today
             </p>
-            <Link href="/dashboard" className="group relative bg-black dark:bg-gray-800 text-white px-12 py-6 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block mb-12">
+            <Link href="/dashboard" className="group relative bg-black text-white px-12 py-6 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block mb-12 ">
               <span className="relative z-10 flex items-center justify-center gap-2">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
