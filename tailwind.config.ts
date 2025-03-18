@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: 'class',
@@ -102,13 +102,44 @@ const config: Config = {
             height: '0',
           },
         },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'fade-out': {
+          '0%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-10px)' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-5px)' },
+        },
+        'shape-appear': {
+          '0%': { opacity: '0', transform: 'scale(0.85) translateY(10px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        'avatar-appear-smooth': {
+          '0%': { opacity: '0', transform: 'scale(0.85)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'avatar-disappear-smooth': {
+          '0%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(0.85)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.5s ease-out forwards',
+        'fade-out': 'fade-out 0.5s ease-out forwards',
+        'float': 'float 6s ease-in-out infinite',
+        'shape-appear': 'shape-appear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        'avatar-appear-smooth': 'avatar-appear-smooth 0.8s ease-out',
+        'avatar-disappear-smooth': 'avatar-disappear-smooth 0.8s ease-out',
       },
     },
   },
-  plugins: [],
-}
-export default config
+  plugins: [require('tailwindcss-animate')],
+};
+
+export default config;

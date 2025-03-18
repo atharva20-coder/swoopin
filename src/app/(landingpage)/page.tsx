@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -7,117 +7,282 @@ import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 import Footer from "@/components/global/footer";
 import { FAQSection } from "@/components/global/FAQ/faq-section";
 import { AnnouncementBanner } from "@/components/global/announcement-banner";
-
+import { cn } from '@/lib/utils';
+import React, { useState, useEffect, useMemo } from 'react';
 
 export default function LandingPage() {
   const heroRef = useScrollReveal();
   const featuresRef = useScrollReveal();
   const leadGenRef = useScrollReveal();
 
+  const AVATAR_IMAGES = useMemo(() => [
+    'https://avatars.githubusercontent.com/u/6154722', //microsoft
+    'https://avatars.githubusercontent.com/u/1500684', // avatar
+    'https://avatars.githubusercontent.com/u/810438', // avatar
+    'https://avatars.githubusercontent.com/u/6820?v=4', // avatar
+    'https://avatars.githubusercontent.com/u/1714764', // avatar
+    'https://avatars.githubusercontent.com/u/263385', //
+    'https://avatars.githubusercontent.com/u/98681',
+    'https://avatars.githubusercontent.com/u/13041',
+    'https://avatars.githubusercontent.com/u/17126?v=4',
+    'https://avatars.githubusercontent.com/u/61755?v=4'
+  ], []);
+
+  const GEOMETRIC_PATTERNS = useMemo(() => [
+    { type: 'circle', color: '#00BBEF' },
+    { type: 'square', color: '#5E5EDD' },
+    { type: 'dots', color: '#00BBEF' },
+    { type: 'circle', color: '#FFDD00' },
+    { type: 'lines', color: '#00BBEF' },
+    { type: 'square', color: '#2B7CD7' },
+    { type: 'dots', color: '#5E5EDD' },
+    { type: 'circle', color: '#FFFFFF' },
+    { type: 'lines', color: '#FFDD00' }
+  ], []);
+
+  const TOTAL_CELLS = 16;
+  const GRID_POSITIONS = useMemo(() =>
+    Array.from({ length: TOTAL_CELLS }, (_, i) => ({
+      row: Math.floor(i / 4),
+      col: i % 4
+    })), []);
+
+  type GridItem = {
+    id: string;
+    type: 'avatar' | 'shape';
+    imageUrl?: string;
+    shapeType?: 'circle' | 'square' | 'dots' | 'lines';
+    color?: string;
+    row: number;
+    col: number;
+    visible: boolean;
+  };
+
+  const [gridItems, setGridItems] = useState<GridItem[]>([]);
+
+  useEffect(() => {
+    const initialItems: GridItem[] = [];
+
+    const avatarPositions = [...GRID_POSITIONS]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 7);
+
+    avatarPositions.forEach((pos, index) => {
+      initialItems.push({
+        id: `avatar-${index}`,
+        type: 'avatar',
+        imageUrl: AVATAR_IMAGES[index % AVATAR_IMAGES.length],
+        row: pos.row,
+        col: pos.col,
+        visible: true
+      });
+    });
+
+    const usedPositions = new Set(avatarPositions.map(p => `${p.row}-${p.col}`));
+    let shapeIndex = 0;
+
+    GRID_POSITIONS.forEach(pos => {
+      const posKey = `${pos.row}-${pos.col}`;
+      if (!usedPositions.has(posKey)) {
+        const pattern = GEOMETRIC_PATTERNS[shapeIndex % GEOMETRIC_PATTERNS.length];
+        initialItems.push({
+          id: `shape-${shapeIndex}`,
+          type: 'shape',
+          shapeType: pattern.type as any,
+          color: pattern.color,
+          row: pos.row,
+          col: pos.col,
+          visible: true
+        });
+        shapeIndex++;
+      }
+    });
+
+    setGridItems(initialItems);
+  }, [AVATAR_IMAGES, GEOMETRIC_PATTERNS, GRID_POSITIONS]);
+
+  useEffect(() => {
+    const animateGrid = () => {
+      setGridItems(currentItems => {
+        const newItems = [...currentItems];
+        const avatarIndices = newItems
+          .map((item, index) => item.type === 'avatar' ? index : -1)
+          .filter(index => index !== -1);
+
+        const shapeIndices = newItems
+          .map((item, index) => item.type === 'shape' ? index : -1)
+          .filter(index => index !== -1);
+
+        if (avatarIndices.length > 0 && shapeIndices.length > 0) {
+          const randomAvatarIdx = avatarIndices[Math.floor(Math.random() * avatarIndices.length)];
+          const randomShapeIdx = shapeIndices[Math.floor(Math.random() * shapeIndices.length)];
+
+          const avatarPos = { row: newItems[randomAvatarIdx].row, col: newItems[randomAvatarIdx].col };
+          newItems[randomAvatarIdx].row = newItems[randomShapeIdx].row;
+          newItems[randomAvatarIdx].col = newItems[randomShapeIdx].col;
+          newItems[randomShapeIdx].row = avatarPos.row;
+          newItems[randomShapeIdx].col = avatarPos.col;
+
+          newItems[randomAvatarIdx].visible = false;
+          newItems[randomShapeIdx].visible = false;
+
+          setTimeout(() => {
+            setGridItems(items => items.map((item, idx) =>
+              idx === randomAvatarIdx || idx === randomShapeIdx
+                ? { ...item, visible: true }
+                : item
+            ));
+          }, 400);
+        }
+
+        return newItems;
+      });
+    };
+
+    const initialTimeout = setTimeout(() => {
+      animateGrid();
+      const interval = setInterval(animateGrid, 3000);
+      return () => clearInterval(interval);
+    }, 1500);
+
+    return () => clearTimeout(initialTimeout);
+  }, []);
+
+  const GeometricShape = ({
+    type,
+    color,
+    className,
+    animationDelay = '0s'
+  }: {
+    type: 'circle' | 'square' | 'dots' | 'lines';
+    color: string;
+    className?: string;
+    animationDelay?: string;
+  }) => {
+    const baseClasses = cn(
+      'opacity-0 transform animate-shape-appear',
+      {
+        'rounded-full': type === 'circle',
+        'dot-pattern': type === 'dots',
+        'line-pattern': type === 'lines',
+      },
+      className
+    );
+  
+    const style = {
+      animationDelay,
+      backgroundColor: type === 'circle' || type === 'square' ? color : 'transparent',
+      color: type === 'dots' || type === 'lines' ? color : 'transparent',
+      border: type === 'lines' ? `2px dashed ${color}` : 'none', // Add border for lines
+      transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease-out'
+    };
+  
+    return <div className={baseClasses} style={style} />;
+  };
+  
+  
 
   return (
     <main className="min-h-screen snap-y snap-mandatory overflow-y-auto dark:black">
       <LandingNav />
       <AnnouncementBanner />
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-8 sm:py-20 px-4 sm:px-6 lg:px-8 bg-indigo-400 dark:bg-black overflow-hidden mt-[52px] sm:mt-[144px] opacity-0 translate-y-4 transition-all duration-700">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 items-center relative z-10">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-8 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black overflow-hidden mt-[52px] sm:mt-[144px] opacity-0 translate-y-4 transition-all duration-700">
+        <div className="max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-12 items-center relative z-10">
           <div className="text-left px-2 sm:px-0">
             <p className="text-black dark:text-white mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
             <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-[#B6FC33] tracking-tight leading-tight">
-            SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
+              SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
             </h1>
             <p className="text-sm sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
-            Seamlessly automate your Instagram engagement, grow your audience, and convert followers into customers with intelligent workflows designed for creators, influencers, and businesses.
+              Seamlessly automate your Instagram engagement, grow your audience, and convert followers into customers with intelligent workflows designed for creators, influencers, and businesses.
             </p>
             <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 border-black dark:border-white">
-                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-                  <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </span>
-                  <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold ">Try Auctorn For Free</span>
+              <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </span>
-              </Link>
+                <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold ">Try Auctorn For Free</span>
+              </span>
+            </Link>
           </div>
 
-          {/* Right Column - Image with 3D Hover Effect */}
-          <div 
-            className="relative w-full h-full min-h-[400px] hidden lg:flex items-center justify-center perspective-1500"
-            onMouseMove={(e) => {
-              const bounds = e.currentTarget.getBoundingClientRect();
-              const mouseX = e.clientX;
-              const mouseY = e.clientY;
-              const leftX = mouseX - bounds.x;
-              const topY = mouseY - bounds.y;
-              const center = {
-                x: leftX - bounds.width / 2,
-                y: topY - bounds.height / 2
-              };
-              const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
-              
-              const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-              
-              if (imageEl) {
-                imageEl.style.transform = `
-                  rotate3d(
-                    ${center.y / 100},
-                    ${-center.x / 100},
-                    0,
-                    ${Math.log(distance) * 2}deg
-                  )
-                `;
-              }
-            }}
-            onTouchMove={(e) => {
-              const touch = e.touches[0];
-              const bounds = e.currentTarget.getBoundingClientRect();
-              const touchX = touch.clientX;
-              const touchY = touch.clientY;
-              const leftX = touchX - bounds.x;
-              const topY = touchY - bounds.y;
-              const center = {
-                x: leftX - bounds.width / 2,
-                y: topY - bounds.height / 2
-              };
-              const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
-              
-              const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-              
-              if (imageEl) {
-                imageEl.style.transform = `
-                  rotate3d(
-                    ${center.y / 100},
-                    ${-center.x / 100},
-                    0,
-                    ${Math.log(distance) * 2}deg
-                  )
-                `;
-              }
-            }}
-            onMouseLeave={(e) => {
-              const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-              if (imageEl) {
-                imageEl.style.transform = '';
-              }
-            }}
-            onTouchEnd={(e) => {
-              const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-              if (imageEl) {
-                imageEl.style.transform = '';
-              }
-            }}
-          >
-            <div className="relative">
-              <Image
-                src="/landingpage-images/ig-post-bw.svg"
-                alt="Instagram Post Illustration"
-                width={100}
-                height={100}
-                className="w-full max-w-lg h-auto hover-image transition-transform duration-300 ease-out"
-                priority
+          {/* Right Column - Animated Avatars */}
+          <div className="relative w-full h-full min-h-[300px] sm:min-h-[350px] lg:min-h-[400px] flex items-center justify-center overflow-hidden order-2 lg:order-1 mt-8 sm:mt-12 lg:mt-0">
+            <div className="absolute inset-0 overflow-hidden">
+              <GeometricShape
+                type="circle"
+                color="rgba(94, 94, 221, 0.05)"
+                className="w-48 h-48 absolute top-10 left-[10%]"
+                animationDelay="0.2s"
               />
+              <GeometricShape
+                type="square"
+                color="rgba(0, 187, 239, 0.05)"
+                className="w-64 h-64 absolute bottom-10 right-[5%]"
+                animationDelay="0.5s"
+              />
+              <GeometricShape
+                type="dots"
+                color="rgba(94, 94, 221, 0.2)"
+                className="w-32 h-32 absolute top-1/4 right-[15%]"
+                animationDelay="0.8s"
+              />
+              <GeometricShape
+                type="lines"
+                color="rgba(255, 221, 0, 0.15)"
+                className="w-40 h-40 absolute bottom-1/4 left-[20%]"
+                animationDelay="1s"
+              />
+            </div>
+            <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+              <div className="relative w-full h-full grid grid-cols-3 sm:grid-cols-4 grid-rows-4 gap-0.5 sm:gap-1 lg:gap-2">
+                {gridItems.map((item, index) => {
+                  const itemStyle = {
+                    gridRow: item.row + 1,
+                    gridColumn: item.col + 1,
+                    animationDelay: `${index * 0.1}s`
+                  };
+
+                  const itemClasses = cn(
+                    'avatar-item',
+                    {
+                      'avatar-appear': item.visible,
+                      'avatar-disappear': !item.visible
+                    }
+                  );
+
+                  if (item.type === 'avatar') {
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(itemClasses, 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full overflow-hidden')}
+                        style={itemStyle}
+                      >
+                        <Image
+                          src={item.imageUrl || '/public/images/placeholder.svg'}
+                          alt="Contributor avatar"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <GeometricShape
+                        key={item.id}
+                        type={item.shapeType!}
+                        color={item.color!}
+                        className={cn(itemClasses, 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20')}
+                        animationDelay={`${index * 0.1}s`}
+                      />
+                    );
+                  }
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -143,9 +308,9 @@ export default function LandingPage() {
                   <span className="transform group-hover:translate-x-3 transition-transform duration-300 text-lg sm:text-xl font-bold">Try Dashboard</span>
                 </span>
             </Link>
-          
+
           <div className="max-w-4xl mx-auto mt-10">
-            <div 
+            <div
               className="relative w-full perspective-1500"
               onMouseMove={(e) => {
                 const bounds = e.currentTarget.getBoundingClientRect();
@@ -158,9 +323,9 @@ export default function LandingPage() {
                   y: topY - bounds.height / 2
                 };
                 const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
-                
+
                 const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-                
+
                 if (imageEl) {
                   imageEl.style.transform = `
                     rotate3d(
@@ -184,9 +349,9 @@ export default function LandingPage() {
                   y: topY - bounds.height / 2
                 };
                 const distance = Math.sqrt(center.x ** 2 + center.y ** 2);
-                
+
                 const imageEl = e.currentTarget.querySelector('.hover-image') as HTMLElement;
-                
+
                 if (imageEl) {
                   imageEl.style.transform = `
                     rotate3d(
@@ -232,9 +397,9 @@ export default function LandingPage() {
             Social Technologies
           </h2>
           <p className="text-base sm:text-xl text-gray-800 mb-12 max-w-2xl mx-auto">
-            Social technologies that help influencers and buisnesses grow, build community and monetize their content.
+            Social technologies that help influencers and businesses grow, build community and monetize their content.
           </p>
-          
+
           <div className="social-icons-container">
           <Link href="/social/instagram" className="social-icon">
               <Image src="/icons/meta/instagram.png" alt="Instagram" width={24} height={24}/>
@@ -491,8 +656,7 @@ export default function LandingPage() {
 
       {/* Testimonial Section */}
 
-
-      {/* IG-Story Image Section 
+      {/* IG-Story Image Section
       <section className="hidden sm:block relative py-12 sm:py-20 bg-background mt-16 sm:mt-28">
         <div className="w-full px-4 sm:px-0">
           <div className="w-full">
@@ -511,12 +675,94 @@ export default function LandingPage() {
       </section>
       */}
 
-
       {/* FAQ Section */}
       <FAQSection />
 
       {/* FOOTER Section */}
       <Footer />
+
+      <style jsx>{`
+      .line-pattern {
+        position: relative;
+      }
+
+      .line-pattern::before,
+      .line-pattern::after {
+        content: '';
+        position: absolute;
+        background-color: currentColor;
+      }
+
+      .line-pattern::before {
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 100%;
+        transform: translateX(-50%);
+      }
+
+      .line-pattern::after {
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        transform: translateY(-50%);
+      }
+
+        @keyframes fade-in {
+          0% { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fade-out {
+          0% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-10px); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+
+        @keyframes shape-appear {
+          0% { opacity: 0; transform: scale(0.85) translateY(10px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes avatar-appear-smooth {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes avatar-disappear-smooth {
+          0% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.85); }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+
+        .animate-fade-out {
+          animation: fade-out 0.5s ease-out forwards;
+        }
+
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-shape-appear {
+          animation: shape-appear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .animate-avatar-appear-smooth {
+          animation: avatar-appear-smooth 0.8s ease-out;
+        }
+
+        .animate-avatar-disappear-smooth {
+          animation: avatar-disappear-smooth 0.8s ease-out;
+        }
+      `}</style>
     </main>
   );
 }
