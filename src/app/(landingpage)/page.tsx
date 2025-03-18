@@ -189,15 +189,15 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center py-8 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black overflow-hidden mt-[52px] sm:mt-[144px] opacity-0 translate-y-4 transition-all duration-700">
         <div className="max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-12 items-center relative z-10">
-          <div className="text-left px-2 sm:px-0">
+          <div className="text-center sm:text-left px-2 sm:px-0">
             <p className="text-black dark:text-white mb-3 sm:mb-4 font-medium text-xs sm:text-base">AUCTORN</p>
-            <h1 className="font-['Brice'] font-bold text-3xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-[#B6FC33] tracking-tight leading-tight">
+            <h1 className="font-['Brice'] font-bold text-4xl sm:text-6xl md:text-7xl mb-3 sm:mb-6 text-black dark:text-[#B6FC33] tracking-tight leading-tight">
               SMART MOVES, VIRAL WINS: AUTOMATE & THRIVE
             </h1>
-            <p className="text-sm sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
+            <p className="text-base sm:text-xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-8 max-w-2xl">
               Seamlessly automate your Instagram engagement, grow your audience, and convert followers into customers with intelligent workflows designed for creators, influencers, and businesses.
             </p>
-            <Link href="/dashboard" className="group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 border-black dark:border-white">
+            <Link href="/dashboard" className="mx-auto sm:mx-0 group relative bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] hover:rounded-none inline-block w-full sm:w-auto text-center dark:border-2 border-black dark:border-white">
               <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                 <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
