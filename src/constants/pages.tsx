@@ -33,7 +33,7 @@ export const PLANS = [
   {
     name: "Free Plan",
     description: "Perfect for getting started",
-    price: "$0",
+    price: "₹0",
     features: [
       "Free 200 DM's and Comments",
       "Boost engagement with target responses",
@@ -45,7 +45,7 @@ export const PLANS = [
   {
     name: "Smart AI Plan",
     description: "Advanced features for power users",
-    price: "$99",
+    price: "₹799",
     features: [
       "Unlimited DM's and Comments",
       "AI-powered response generation",

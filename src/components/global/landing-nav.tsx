@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Inter } from "next/font/google";
 import Image from "next/image";
 import { useTheme } from "@/contexts/theme-context";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,33 +31,131 @@ const LandingNav = () => {
                 className="w-10 h-10 md:w-11 md:h-11 lg:w-12 lg:h-12"
               />
             </Link>
-            <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-              <Link href="#" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group">
-                <span className="relative inline-block">PRODUCT
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group">
-                <span className="relative inline-block">SOLUTIONS
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group">
-                <span className="relative inline-block">AGENCIES
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group">
-                <span className="relative inline-block">PRICING
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group">
-                <span className="relative inline-block">RESOURCES
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-            </div>
+            <NavigationMenu className="hidden md:flex">
+              <NavigationMenuList className="space-x-4 lg:space-x-8">
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">PRODUCT</NavigationMenuTrigger>
+                  <NavigationMenuContent className="p-8">
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <Link href="/social/instagram" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Instagram Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full">Active</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
+                      </Link>
+                      <Link href="/social/facebook" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Facebook Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
+                      </Link>
+                      <Link href="/newsletter" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Newsletter Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
+                      </Link>
+                      <Link href="/messenger" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Messenger Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
+                      </Link>
+                      <Link href="/sheets" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Google Sheets Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Data automation, reporting, and integration with other services</p>
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">SOLUTIONS</NavigationMenuTrigger>
+                  <NavigationMenuContent className="p-8">
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Enterprise</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Large scale solutions for enterprise</p>
+                      </Link>
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Startups</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Flexible solutions for growing businesses</p>
+                      </Link>
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Agencies</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Specialized solutions for marketing agencies</p>
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">AGENCIES</NavigationMenuTrigger>
+                  <NavigationMenuContent className="p-8">
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Partner Program</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Join our partner network</p>
+                      </Link>
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Agency Directory</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Find certified agency partners</p>
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuLink href="/social/pricings" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group inline-flex items-center">
+                    <span className="relative inline-block">PRICING
+                      <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+                    </span>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">RESOURCES</NavigationMenuTrigger>
+                  <NavigationMenuContent className="p-8">
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">How to guide</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Learn how automations work in Auctorn</p>
+                      </Link>
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Blogs</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">For growing businesses and increasing follower count</p>
+                      </Link>
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Meet Developer</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Get in touch with the developer</p>
+                      </Link>
+                    </div>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
           </div>
 
           {/* Hamburger Menu */}
@@ -191,32 +291,111 @@ const LandingNav = () => {
           className={`md:hidden absolute left-0 right-0 top-[72px] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg transform transition-all duration-300 ease-in-out origin-top ${isMenuOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}
         >
           <div className="h-[calc(100vh-72px)] overflow-y-auto px-4 pt-2 pb-8 space-y-4 flex flex-col">
-            <div className="flex-1 space-y-4">
-              <Link href="#" className="block text-gray-900 dark:text-white text-base font-medium relative group py-4 px-3">
-                <span className="relative inline-block">PRODUCT
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="block text-gray-900 dark:text-white text-base font-medium relative group py-4 px-3">
-                <span className="relative inline-block">SOLUTIONS
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="block text-gray-900 dark:text-white text-base font-medium relative group py-4 px-3">
-                <span className="relative inline-block">AGENCIES
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="block text-gray-900 dark:text-white text-base font-medium relative group py-4 px-3">
-                <span className="relative inline-block">PRICING
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
-              <Link href="#" className="block text-gray-900 dark:text-white text-base font-medium relative group py-4 px-3">
-                <span className="relative inline-block">RESOURCES
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#4F46E5] transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                </span>
-              </Link>
+            <div className="flex-1">
+              <Accordion type="single" collapsible className="space-y-2">
+                <AccordionItem value="product" className="border-none">
+                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
+                    PRODUCT
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3">
+                    <div className="space-y-4">
+                      <Link href="/social/instagram" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Instagram Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full">Active</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
+                      </Link>
+                      <Link href="/social/facebook" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Facebook Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
+                      </Link>
+                      <Link href="/newsletter" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Newsletter Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
+                      </Link>
+                      <Link href="/messenger" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Messenger Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
+                      </Link>
+                      <Link href="/sheets" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Google Sheets Automation</h3>
+                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Data automation, reporting, and integration with other services</p>
+                      </Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="solutions" className="border-none">
+                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
+                    SOLUTIONS
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3">
+                    <div className="space-y-4">
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">For Enterprise</Link>
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">For Startups</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="agencies" className="border-none">
+                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
+                    AGENCIES
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3">
+                    <div className="space-y-4">
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Partner Program</Link>
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Agency Directory</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="pricing" className="border-none">
+                  <Link href="/social/pricings" className="block text-gray-900 dark:text-white text-base font-medium py-4 px-3">
+                    PRICING
+                  </Link>
+                </AccordionItem>
+
+                <AccordionItem value="resources" className="border-none">
+                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
+                    RESOURCES
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3">
+                    <div className="space-y-4">
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">How to guide</Link>
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Blogs</Link>
+                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Meet Developer</Link>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
             <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
               <Link href="/dashboard" className="group relative block text-sm font-medium text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-gray-900 dark:border-white hover:border-[#4F46E5] dark:hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
