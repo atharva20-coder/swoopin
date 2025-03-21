@@ -54,7 +54,7 @@ const PaymentCard = ({ current, label, landing }: Props) => {
         )}
         {label === "PRO" ? (
           <p className="mb-6 flex items-baseline">
-            <b className="text-4xl font-bold text-gray-900">₹799</b>
+            <b className="text-4xl font-bold text-gray-900">₹999</b>
             <span className="text-gray-600 ml-2">/month</span>
           </p>
         ) : (
