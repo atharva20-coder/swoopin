@@ -1,6 +1,5 @@
 ## README 1: Auctorn - AI-Powered Social Media Automation Platform
 
-```markdown
 # Auctorn: Intelligent Instagram Automation & Engagement Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
