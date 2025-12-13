@@ -16,6 +16,7 @@ import {
   getAutomations,
   updateAutomation,
   addCarouselTemplate,
+  syncTriggers,
 } from "./queries";
 
 export const createAutomations = async (id?: string) => {
@@ -114,6 +115,18 @@ export const saveTrigger = async (automationId: string, trigger: string[]) => {
     const create = await addTrigger(automationId, trigger);
     if (create) return { status: 200, data: "Trigger saved" };
     return { status: 404, data: "Cannot save trigger" };
+  } catch (error) {
+    return { status: 500, data: "Oops! something went wrong" };
+  }
+};
+
+// Sync triggers - only creates new ones and deletes removed ones
+export const syncTriggersAction = async (automationId: string, triggerTypes: string[]) => {
+  await onCurrentUser();
+  try {
+    const result = await syncTriggers(automationId, triggerTypes);
+    if (result) return { status: 200, data: "Triggers synced", result };
+    return { status: 404, data: "Automation not found" };
   } catch (error) {
     return { status: 500, data: "Oops! something went wrong" };
   }

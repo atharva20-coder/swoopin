@@ -1,8 +1,15 @@
 import { onCurrentUser } from "@/actions/user";
 import { client } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Apply CONFIG rate limiting (20 requests/minute)
+  const rateLimitResult = await applyRateLimit(req, "CONFIG");
+  if (!rateLimitResult.allowed) {
+    return rateLimitResult.response;
+  }
+
   try {
     const user = await onCurrentUser();
     const { apiKey } = await req.json();

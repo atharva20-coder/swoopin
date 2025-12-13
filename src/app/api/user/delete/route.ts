@@ -1,7 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { client as prisma } from "@/lib/prisma";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+  // Apply STRICT rate limiting (5 requests/minute) - destructive operation
+  const rateLimitResult = await applyRateLimit(request, "STRICT");
+  if (!rateLimitResult.allowed) {
+    return rateLimitResult.response;
+  }
+
   try {
     const body = await request.json();
     const { email } = body;

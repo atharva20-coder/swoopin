@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveFlowData, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
-import { saveTrigger, saveListener, saveKeyword } from "@/actions/automations";
+import { syncTriggersAction, saveListener, saveKeyword } from "@/actions/automations";
 
 type Props = {
   automationId: string;
@@ -304,6 +304,12 @@ const FlowManager = ({ automationId, slug }: Props) => {
           : node
       )
     );
+    // Also update selectedNode if it's the one being updated
+    setSelectedNode(prev => 
+      prev && prev.id === nodeId 
+        ? { ...prev, data: { ...prev.data, config } }
+        : prev
+    );
   }, []);
 
   // Delete node from canvas and database
@@ -333,6 +339,11 @@ const FlowManager = ({ automationId, slug }: Props) => {
         config: n.data.config,
       }));
 
+      console.log("=== SAVING FLOW NODES ===");
+      flowNodes.forEach(n => {
+        console.log(`Node ${n.nodeId}: ${n.subType}`, n.config);
+      });
+
       const flowEdges = edges.map(e => ({
         edgeId: e.id,
         sourceNodeId: e.source,
@@ -347,15 +358,13 @@ const FlowManager = ({ automationId, slug }: Props) => {
         return;
       }
 
-      // 2. Sync triggers to database
+      // 2. Sync triggers to database (only adds new, removes deleted)
       const triggerNodes = nodes.filter(n => 
         n.data.type === "trigger" && 
         (n.data.subType === "DM" || n.data.subType === "COMMENT")
       );
-      if (triggerNodes.length > 0) {
-        const triggerTypes = triggerNodes.map(n => n.data.subType);
-        await saveTrigger(automationId, triggerTypes);
-      }
+      const triggerTypes = triggerNodes.map(n => n.data.subType);
+      await syncTriggersAction(automationId, triggerTypes);
 
       // 3. Sync keywords
       const keywordNodes = nodes.filter(n => n.data.subType === "KEYWORDS");

@@ -165,6 +165,46 @@ export const addTrigger = async (automationId: string, trigger: string[]) => {
   });
 };
 
+// Sync triggers - only creates new ones and deletes removed ones
+export const syncTriggers = async (automationId: string, newTriggerTypes: string[]) => {
+  // Get existing triggers
+  const automation = await client.automation.findUnique({
+    where: { id: automationId },
+    include: { trigger: true },
+  });
+  
+  if (!automation) return null;
+  
+  const existingTypes = automation.trigger.map(t => t.type);
+  
+  // Find triggers to add (in new but not in existing)
+  const toAdd = newTriggerTypes.filter(t => !existingTypes.includes(t));
+  
+  // Find triggers to delete (in existing but not in new)
+  const toDelete = automation.trigger.filter(t => !newTriggerTypes.includes(t.type));
+  
+  // Delete removed triggers
+  if (toDelete.length > 0) {
+    await client.trigger.deleteMany({
+      where: {
+        id: { in: toDelete.map(t => t.id) },
+      },
+    });
+  }
+  
+  // Create new triggers
+  if (toAdd.length > 0) {
+    await client.trigger.createMany({
+      data: toAdd.map(type => ({
+        automationId,
+        type,
+      })),
+    });
+  }
+  
+  return { added: toAdd, deleted: toDelete.map(t => t.type) };
+};
+
 export const addKeyWord = async (automationId: string, keyword: string) => {
   return client.automation.update({
     where: {

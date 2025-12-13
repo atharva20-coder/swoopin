@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Node } from "reactflow";
 import { FlowNodeData } from "./flow-node";
 import { useQueryAutomation, useQueryUser, useQueryAutomationPosts } from "@/hooks/user-queries";
-import { useListener, useAutomationPosts, useEditAutomation } from "@/hooks/use-automations";
+import { useListener, useAutomationPosts, useEditAutomation, useDeleteAutomation } from "@/hooks/use-automations";
 import { Loader2, Save, X, CheckCircle, Film, ImageIcon, Edit2, Check } from "lucide-react";
 import CarouselTemplateForm from "../carouselTemplateForm";
 import Image from "next/image";
@@ -13,6 +13,8 @@ import { InstagramPostProps } from "@/types/posts.type";
 import { Button } from "@/components/ui/button";
 import Loader from "../loader";
 import ActivateAutomationButton from "../activate-automation-button";
+import { toast } from "sonner";
+import { useDebouncedCallback } from "@/hooks/use-debounce";
 
 type ConfigPanelProps = {
   id: string;
@@ -62,6 +64,51 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
     if (onUpdateNode) {
       onUpdateNode(selectedNode.id, formData);
+      toast.success("Configuration saved!", {
+        description: `${selectedNode.data.label} configuration updated.`,
+      });
+    }
+  };
+
+  const [newKeyword, setNewKeyword] = useState("");
+
+  const addKeyword = () => {
+    if (!newKeyword.trim() || !selectedNode) return;
+    const currentKeywords = formData.keywords || [];
+    if (!currentKeywords.includes(newKeyword.trim())) {
+      const updatedKeywords = [...currentKeywords, newKeyword.trim()];
+      const newConfig = { ...formData, keywords: updatedKeywords };
+      setFormData(newConfig);
+      // Auto-save to node
+      if (onUpdateNode) {
+        onUpdateNode(selectedNode.id, newConfig);
+        toast.success("Keyword added!", {
+          description: `"${newKeyword.trim()}" will trigger this automation.`,
+        });
+      }
+    }
+    setNewKeyword("");
+  };
+
+  const removeKeyword = (keyword: string) => {
+    if (!selectedNode) return;
+    const currentKeywords = formData.keywords || [];
+    const updatedKeywords = currentKeywords.filter((k: string) => k !== keyword);
+    const newConfig = { ...formData, keywords: updatedKeywords };
+    setFormData(newConfig);
+    // Auto-save to node
+    if (onUpdateNode) {
+      onUpdateNode(selectedNode.id, newConfig);
+      toast.success("Keyword removed!", {
+        description: `"${keyword}" has been removed.`,
+      });
+    }
+  };
+
+  const handleKeywordKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addKeyword();
     }
   };
 
@@ -79,21 +126,83 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       </div>
 
       {selectedNode?.data.subType === "KEYWORDS" && (
-        <div>
+        <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Keyword to Match
+            Keywords to Match
           </label>
-          <input
-            type="text"
-            value={formData.keyword || ""}
-            onChange={(e) => setFormData({ ...formData, keyword: e.target.value })}
-            placeholder="Enter keyword..."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          
+          {/* Current keywords list */}
+          <div className="flex flex-wrap gap-2">
+            {(formData.keywords || []).map((keyword: string, index: number) => (
+              <div
+                key={index}
+                className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+              >
+                <span>{keyword}</span>
+                <button
+                  type="button"
+                  onClick={() => removeKeyword(keyword)}
+                  className="ml-1 text-blue-600 dark:text-blue-400 hover:text-red-500 dark:hover:text-red-400"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add new keyword input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              onKeyDown={handleKeywordKeyDown}
+              placeholder="Enter keyword and press Enter..."
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={addKeyword}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+          
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Messages containing any of these keywords will trigger this automation.
+          </p>
+
+          {/* Save Configuration Button */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isPending || !formData.keywords || formData.keywords.length === 0}
+            className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {isPending ? "Saving..." : "Save Configuration"}
+          </button>
         </div>
       )}
     </div>
   );
+
+  // Debounced auto-save to prevent rapid API calls
+  const debouncedAutoSave = useDebouncedCallback(
+    (nodeId: string, config: Record<string, any>) => {
+      if (onUpdateNode) {
+        onUpdateNode(nodeId, config);
+      }
+    },
+    300
+  );
+
+  const handleAutoSave = (field: string, value: any) => {
+    if (!selectedNode || !onUpdateNode) return;
+    const newConfig = { ...formData, [field]: value };
+    setFormData(newConfig);
+    debouncedAutoSave(selectedNode.id, newConfig);
+  };
 
   const renderMessageConfig = () => (
     <div className="space-y-4">
@@ -104,11 +213,20 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         <textarea
           value={formData.message || ""}
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          onBlur={(e) => handleAutoSave("message", e.target.value)}
           placeholder="Enter your message..."
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
         />
       </div>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending || !formData.message}
+        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        {isPending ? "Saving..." : "Save Configuration"}
+      </button>
     </div>
   );
 
@@ -121,11 +239,20 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         <textarea
           value={formData.commentReply || ""}
           onChange={(e) => setFormData({ ...formData, commentReply: e.target.value })}
+          onBlur={(e) => handleAutoSave("commentReply", e.target.value)}
           placeholder="Enter your reply..."
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
         />
       </div>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending || !formData.commentReply}
+        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        {isPending ? "Saving..." : "Save Configuration"}
+      </button>
     </div>
   );
 
@@ -138,6 +265,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         <textarea
           value={formData.prompt || ""}
           onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+          onBlur={(e) => handleAutoSave("prompt", e.target.value)}
           placeholder="Describe how AI should respond..."
           rows={4}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
@@ -146,6 +274,14 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       <p className="text-xs text-gray-500 dark:text-gray-400">
         AI will use this prompt to generate contextual responses.
       </p>
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending || !formData.prompt}
+        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        {isPending ? "Saving..." : "Save Configuration"}
+      </button>
     </div>
   );
 
@@ -408,22 +544,6 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           <div className="space-y-4">
             {renderConfigForm()}
 
-            {/* Save Button for Actions */}
-            {selectedNode.data.type === "action" && (
-              <button
-                onClick={handleSave}
-                disabled={isPending}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-medium transition-colors"
-              >
-                {isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                Save Configuration
-              </button>
-            )}
-
             {/* Delete Node Button */}
             {onDeleteNode && (
               <button
@@ -446,6 +566,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 // Automation Controls Component (shown when no node is selected)
 const AutomationControls = ({ automationId, automationData }: { automationId: string; automationData: any }) => {
   const { inputRef, edit, enableEdit, disableEdit, isPending, mutate } = useEditAutomation(automationId);
+  const { isPending: isDeleting, mutate: deleteAutomation } = useDeleteAutomation(automationId);
   const [name, setName] = useState(automationData?.name || "Untitled Automation");
 
   useEffect(() => {
@@ -457,6 +578,19 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
       mutate({ name });
     }
     disableEdit();
+  };
+
+  const handleDeleteAutomation = () => {
+    if (confirm("Are you sure you want to delete this automation? This action cannot be undone.")) {
+      deleteAutomation({}, {
+        onSuccess: () => {
+          // Get the slug from the URL and redirect
+          const pathParts = window.location.pathname.split('/');
+          const slug = pathParts[2];
+          window.location.href = `/dashboard/${slug}/automations`;
+        }
+      });
+    }
   };
 
   return (
@@ -543,36 +677,22 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
         </div>
       )}
 
-      {/* Triggers Info */}
-      {automationData?.trigger && automationData.trigger.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Triggers
-          </h3>
-          <div className="space-y-2">
-            {automationData.trigger.map((trigger: any, index: number) => (
-              <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {trigger.type === "DM" ? "Direct Message" : "Comment"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Delete Button */}
       <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
         <Button
           variant="destructive"
           className="w-full"
-          onClick={() => {
-            if (confirm("Are you sure you want to delete this automation?")) {
-              window.location.href = `/dashboard/${window.location.pathname.split('/')[2]}/automations`;
-            }
-          }}
+          disabled={isDeleting}
+          onClick={handleDeleteAutomation}
         >
-          Delete Automation
+          {isDeleting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Deleting...
+            </>
+          ) : (
+            "Delete Automation"
+          )}
         </Button>
       </div>
     </div>

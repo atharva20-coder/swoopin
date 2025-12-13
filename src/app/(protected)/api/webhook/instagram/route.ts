@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { trackAnalytics } from "@/actions/analytics";
 import { OpenAI } from "openai";
 import { executeFlow, hasFlowNodes } from "@/lib/flow-executor";
+import { applyRateLimit, getRateLimitHeaders } from "@/lib/rate-limiter";
 
 export async function GET(req: NextRequest) {
   const hub = req.nextUrl.searchParams.get("hub.challenge");
@@ -22,6 +23,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Apply rate limiting (WEBHOOK tier - 1000 requests/minute)
+  const rateLimitResult = await applyRateLimit(req, "WEBHOOK");
+  if (!rateLimitResult.allowed) {
+    return rateLimitResult.response;
+  }
+
   const webhook_payload = await req.json();
   let matcher;
   console.log("api hit");

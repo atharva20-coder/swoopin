@@ -40,20 +40,18 @@ const isValidConnection = (connection: Connection, nodes: Node<FlowNodeData>[]) 
   
   if (!sourceNode || !targetNode) return false;
   
-  // Triggers can only connect TO actions (not to other triggers)
-  if (sourceNode.data.type === "trigger" && targetNode.data.type === "trigger") {
-    return false;
-  }
-  
-  // Actions cannot connect back to triggers
-  if (sourceNode.data.type === "action" && targetNode.data.type === "trigger") {
-    return false;
-  }
-  
   // No self-connections
   if (connection.source === connection.target) {
     return false;
   }
+  
+  // All other connections are allowed:
+  // - Trigger → Trigger (e.g., DM AND Comment)
+  // - Trigger → Action
+  // - Trigger → Condition
+  // - Action → Action (chaining)
+  // - Action → Condition
+  // - Condition → Action
   
   return true;
 };
@@ -129,17 +127,44 @@ const FlowCanvasInner = ({
     [reactFlowInstance, setNodes]
   );
 
-  // Update nodes when initialNodes changes
+  // Track if we've initialized from props
+  const hasInitializedNodes = useRef(false);
+  const hasInitializedEdges = useRef(false);
+  const lastNodeDataRef = useRef<string>("");
+
+  // Update nodes on initial load
   React.useEffect(() => {
-    if (initialNodes.length > 0) {
+    if (!hasInitializedNodes.current && initialNodes.length > 0) {
       setNodes(initialNodes);
+      hasInitializedNodes.current = true;
+      lastNodeDataRef.current = JSON.stringify(initialNodes.map(n => n.data));
     }
   }, [initialNodes, setNodes]);
 
-  // Update edges when initialEdges changes
+  // Sync node config updates from parent (only when data changes, not position)
   React.useEffect(() => {
-    if (initialEdges.length > 0) {
+    if (!hasInitializedNodes.current || initialNodes.length === 0) return;
+    
+    const newDataJson = JSON.stringify(initialNodes.map(n => n.data));
+    if (newDataJson !== lastNodeDataRef.current) {
+      lastNodeDataRef.current = newDataJson;
+      setNodes(prevNodes => 
+        prevNodes.map(node => {
+          const updatedNode = initialNodes.find(n => n.id === node.id);
+          if (updatedNode) {
+            return { ...node, data: updatedNode.data };
+          }
+          return node;
+        })
+      );
+    }
+  }, [initialNodes, setNodes]);
+
+  // Update edges only on initial load
+  React.useEffect(() => {
+    if (!hasInitializedEdges.current && initialEdges.length > 0) {
       setEdges(initialEdges);
+      hasInitializedEdges.current = true;
     }
   }, [initialEdges, setEdges]);
 

@@ -103,38 +103,53 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
         selected && "ring-2 ring-offset-2 ring-indigo-500 dark:ring-indigo-400"
       )}
     >
-      {/* Handles on all 4 sides - Multiple connections allowed */}
-      {data.type !== "trigger" && (
-        <Handle
-          type="target"
-          position={Position.Top}
-          id="top"
-          style={handleStyle}
-          isConnectable={true}
-        />
-      )}
+      {/* Target handle at top - ALL nodes can receive connections */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        style={{
+          ...handleStyle,
+          backgroundColor: data.type === "trigger" ? "#3b82f6" : data.type === "action" ? "#22c55e" : "#eab308",
+        }}
+        isConnectable={true}
+      />
       
+      {/* Source handle at bottom - ALL nodes can have outgoing connections */}
       <Handle
         type="source"
         position={Position.Bottom}
         id="bottom"
-        style={handleStyle}
+        style={{
+          ...handleStyle,
+          backgroundColor: data.type === "trigger" ? "#3b82f6" : data.type === "action" ? "#22c55e" : "#eab308",
+        }}
         isConnectable={true}
       />
       
+      {/* Left target handle - ALL nodes can receive connections */}
       <Handle
         type="target"
         position={Position.Left}
         id="left"
-        style={{ ...handleStyle, top: '50%' }}
-        isConnectable={data.type !== "trigger"}
+        style={{ 
+          ...handleStyle, 
+          top: '50%',
+          backgroundColor: data.type === "trigger" ? "#3b82f6" : data.type === "action" ? "#22c55e" : "#eab308",
+        }}
+        isConnectable={true}
       />
       
+      {/* Right source handle - ALL nodes can have outgoing connections */}
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        style={{ ...handleStyle, top: '50%' }}
+        style={{ 
+          ...handleStyle, 
+          top: '50%',
+          backgroundColor: data.type === "trigger" ? "#3b82f6" : data.type === "action" ? "#22c55e" : "#eab308",
+        }}
         isConnectable={true}
       />
 
@@ -160,10 +175,17 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
                 {data.config.message.substring(0, 30)}...
               </p>
             )}
-            {data.config.keyword && (
-              <p className="text-gray-700 dark:text-gray-300">
-                Keyword: <span className="font-medium">{data.config.keyword}</span>
-              </p>
+            {data.config.keywords && data.config.keywords.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {data.config.keywords.slice(0, 3).map((kw: string, i: number) => (
+                  <span key={i} className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs">
+                    {kw}
+                  </span>
+                ))}
+                {data.config.keywords.length > 3 && (
+                  <span className="text-gray-500">+{data.config.keywords.length - 3} more</span>
+                )}
+              </div>
             )}
           </div>
         )}

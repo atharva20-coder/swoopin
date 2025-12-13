@@ -1,8 +1,15 @@
 import { stripe } from "@/lib/stripe";
 import { currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { applyRateLimit } from "@/lib/rate-limiter";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Apply rate limiting (API tier - 100 requests/minute)
+  const rateLimitResult = await applyRateLimit(req, "API");
+  if (!rateLimitResult.allowed) {
+    return rateLimitResult.response;
+  }
+
   const user = await currentUser();
   if (!user) return NextResponse.json({ status: 404 });
 
