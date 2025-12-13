@@ -157,7 +157,7 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
           <div className="mt-2 text-xs bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
             {data.config.message && (
               <p className="text-gray-700 dark:text-gray-300 truncate">
-                "{data.config.message.substring(0, 30)}..."
+                {data.config.message.substring(0, 30)}...
               </p>
             )}
             {data.config.keyword && (

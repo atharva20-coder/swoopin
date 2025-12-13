@@ -200,8 +200,9 @@ export default function CarouselTemplateForm({ automationId, onSuccess }: Props)
                     size="icon" 
                     className="shrink-0" 
                     aria-label="Select image"
+                    type="button"
                   >
-                    <Image className="h-4 w-4" aria-hidden="true" />
+                    <Image className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
