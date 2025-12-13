@@ -2,15 +2,91 @@
 
 import { client } from "@/lib/prisma";
 
-export const matchKeyword = async (keyword: string) => {
-  return await client.keyword.findFirst({
+// Find automation by keyword match or catch-all trigger
+export const matchKeyword = async (messageText: string, triggerType: "DM" | "COMMENT" = "DM") => {
+  console.log("matchKeyword called with:", messageText, "triggerType:", triggerType);
+  
+  // First, try legacy keyword table - check if message contains any keyword
+  const legacyKeywords = await client.keyword.findMany({
     where: {
-      word: {
-        equals: keyword,
-        mode: "insensitive",
+      Automation: {
+        active: true,
       },
     },
   });
+  
+  for (const kw of legacyKeywords) {
+    if (messageText.toLowerCase().includes(kw.word.toLowerCase())) {
+      console.log("Legacy keyword match found:", kw.word, "in automation:", kw.automationId);
+      return kw;
+    }
+  }
+  
+  // Search FlowNode KEYWORDS nodes
+  const keywordNodes = await client.flowNode.findMany({
+    where: {
+      subType: "KEYWORDS",
+      Automation: {
+        active: true,
+      },
+    },
+    include: {
+      Automation: true,
+    },
+  });
+  
+  console.log("Found", keywordNodes.length, "FlowNode KEYWORDS nodes to check");
+  
+  // Check each KEYWORDS node's config for matching keyword
+  for (const node of keywordNodes) {
+    const config = node.config as Record<string, any> || {};
+    const keywords = config.keywords || [];
+    
+    console.log("Checking node:", node.nodeId, "keywords:", keywords);
+    
+    for (const kw of keywords) {
+      if (typeof kw === "string" && messageText.toLowerCase().includes(kw.toLowerCase())) {
+        console.log("FlowNode keyword match found:", kw, "in automation:", node.automationId);
+        return { automationId: node.automationId };
+      }
+    }
+  }
+  
+  // No keyword match - look for CATCH-ALL automations (trigger without keywords)
+  console.log("No keyword match, searching for catch-all flows...");
+  
+  // Get automations that have trigger nodes but NO keywords node
+  const catchAllFlows = await client.flowNode.findMany({
+    where: {
+      type: "trigger",
+      subType: triggerType,
+      Automation: {
+        active: true,
+      },
+    },
+    include: {
+      Automation: {
+        include: {
+          flowNodes: true,
+        },
+      },
+    },
+  });
+  
+  for (const triggerNode of catchAllFlows) {
+    // Check if this automation has any KEYWORDS node
+    const hasKeywords = triggerNode.Automation?.flowNodes?.some(
+      (n) => n.subType === "KEYWORDS"
+    );
+    
+    if (!hasKeywords) {
+      console.log("Found catch-all automation (no keywords):", triggerNode.automationId);
+      return { automationId: triggerNode.automationId };
+    }
+  }
+  
+  console.log("No keyword match and no catch-all flows found");
+  return null;
 };
 
 export const getKeywordAutomation = async (
@@ -29,6 +105,8 @@ export const getKeywordAutomation = async (
           type: dm ? "DM" : "COMMENT",
         },
       },
+      flowNodes: true,
+      flowEdges: true,
       listener: {
         include: {
           carouselTemplate: {

@@ -63,6 +63,42 @@ model Automation {
   userId    String?   @db.Uuid
   keywords  Keyword[]
   carouselTemplates CarouselTemplate[]
+  flowNodes FlowNode[]
+  flowEdges FlowEdge[]
+}
+
+// Flow Builder - Stores canvas nodes with positions
+model FlowNode {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nodeId       String      // Client-side node ID (e.g., "node-123456")
+  type         String      // "trigger", "action", "condition"
+  subType      String      // "DM", "COMMENT", "MESSAGE", "SMARTAI", etc.
+  label        String
+  description  String?
+  positionX    Float       @default(0)
+  positionY    Float       @default(0)
+  config       Json?       // Store node-specific configuration
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String?     @db.Uuid
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([automationId, nodeId])
+}
+
+// Flow Builder - Stores canvas edges (connections between nodes)
+model FlowEdge {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  edgeId       String      // Client-side edge ID
+  sourceNodeId String      // Client-side source node ID
+  targetNodeId String      // Client-side target node ID
+  sourceHandle String?     // Handle position (top, bottom, left, right)
+  targetHandle String?     // Handle position
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String?     @db.Uuid
+  createdAt    DateTime    @default(now())
+
+  @@unique([automationId, edgeId])
 }
 
 model Dms {

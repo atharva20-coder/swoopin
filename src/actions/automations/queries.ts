@@ -54,6 +54,8 @@ export const findAutomation = async (id: string) => {
       trigger: true,
       posts: true,
       listener: true,
+      flowNodes: true,
+      flowEdges: true,
       carouselTemplates: {  // Changed from carouselTemplate to carouselTemplates
         include: {
           elements: {

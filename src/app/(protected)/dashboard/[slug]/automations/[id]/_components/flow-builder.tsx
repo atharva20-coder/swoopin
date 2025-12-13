@@ -8,8 +8,10 @@ import ConfigPanel from "@/components/global/automations/config-panel";
 import { useQueryAutomation } from "@/hooks/user-queries";
 import { FlowNodeData } from "@/components/global/automations/flow-node";
 import { Button } from "@/components/ui/button";
-import { Save, AlertTriangle, Check } from "lucide-react";
+import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { saveFlowData, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
+import { saveTrigger, saveListener, saveKeyword } from "@/actions/automations";
 
 type Props = {
   automationId: string;
@@ -22,26 +24,14 @@ const validateFlow = (nodes: Node<FlowNodeData>[], edges: Edge[]): { valid: bool
   
   // Check for at least one trigger
   const triggers = nodes.filter(n => n.data.type === "trigger");
-  if (triggers.length === 0) {
+  if (triggers.length === 0 && nodes.length > 0) {
     errors.push("Flow must have at least one trigger");
   }
   
   // Check for at least one action
   const actions = nodes.filter(n => n.data.type === "action");
-  if (actions.length === 0) {
+  if (actions.length === 0 && nodes.length > 0) {
     errors.push("Flow must have at least one action");
-  }
-  
-  // Check for orphan nodes (nodes with no connections)
-  const connectedNodeIds = new Set<string>();
-  edges.forEach(edge => {
-    connectedNodeIds.add(edge.source);
-    connectedNodeIds.add(edge.target);
-  });
-  
-  const orphanNodes = nodes.filter(n => !connectedNodeIds.has(n.id));
-  if (orphanNodes.length > 0 && nodes.length > 1) {
-    errors.push(`${orphanNodes.length} node(s) are not connected`);
   }
   
   return {
@@ -56,222 +46,226 @@ const FlowManager = ({ automationId, slug }: Props) => {
   const [nodes, setNodes] = useState<Node<FlowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
+  const hasInitialized = React.useRef(false);
 
-  // Convert existing automation data to initial nodes and edges
+  // Load flow - try FlowNode/FlowEdge tables first, then fall back to legacy data
   useEffect(() => {
-    if (data?.data) {
-      const initialNodes: Node<FlowNodeData>[] = [];
-      const initialEdges: Edge[] = [];
-      const xCenter = 400;
-      let currentY = 100;
-      const ySpacing = 180;
-      const xSpacing = 280;
+    const loadFlow = async () => {
+      if (hasInitialized.current) return;
+      if (!data?.data) return;
       
-      const triggerNodeIds: string[] = [];
-      const actionNodeIds: string[] = [];
-
-      // === TRIGGERS ===
-      // Add DM trigger if exists
-      const dmTrigger = data.data.trigger?.find(t => t.type === "DM");
-      if (dmTrigger) {
-        const nodeId = `trigger-dm-${dmTrigger.id}`;
-        triggerNodeIds.push(nodeId);
-        initialNodes.push({
-          id: nodeId,
-          type: "custom",
-          position: { x: xCenter - xSpacing, y: currentY },
-          data: {
-            label: "New DM",
-            type: "trigger",
-            subType: "DM",
-            description: "Triggers on direct message",
-            nodeId: dmTrigger.id,
-          },
-        });
+      hasInitialized.current = true;
+      
+      try {
+        // Try to load from FlowNode/FlowEdge tables with timeout handling
+        const result = await Promise.race([
+          getFlowData(automationId),
+          new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+        ]);
+        
+        if (result && result.status === 200 && result.data && result.data.nodes.length > 0) {
+          console.log("Loaded flow from FlowNode/FlowEdge tables:", result.data.nodes.length, "nodes");
+          setNodes(result.data.nodes as Node<FlowNodeData>[]);
+          setEdges(result.data.edges);
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.log("FlowNode/FlowEdge loading failed, using legacy data:", error);
       }
+      
+      // Fall back to generating from legacy data
+      generateLegacyFlow();
+    };
+    
+    loadFlow();
+  }, [data?.data, automationId]);
 
-      // Add Comment trigger if exists
-      const commentTrigger = data.data.trigger?.find(t => t.type === "COMMENT");
-      if (commentTrigger) {
-        const nodeId = `trigger-comment-${commentTrigger.id}`;
-        triggerNodeIds.push(nodeId);
+  // Generate flow from legacy automation data (triggers, listener, keywords)
+  const generateLegacyFlow = () => {
+    if (!data?.data) return;
+    
+    const initialNodes: Node<FlowNodeData>[] = [];
+    const initialEdges: Edge[] = [];
+    const xCenter = 400;
+    let currentY = 100;
+    const ySpacing = 180;
+    const xSpacing = 280;
+    
+    const triggerNodeIds: string[] = [];
+    let keywordNodeId: string | null = null;
+    const actionNodeIds: string[] = [];
+
+    // Add DM trigger if exists
+    const dmTrigger = data.data.trigger?.find(t => t.type === "DM");
+    if (dmTrigger) {
+      const nodeId = `trigger-dm-${Date.now()}`;
+      triggerNodeIds.push(nodeId);
+      initialNodes.push({
+        id: nodeId,
+        type: "custom",
+        position: { x: xCenter - xSpacing, y: currentY },
+        data: {
+          label: "New DM",
+          type: "trigger",
+          subType: "DM",
+          description: "Triggers on direct message",
+          config: {},
+        },
+      });
+    }
+
+    // Add Comment trigger if exists
+    const commentTrigger = data.data.trigger?.find(t => t.type === "COMMENT");
+    if (commentTrigger) {
+      const nodeId = `trigger-comment-${Date.now()}`;
+      triggerNodeIds.push(nodeId);
+      initialNodes.push({
+        id: nodeId,
+        type: "custom",
+        position: { x: xCenter + xSpacing, y: currentY },
+        data: {
+          label: "New Comment",
+          type: "trigger",
+          subType: "COMMENT",
+          description: "Triggers on comment",
+          config: {},
+        },
+      });
+    }
+
+    currentY += ySpacing;
+
+    // Add keywords if exist
+    if (data.data.keywords && data.data.keywords.length > 0) {
+      keywordNodeId = `keywords-${Date.now()}`;
+      initialNodes.push({
+        id: keywordNodeId,
+        type: "custom",
+        position: { x: xCenter, y: currentY },
+        data: {
+          label: "Keywords",
+          type: "trigger",
+          subType: "KEYWORDS",
+          description: data.data.keywords.map(k => k.word).join(", "),
+          config: { keywords: data.data.keywords.map(k => k.word) },
+        },
+      });
+
+      // Connect triggers to keywords
+      triggerNodeIds.forEach(triggerId => {
+        initialEdges.push({
+          id: `edge-${triggerId}-${keywordNodeId}`,
+          source: triggerId,
+          target: keywordNodeId!,
+          animated: true,
+          type: "smoothstep",
+          style: { stroke: "#6366f1", strokeWidth: 2 },
+        });
+      });
+
+      currentY += ySpacing;
+    }
+
+    // Add listener/action nodes
+    if (data.data.listener) {
+      const listener = data.data.listener;
+
+      // Reply Comment action
+      if (listener.commentReply) {
+        const nodeId = `action-reply-${Date.now()}`;
+        actionNodeIds.push(nodeId);
         initialNodes.push({
           id: nodeId,
           type: "custom",
           position: { x: xCenter + xSpacing, y: currentY },
           data: {
-            label: "New Comment",
-            type: "trigger",
-            subType: "COMMENT",
-            description: "Triggers on comment",
-            nodeId: commentTrigger.id,
+            label: "Reply Comment",
+            type: "action",
+            subType: "REPLY_COMMENT",
+            description: listener.commentReply.substring(0, 40) + "...",
+            config: { commentReply: listener.commentReply },
           },
         });
       }
 
-      currentY += ySpacing;
-
-      // === KEYWORDS ===
-      if (data.data.keywords && data.data.keywords.length > 0) {
-        const keywordNodeId = "keywords-node";
+      // Send DM action
+      if (listener.prompt) {
+        const nodeId = `action-dm-${Date.now()}`;
+        actionNodeIds.push(nodeId);
+        const isSmartAI = listener.listener === "SMARTAI";
+        
         initialNodes.push({
-          id: keywordNodeId,
+          id: nodeId,
           type: "custom",
-          position: { x: xCenter, y: currentY },
+          position: { x: xCenter - xSpacing, y: currentY },
           data: {
-            label: "Keywords",
-            type: "trigger",
-            subType: "KEYWORDS",
-            description: data.data.keywords.map(k => k.word).join(", "),
-            config: { keywords: data.data.keywords.map(k => k.word) },
+            label: isSmartAI ? "Smart AI" : "Send DM",
+            type: "action",
+            subType: isSmartAI ? "SMARTAI" : "MESSAGE",
+            description: listener.prompt.substring(0, 40) + "...",
+            config: { message: listener.prompt },
           },
         });
+      }
 
-        // Connect all triggers to keywords
-        triggerNodeIds.forEach(triggerId => {
+      // Connect to actions
+      const sourceNode = keywordNodeId || triggerNodeIds[triggerNodeIds.length - 1];
+      if (sourceNode) {
+        actionNodeIds.forEach(actionId => {
           initialEdges.push({
-            id: `edge-${triggerId}-keywords`,
-            source: triggerId,
-            target: keywordNodeId,
+            id: `edge-${sourceNode}-${actionId}`,
+            source: sourceNode,
+            target: actionId,
             animated: true,
-            type: 'smoothstep',
-            style: { stroke: '#6366f1', strokeWidth: 2 },
+            type: "smoothstep",
+            style: { stroke: "#10b981", strokeWidth: 2 },
           });
         });
-
-        triggerNodeIds.push(keywordNodeId);
-        currentY += ySpacing;
       }
-
-      // === ACTIONS ===
-      if (data.data.listener) {
-        const listener = data.data.listener;
-
-        // Reply Comment action (if commentReply exists)
-        if (listener.commentReply) {
-          const replyNodeId = "action-reply-comment";
-          actionNodeIds.push(replyNodeId);
-          initialNodes.push({
-            id: replyNodeId,
-            type: "custom",
-            position: { x: xCenter + xSpacing, y: currentY },
-            data: {
-              label: "Reply Comment",
-              type: "action",
-              subType: "REPLY_COMMENT",
-              description: listener.commentReply.substring(0, 40) + "...",
-              config: { commentReply: listener.commentReply },
-              nodeId: listener.id,
-            },
-          });
-        }
-
-        // Send DM action (if prompt exists - MESSAGE or SMARTAI)
-        if (listener.prompt) {
-          const dmActionNodeId = "action-send-dm";
-          actionNodeIds.push(dmActionNodeId);
-          const isSmartAI = listener.listener === "SMARTAI";
-          
-          initialNodes.push({
-            id: dmActionNodeId,
-            type: "custom",
-            position: { x: xCenter - xSpacing, y: currentY },
-            data: {
-              label: isSmartAI ? "Smart AI" : "Send DM",
-              type: "action",
-              subType: isSmartAI ? "SMARTAI" : "MESSAGE",
-              description: listener.prompt.substring(0, 40) + "...",
-              config: { message: listener.prompt },
-              nodeId: listener.id,
-            },
-          });
-        }
-
-        // Carousel action
-        if (listener.listener === "CAROUSEL") {
-          const carouselNodeId = "action-carousel";
-          actionNodeIds.push(carouselNodeId);
-          initialNodes.push({
-            id: carouselNodeId,
-            type: "custom",
-            position: { x: xCenter, y: currentY },
-            data: {
-              label: "Send Carousel",
-              type: "action",
-              subType: "CAROUSEL",
-              description: "Carousel template configured",
-              nodeId: listener.id,
-            },
-          });
-        }
-
-        // Connect keywords/triggers to actions
-        const lastTriggerNodeId = triggerNodeIds[triggerNodeIds.length - 1] || triggerNodeIds[0];
-        if (lastTriggerNodeId) {
-          actionNodeIds.forEach(actionId => {
-            initialEdges.push({
-              id: `edge-trigger-${actionId}`,
-              source: lastTriggerNodeId,
-              target: actionId,
-              animated: true,
-              type: 'smoothstep',
-              style: { stroke: '#10b981', strokeWidth: 2 },
-            });
-          });
-        }
-
-        currentY += ySpacing;
-      }
-
-      // === POSTS (as a trigger/condition) ===
-      if (data.data.posts && data.data.posts.length > 0) {
-        const postsNodeId = "posts-attached";
-        initialNodes.push({
-          id: postsNodeId,
-          type: "custom",
-          position: { x: xCenter + xSpacing * 2, y: 100 },
-          data: {
-            label: "Selected Posts",
-            type: "trigger",
-            subType: "SELECT_POSTS",
-            description: `${data.data.posts.length} post(s) attached`,
-            config: { 
-              posts: data.data.posts.map(p => ({ id: p.postid, media: p.media })),
-              postCount: data.data.posts.length 
-            },
-          },
-        });
-
-        // Connect posts to keywords (posts are linked to triggers)
-        if (data.data.keywords && data.data.keywords.length > 0) {
-          initialEdges.push({
-            id: `edge-posts-keywords`,
-            source: postsNodeId,
-            target: "keywords-node",
-            animated: true,
-            type: 'smoothstep',
-            style: { stroke: '#8b5cf6', strokeWidth: 2 },
-          });
-        } else if (triggerNodeIds.length > 0) {
-          // If no keywords, connect directly to actions
-          actionNodeIds.forEach(actionId => {
-            initialEdges.push({
-              id: `edge-posts-${actionId}`,
-              source: postsNodeId,
-              target: actionId,
-              animated: true,
-              type: 'smoothstep',
-              style: { stroke: '#8b5cf6', strokeWidth: 2 },
-            });
-          });
-        }
-      }
-
-      setNodes(initialNodes);
-      setEdges(initialEdges);
     }
-  }, [data]);
+
+    // Add posts if exist
+    if (data.data.posts && data.data.posts.length > 0) {
+      const postsNodeId = `posts-${Date.now()}`;
+      initialNodes.push({
+        id: postsNodeId,
+        type: "custom",
+        position: { x: xCenter + xSpacing * 2, y: 100 },
+        data: {
+          label: "Selected Posts",
+          type: "trigger",
+          subType: "SELECT_POSTS",
+          description: `${data.data.posts.length} post(s) attached`,
+          config: { 
+            posts: data.data.posts.map(p => ({ id: p.postid, media: p.media })),
+            postCount: data.data.posts.length 
+          },
+        },
+      });
+
+      // Connect to keywords or actions
+      const target = keywordNodeId || actionNodeIds[0];
+      if (target) {
+        initialEdges.push({
+          id: `edge-posts-${target}`,
+          source: postsNodeId,
+          target,
+          animated: true,
+          type: "smoothstep",
+          style: { stroke: "#8b5cf6", strokeWidth: 2 },
+        });
+      }
+    }
+
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+    setIsLoading(false);
+  };
 
   // Validate flow when nodes/edges change
   useEffect(() => {
@@ -312,24 +306,113 @@ const FlowManager = ({ automationId, slug }: Props) => {
     );
   }, []);
 
-  const handleSaveFlow = async () => {
-    if (!validationResult.valid) {
-      toast.error("Please fix validation errors before saving");
-      return;
-    }
+  // Delete node from canvas and database
+  const handleDeleteNode = useCallback(async (nodeId: string) => {
+    setNodes(prevNodes => prevNodes.filter(n => n.id !== nodeId));
+    setEdges(prevEdges => prevEdges.filter(e => e.source !== nodeId && e.target !== nodeId));
+    setSelectedNode(null);
+    
+    // Delete from database
+    await deleteFlowNode(automationId, nodeId);
+    toast.success("Node deleted");
+  }, [automationId]);
 
+  // Save entire flow to database
+  const handleSaveFlow = async () => {
     setIsSaving(true);
     try {
-      // Flow is saved through individual node configurations
-      // The config panel handles saving each node's data
-      toast.success("Flow configuration saved");
+      // 1. Save flow nodes and edges
+      const flowNodes = nodes.map(n => ({
+        nodeId: n.id,
+        type: n.data.type,
+        subType: n.data.subType,
+        label: n.data.label,
+        description: n.data.description,
+        positionX: n.position.x,
+        positionY: n.position.y,
+        config: n.data.config,
+      }));
+
+      const flowEdges = edges.map(e => ({
+        edgeId: e.id,
+        sourceNodeId: e.source,
+        targetNodeId: e.target,
+        sourceHandle: e.sourceHandle || undefined,
+        targetHandle: e.targetHandle || undefined,
+      }));
+
+      const flowResult = await saveFlowData(automationId, flowNodes, flowEdges);
+      if (flowResult.status !== 200) {
+        toast.error("Failed to save flow graph");
+        return;
+      }
+
+      // 2. Sync triggers to database
+      const triggerNodes = nodes.filter(n => 
+        n.data.type === "trigger" && 
+        (n.data.subType === "DM" || n.data.subType === "COMMENT")
+      );
+      if (triggerNodes.length > 0) {
+        const triggerTypes = triggerNodes.map(n => n.data.subType);
+        await saveTrigger(automationId, triggerTypes);
+      }
+
+      // 3. Sync keywords
+      const keywordNodes = nodes.filter(n => n.data.subType === "KEYWORDS");
+      for (const kn of keywordNodes) {
+        const keywords = kn.data.config?.keywords || [];
+        for (const keyword of keywords) {
+          if (keyword) {
+            await saveKeyword(automationId, keyword);
+          }
+        }
+      }
+
+      // 4. Sync action nodes to listener
+      const actionNode = nodes.find(n => n.data.type === "action");
+      if (actionNode) {
+        let listenerType: "MESSAGE" | "SMARTAI" | "CAROUSEL" = "MESSAGE";
+        let prompt = "";
+        let reply = "";
+
+        if (actionNode.data.subType === "SMARTAI") {
+          listenerType = "SMARTAI";
+          prompt = actionNode.data.config?.message || actionNode.data.config?.prompt || "";
+        } else if (actionNode.data.subType === "CAROUSEL") {
+          listenerType = "CAROUSEL";
+          prompt = "Carousel response";
+        } else if (actionNode.data.subType === "REPLY_COMMENT") {
+          listenerType = "MESSAGE";
+          reply = actionNode.data.config?.commentReply || "";
+          // Find DM action for prompt
+          const dmAction = nodes.find(n => n.data.subType === "MESSAGE");
+          prompt = dmAction?.data.config?.message || "";
+        } else {
+          prompt = actionNode.data.config?.message || "";
+        }
+
+        if (prompt || reply) {
+          await saveListener(automationId, listenerType, prompt, reply);
+        }
+      }
+
+      toast.success("Flow saved successfully!");
       refetch();
     } catch (error) {
+      console.error("Error saving flow:", error);
       toast.error("Failed to save flow");
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 overflow-hidden flex-col">
@@ -364,15 +447,13 @@ const FlowManager = ({ automationId, slug }: Props) => {
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
             <Button
               onClick={handleSaveFlow}
-              disabled={isSaving || !validationResult.valid}
+              disabled={isSaving}
               className="shadow-lg"
             >
               {isSaving ? (
-                "Saving..."
-              ) : validationResult.valid ? (
                 <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Flow Valid
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
                 </>
               ) : (
                 <>
@@ -389,6 +470,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
           id={automationId} 
           selectedNode={selectedNode}
           onUpdateNode={handleUpdateNode}
+          onDeleteNode={handleDeleteNode}
         />
       </div>
     </div>

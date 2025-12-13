@@ -27,6 +27,17 @@ const ActivateAutomationButton = ({ id }: Props) => {
 
   const isActivationAllowed = React.useMemo(() => {
     if (!data?.data) return false;
+    
+    // Check for flow-based automation (new flow builder)
+    const hasFlowNodes = data.data.flowNodes && data.data.flowNodes.length > 0;
+    if (hasFlowNodes) {
+      // Flow-based: need at least one trigger and one action node
+      const hasTrigger = data.data.flowNodes.some((n: any) => n.type === "trigger");
+      const hasAction = data.data.flowNodes.some((n: any) => n.type === "action");
+      return hasTrigger && hasAction;
+    }
+    
+    // Legacy: need triggers and keywords
     if (!data.data.trigger || data.data.trigger.length === 0) return false;
     if (!data.data.keywords || data.data.keywords.length === 0) return false;
     return true;

@@ -42,21 +42,14 @@ const Page = async ({ params }: Props) => {
     <HydrationBoundary state={dehydrate(query)}>
       {/* Full-screen layout without sidebar */}
       <section className="fixed inset-0 flex flex-col dark:bg-black">
-        {/* Top bar with breadcrumb and actions */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/dashboard/${params.slug}/automations`}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
-            <AutomationsBreadCrumb id={params.id} />
-          </div>
-          <div className="flex gap-x-4">
-            <DeleteAutomationButton id={params.id} />
-          </div>
+        {/* Simple back arrow at top */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            href={`/dashboard/${params.slug}/automations`}
+            className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
         </div>
 
         {/* Main content area with three panels */}

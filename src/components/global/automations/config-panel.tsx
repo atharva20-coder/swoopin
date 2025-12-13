@@ -5,22 +5,24 @@ import { cn } from "@/lib/utils";
 import { Node } from "reactflow";
 import { FlowNodeData } from "./flow-node";
 import { useQueryAutomation, useQueryUser, useQueryAutomationPosts } from "@/hooks/user-queries";
-import { useListener, useAutomationPosts } from "@/hooks/use-automations";
-import { Loader2, Save, X, CheckCircle, Film, ImageIcon } from "lucide-react";
+import { useListener, useAutomationPosts, useEditAutomation } from "@/hooks/use-automations";
+import { Loader2, Save, X, CheckCircle, Film, ImageIcon, Edit2, Check } from "lucide-react";
 import CarouselTemplateForm from "../carouselTemplateForm";
 import Image from "next/image";
 import { InstagramPostProps } from "@/types/posts.type";
 import { Button } from "@/components/ui/button";
 import Loader from "../loader";
+import ActivateAutomationButton from "../activate-automation-button";
 
 type ConfigPanelProps = {
   id: string;
   selectedNode?: Node<FlowNodeData> | null;
   onUpdateNode?: (nodeId: string, config: Record<string, any>) => void;
+  onDeleteNode?: (nodeId: string) => void;
   className?: string;
 };
 
-const ConfigPanel = ({ id, selectedNode, onUpdateNode, className }: ConfigPanelProps) => {
+const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }: ConfigPanelProps) => {
   const { data } = useQueryAutomation(id);
   const { data: userData } = useQueryUser();
   const { data: instagramPosts } = useQueryAutomationPosts();
@@ -421,37 +423,158 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, className }: ConfigPanelP
                 Save Configuration
               </button>
             )}
+
+            {/* Delete Node Button */}
+            {onDeleteNode && (
+              <button
+                onClick={() => onDeleteNode(selectedNode.id)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Delete Node
+              </button>
+            )}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-              <X className="w-8 h-8 text-gray-400" />
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Click on a node to configure it
-            </p>
-          </div>
+          <AutomationControls automationId={id} automationData={data?.data} />
         )}
       </div>
+    </div>
+  );
+};
 
-      {/* Existing Automation Info */}
-      {data?.data?.listener && !selectedNode && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Current Listener
-          </h3>
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {data.data.listener.listener}
-            </p>
-            {data.data.listener.prompt && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                {data.data.listener.prompt}
+// Automation Controls Component (shown when no node is selected)
+const AutomationControls = ({ automationId, automationData }: { automationId: string; automationData: any }) => {
+  const { inputRef, edit, enableEdit, disableEdit, isPending, mutate } = useEditAutomation(automationId);
+  const [name, setName] = useState(automationData?.name || "Untitled Automation");
+
+  useEffect(() => {
+    setName(automationData?.name || "Untitled Automation");
+  }, [automationData?.name]);
+
+  const handleSaveName = () => {
+    if (name && name !== automationData?.name) {
+      mutate({ name });
+    }
+    disableEdit();
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Automation Name */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Automation Name
+        </h3>
+        <div className="relative p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          {edit ? (
+            <div className="flex items-center gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={handleSaveName}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSaveName();
+                  }
+                }}
+                className="flex-1 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+              {isPending && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between group">
+              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                {name}
               </p>
-            )}
+              <button
+                onClick={enableEdit}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-opacity"
+              >
+                <Edit2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Active Status */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Status
+        </h3>
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              automationData?.active ? "bg-green-500" : "bg-gray-400"
+            )} />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {automationData?.active ? "Active" : "Inactive"}
+            </span>
+          </div>
+          <ActivateAutomationButton id={automationId} />
+        </div>
+      </div>
+
+      {/* Automation Stats */}
+      {automationData?.listener && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Activity
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">DMs Sent</p>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                {automationData.listener.dmCount || 0}
+              </p>
+            </div>
+            <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">Comments</p>
+              <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">
+                {automationData.listener.commentCount || 0}
+              </p>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Triggers Info */}
+      {automationData?.trigger && automationData.trigger.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Triggers
+          </h3>
+          <div className="space-y-2">
+            {automationData.trigger.map((trigger: any, index: number) => (
+              <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {trigger.type === "DM" ? "Direct Message" : "Comment"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Button */}
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+        <Button
+          variant="destructive"
+          className="w-full"
+          onClick={() => {
+            if (confirm("Are you sure you want to delete this automation?")) {
+              window.location.href = `/dashboard/${window.location.pathname.split('/')[2]}/automations`;
+            }
+          }}
+        >
+          Delete Automation
+        </Button>
+      </div>
     </div>
   );
 };

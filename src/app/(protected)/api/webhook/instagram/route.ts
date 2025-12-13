@@ -14,6 +14,7 @@ import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { trackAnalytics } from "@/actions/analytics";
 import { OpenAI } from "openai";
+import { executeFlow, hasFlowNodes } from "@/lib/flow-executor";
 
 export async function GET(req: NextRequest) {
   const hub = req.nextUrl.searchParams.get("hub.challenge");
@@ -27,19 +28,77 @@ export async function POST(req: NextRequest) {
   try {
     if (webhook_payload.entry[0].messaging) {
       matcher = await matchKeyword(
-        webhook_payload.entry[0].messaging[0].message.text
+        webhook_payload.entry[0].messaging[0].message.text,
+        "DM"
       );
     }
 
     if (webhook_payload.entry[0].changes) {
       matcher = await matchKeyword(
-        webhook_payload.entry[0].changes[0].value.text
+        webhook_payload.entry[0].changes[0].value.text,
+        "COMMENT"
       );
     }
 
     if (matcher && matcher.automationId) {
       console.log("Matched", webhook_payload.entry[0]);
 
+      // Check if automation uses flow-based execution
+      const useFlowExecution = await hasFlowNodes(matcher.automationId);
+      
+      if (useFlowExecution) {
+        console.log("Using flow-based execution for automation:", matcher.automationId);
+        
+        // Get automation for user context
+        const automation = await getKeywordAutomation(matcher.automationId, true);
+        if (!automation || !automation.active) {
+          return NextResponse.json({ message: "Automation inactive" }, { status: 200 });
+        }
+
+        const isMessage = !!webhook_payload.entry[0].messaging;
+        const isComment = !!webhook_payload.entry[0].changes?.find(
+          (c: any) => c.field === "comments"
+        );
+
+        // Check post attachment for comments
+        if (isComment) {
+          const mediaId = webhook_payload.entry[0].changes[0].value.media?.id;
+          if (mediaId) {
+            const postMatch = await getKeywordPost(mediaId, automation.id);
+            if (!postMatch) {
+              return NextResponse.json({ message: "Post not attached to automation" }, { status: 200 });
+            }
+          }
+        }
+
+        const context = {
+          automationId: matcher.automationId,
+          userId: automation.userId!,
+          token: automation.User?.integrations[0].token!,
+          pageId: webhook_payload.entry[0].id,
+          senderId: isMessage
+            ? webhook_payload.entry[0].messaging[0].sender.id
+            : webhook_payload.entry[0].changes[0].value.from.id,
+          messageText: isMessage
+            ? webhook_payload.entry[0].messaging[0].message.text
+            : webhook_payload.entry[0].changes[0].value.text,
+          commentId: isComment ? webhook_payload.entry[0].changes[0].value.id : undefined,
+          mediaId: isComment ? webhook_payload.entry[0].changes[0].value.media?.id : undefined,
+          triggerType: (isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT",
+          userSubscription: automation.User?.subscription?.plan,
+          userOpenAiKey: automation.User?.openAiKey || undefined,
+        };
+
+        const flowResult = await executeFlow(matcher.automationId, context);
+        console.log("Flow execution result:", flowResult);
+
+        return NextResponse.json(
+          { message: flowResult.message },
+          { status: flowResult.success ? 200 : 200 }
+        );
+      }
+
+      // Legacy execution (for automations without flow nodes)
       if (webhook_payload.entry[0].messaging) {
         const automation = await getKeywordAutomation(
           matcher.automationId,
