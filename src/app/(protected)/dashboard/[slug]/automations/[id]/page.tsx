@@ -1,9 +1,5 @@
 import { getAutomationInfo } from "@/actions/automations";
-import PostNode from "@/components/global/automations/post/node";
-import ThenNode from "@/components/global/automations/then/node";
-import Trigger from "@/components/global/automations/trigger";
 import AutomationsBreadCrumb from "@/components/global/bread-crumbs/automations";
-import { Warning } from "@/icons";
 
 import { PrefetchUserAutomation } from "@/react-query/prefetch";
 import {
@@ -14,7 +10,12 @@ import {
 
 import React from "react";
 import DeleteAutomationButton from "./_components/delete-automation-button";
-import DrawerButton from "./_components/drawer-button";
+import FlowCanvas from "@/components/global/automations/flow-canvas";
+import ComponentsPanel from "@/components/global/automations/components-panel";
+import ConfigPanel from "@/components/global/automations/config-panel";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import FlowManager from "./_components/flow-builder";
 
 type Props = {
   params: { id: string; slug: string };
@@ -39,25 +40,27 @@ const Page = async ({ params }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
-      <section className="relative min-h-screen pb-24 dark:bg-black">
-        <div className="flex flex-col items-center gap-y-20">
-          <div className="flex w-full items-center justify-between">
+      {/* Full-screen layout without sidebar */}
+      <section className="fixed inset-0 flex flex-col dark:bg-black">
+        {/* Top bar with breadcrumb and actions */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/dashboard/${params.slug}/automations`}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Link>
             <AutomationsBreadCrumb id={params.id} />
           </div>
-          <div className="w-full lg:w-10/12 xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-gray-900 gap-y-3">
-            <div className="flex gap-x-2 text-black dark:text-white">
-              <Warning />
-              <strong className="text-black dark:text-white">When...</strong>
-            </div>
-            <Trigger id={params.id} />
+          <div className="flex gap-x-4">
+            <DeleteAutomationButton id={params.id} />
           </div>
-          <ThenNode id={params.id} />
-          <PostNode id={params.id} />
         </div>
-        <div className="fixed bottom-8 right-8 flex gap-x-4">
-          <DrawerButton id={params.id} />
-          <DeleteAutomationButton id={params.id} />
-        </div>
+
+        {/* Main content area with three panels */}
+        <FlowManager automationId={params.id} slug={params.slug} />
       </section>
     </HydrationBoundary>
   );
