@@ -58,6 +58,11 @@ export async function createScheduledPostRecord(data: {
   carouselItems?: any;
   trialParams?: any;
   altText?: string;
+  location?: string;
+  locationId?: string;
+  music?: string;
+  taggedUsers?: string[];
+  collaborators?: string[];
 }) {
   return client.scheduledPost.create({
     data: {
@@ -70,6 +75,14 @@ export async function createScheduledPostRecord(data: {
       hashtags: data.hashtags || [],
       automationId: data.automationId,
       status: "SCHEDULED",
+      carouselItems: data.carouselItems,
+      trialParams: data.trialParams,
+      altText: data.altText,
+      location: data.location,
+      locationId: data.locationId,
+      music: data.music,
+      taggedUsers: data.taggedUsers || [],
+      collaborators: data.collaborators || [],
     },
   });
 }
@@ -94,6 +107,11 @@ export async function updateScheduledPostRecord(
     carouselItems?: any;
     trialParams?: any;
     altText?: string;
+    location?: string;
+    locationId?: string;
+    music?: string;
+    taggedUsers?: string[];
+    collaborators?: string[];
   }
 ) {
   // Only include defined fields
@@ -107,6 +125,17 @@ export async function updateScheduledPostRecord(
   if (data.hashtags !== undefined) updateData.hashtags = data.hashtags;
   if (data.status !== undefined) updateData.status = data.status;
   if (data.automationId !== undefined) updateData.automationId = data.automationId;
+  if (data.containerId !== undefined) updateData.containerId = data.containerId;
+  if (data.igMediaId !== undefined) updateData.igMediaId = data.igMediaId;
+  if (data.errorMessage !== undefined) updateData.errorMessage = data.errorMessage;
+  if (data.carouselItems !== undefined) updateData.carouselItems = data.carouselItems;
+  if (data.trialParams !== undefined) updateData.trialParams = data.trialParams;
+  if (data.altText !== undefined) updateData.altText = data.altText;
+  if (data.location !== undefined) updateData.location = data.location;
+  if (data.locationId !== undefined) updateData.locationId = data.locationId;
+  if (data.music !== undefined) updateData.music = data.music;
+  if (data.taggedUsers !== undefined) updateData.taggedUsers = data.taggedUsers;
+  if (data.collaborators !== undefined) updateData.collaborators = data.collaborators;
 
   return client.scheduledPost.update({
     where: { id },

@@ -55,11 +55,7 @@ export default function ContentLibrary({
 }: ContentLibraryProps) {
   const [isCanvaConnected, setIsCanvaConnected] = useState(false);
 
-  // Demo drafts
-  const demoDrafts: Draft[] = drafts.length > 0 ? drafts : [
-    { id: "draft-1", title: "Summer collection reveal", type: "POST", status: "draft", updatedAt: new Date() },
-    { id: "draft-2", title: "Behind the scenes", type: "REEL", status: "processing", updatedAt: new Date() },
-  ];
+  // Use passed drafts directly (no demo data)
 
   const handleConnectCanva = async () => {
     toast.info("Canva Integration", { description: "Coming soon!" });
@@ -159,7 +155,7 @@ export default function ContentLibrary({
           </div>
           
           <div className="space-y-2">
-            {demoDrafts.map((draft) => {
+            {drafts.length > 0 ? drafts.map((draft) => {
               const TypeIcon = getTypeIcon(draft.type);
               return (
                 <button
@@ -182,7 +178,9 @@ export default function ContentLibrary({
                   <MoreHorizontal className="w-4 h-4 text-gray-400" />
                 </button>
               );
-            })}
+            }) : (
+              <p className="text-sm text-gray-400 text-center py-4">No drafts yet</p>
+            )}
           </div>
         </div>
       </div>

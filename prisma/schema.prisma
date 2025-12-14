@@ -251,6 +251,24 @@ model ScheduledPost {
   hashtags      String[]        // Array of hashtags
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+  
+  // Instagram API publishing fields
+  containerId   String?         // Instagram media container ID from /<IG_ID>/media
+  igMediaId     String?         // Published media ID from /<IG_ID>/media_publish
+  errorMessage  String?         // Error details if publishing fails
+  carouselItems Json?           // JSON array of carousel item URLs [{imageUrl?, videoUrl?}]
+  altText       String?         // Accessibility text for images (max 1000 chars)
+  
+  // Post metadata
+  location      String?         // Location display name
+  locationId    String?         // Facebook Page location ID
+  music         String?         // Music track name (for reels)
+  taggedUsers   String[]        // Array of tagged Instagram usernames
+  collaborators String[]        // Array of collaborator usernames (max 3)
+  
+  // Trial reels parameters
+  trialParams   Json?           // {graduationStrategy: "MANUAL" | "SS_PERFORMANCE"}
+  
   User          User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String?         @db.Uuid
   Automation    Automation?     @relation(fields: [automationId], references: [id], onDelete: SetNull)

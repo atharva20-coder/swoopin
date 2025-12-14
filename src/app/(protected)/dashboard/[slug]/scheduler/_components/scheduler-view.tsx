@@ -5,6 +5,13 @@ import SchedulerCalendar from "./scheduler-calendar";
 import ContentLibrary from "./content-library";
 import PostPreviewModal from "./post-preview";
 import { toast } from "sonner";
+import { 
+  createScheduledPost, 
+  updateScheduledPost, 
+  deleteScheduledPost, 
+  publishScheduledPost,
+  createDraft 
+} from "@/actions/scheduler";
 
 type Automation = {
   id: string;
@@ -25,71 +32,40 @@ type ScheduledPost = {
   automationId?: string;
   automationName?: string;
   location?: string;
+  music?: string;
+  taggedUsers?: string[];
+  collaborators?: string[];
+  altText?: string;
+};
+
+type Draft = {
+  id: string;
+  title: string;
+  type: "POST" | "REEL" | "STORY";
+  status: "draft" | "processing";
+  updatedAt: Date;
 };
 
 type SchedulerViewProps = {
   slug: string;
   automations: Automation[];
+  initialScheduledPosts?: ScheduledPost[];
+  initialDrafts?: Draft[];
 };
 
-export default function SchedulerView({ slug, automations }: SchedulerViewProps) {
+export default function SchedulerView({ 
+  slug, 
+  automations,
+  initialScheduledPosts = [],
+  initialDrafts = [] 
+}: SchedulerViewProps) {
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
-  // Get dates for demo posts (spread across current month)
-  const today = new Date();
-  const getDateInMonth = (dayOffset: number, hour: number = 9, minute: number = 0) => {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + dayOffset);
-    date.setHours(hour, minute, 0, 0);
-    return date;
-  };
-
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([
-    {
-      id: "demo-1",
-      caption: "Morning brew & big ideas...",
-      postType: "POST",
-      hashtags: ["coffee"],
-      scheduledFor: getDateInMonth(1, 9, 0),
-      status: "SCHEDULED",
-      location: "Seattle, WA",
-    },
-    {
-      id: "demo-2",
-      caption: "Morning brew & big ideas...",
-      postType: "POST",
-      hashtags: ["coffee"],
-      scheduledFor: getDateInMonth(2, 9, 0),
-      status: "SCHEDULED",
-    },
-    {
-      id: "demo-3",
-      caption: "Dance challenge! Duet this...",
-      postType: "REEL",
-      hashtags: ["dance"],
-      scheduledFor: getDateInMonth(4, 12, 30),
-      status: "SCHEDULED",
-    },
-    {
-      id: "demo-4",
-      caption: "Morning brew & big ideas...",
-      postType: "POST",
-      hashtags: ["coffee"],
-      scheduledFor: getDateInMonth(6, 9, 0),
-      status: "SCHEDULED",
-    },
-    {
-      id: "demo-5",
-      caption: "Drop to Schedule",
-      postType: "STORY",
-      scheduledFor: getDateInMonth(8, 14, 0),
-      status: "SCHEDULED",
-    },
-  ]);
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(initialScheduledPosts);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDateClick = (date: Date) => {
-    // Open modal for new post on this date
     setSelectedPost(null);
     setSelectedDate(date);
     setIsModalOpen(true);
@@ -105,7 +81,6 @@ export default function SchedulerView({ slug, automations }: SchedulerViewProps)
   };
 
   const handleCreatePost = () => {
-    // Open modal for new post
     setSelectedPost(null);
     setSelectedDate(new Date());
     setIsModalOpen(true);
@@ -115,44 +90,166 @@ export default function SchedulerView({ slug, automations }: SchedulerViewProps)
     toast.info("Coming soon!", { description: "Canva integration is in development" });
   };
 
-  const handleSavePost = (postData: Partial<ScheduledPost>) => {
-    if (postData.id && scheduledPosts.find(p => p.id === postData.id)) {
-      // Update existing
-      setScheduledPosts(scheduledPosts.map(p => 
-        p.id === postData.id ? { ...p, ...postData } as ScheduledPost : p
-      ));
-    } else {
-      // Add new
-      const newPost: ScheduledPost = {
-        id: postData.id || `post-${Date.now()}`,
-        scheduledFor: postData.scheduledFor || new Date(),
-        status: postData.status || "SCHEDULED",
-        ...postData,
-      } as ScheduledPost;
-      setScheduledPosts([...scheduledPosts, newPost]);
+  const handleSchedule = async (postData: Partial<ScheduledPost>) => {
+    setIsLoading(true);
+    try {
+      if (postData.id && scheduledPosts.find(p => p.id === postData.id)) {
+        // Update existing
+        const result = await updateScheduledPost(postData.id, {
+          caption: postData.caption,
+          mediaUrl: postData.mediaUrl,
+          mediaType: postData.mediaType,
+          postType: postData.postType,
+          scheduledFor: postData.scheduledFor,
+          hashtags: postData.hashtags,
+          automationId: postData.automationId,
+        });
+        if (result.status === 200) {
+          setScheduledPosts(scheduledPosts.map(p => 
+            p.id === postData.id ? { ...p, ...postData } as ScheduledPost : p
+          ));
+          toast.success("Post updated!");
+        } else {
+          toast.error("Failed to update post");
+        }
+      } else {
+        // Create new
+        const result = await createScheduledPost({
+          caption: postData.caption,
+          mediaUrl: postData.mediaUrl,
+          mediaType: postData.mediaType,
+          postType: postData.postType,
+          scheduledFor: postData.scheduledFor || new Date(),
+          hashtags: postData.hashtags,
+          automationId: postData.automationId,
+          carouselItems: postData.mediaUrls?.map(url => ({ imageUrl: url })),
+        });
+        if (result.status === 200 && result.data && typeof result.data !== 'string') {
+          const newPost: ScheduledPost = {
+            id: result.data.id,
+            ...postData,
+            scheduledFor: postData.scheduledFor || new Date(),
+            status: "SCHEDULED",
+          } as ScheduledPost;
+          setScheduledPosts([...scheduledPosts, newPost]);
+          toast.success("Post scheduled!");
+        } else {
+          toast.error("Failed to create post");
+        }
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    } finally {
+      setIsLoading(false);
+      handleCloseModal();
     }
   };
 
-  const handleDeletePost = (postId: string) => {
-    setScheduledPosts(scheduledPosts.filter(p => p.id !== postId));
-    setSelectedPost(null);
-    toast.success("Post deleted");
+  const handlePostNow = async (postData: Partial<ScheduledPost>) => {
+    setIsLoading(true);
+    try {
+      // First create the post if it doesn't exist
+      let postId = postData.id;
+      if (!postId || !scheduledPosts.find(p => p.id === postId)) {
+        const createResult = await createScheduledPost({
+          caption: postData.caption,
+          mediaUrl: postData.mediaUrl,
+          mediaType: postData.mediaType,
+          postType: postData.postType,
+          scheduledFor: new Date(),
+          hashtags: postData.hashtags,
+          automationId: postData.automationId,
+          carouselItems: postData.mediaUrls?.map(url => ({ imageUrl: url })),
+        });
+        if (createResult.status === 200 && createResult.data && typeof createResult.data !== 'string') {
+          postId = createResult.data.id;
+        } else {
+          toast.error("Failed to create post");
+          return;
+        }
+      }
+      
+      // Now publish it
+      const result = await publishScheduledPost(postId!);
+      if (result.status === 200) {
+        setScheduledPosts(scheduledPosts.map(p => 
+          p.id === postId ? { ...p, status: "POSTED" as const } : p
+        ));
+        toast.success("Post published to Instagram!");
+      } else {
+        toast.error(typeof result.data === 'string' ? result.data : "Failed to publish");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    } finally {
+      setIsLoading(false);
+      handleCloseModal();
+    }
   };
 
-  const handleAutomationDrop = (date: Date, automation: { id: string; name: string }) => {
-    const newPost: ScheduledPost = {
-      id: `automation-${Date.now()}`,
-      caption: `Automation: ${automation.name}`,
-      scheduledFor: date,
-      status: "SCHEDULED",
-      postType: "POST",
-      automationId: automation.id,
-      automationName: automation.name,
-    };
-    setScheduledPosts([...scheduledPosts, newPost]);
-    toast.success("Automation scheduled!", {
-      description: `${automation.name} scheduled for ${date.toLocaleDateString()}`
-    });
+  const handleSaveDraft = async (postData: Partial<ScheduledPost>) => {
+    setIsLoading(true);
+    try {
+      const result = await createDraft({
+        title: postData.caption?.slice(0, 50) || "Untitled",
+        caption: postData.caption,
+        mediaUrl: postData.mediaUrl,
+        mediaType: postData.mediaType,
+      });
+      if (result.status === 200) {
+        toast.success("Saved to drafts");
+      } else {
+        toast.error("Failed to save draft");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    } finally {
+      setIsLoading(false);
+      handleCloseModal();
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const result = await deleteScheduledPost(postId);
+      if (result.status === 200) {
+        setScheduledPosts(scheduledPosts.filter(p => p.id !== postId));
+        toast.success("Post deleted");
+      } else {
+        toast.error("Failed to delete post");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+    setSelectedPost(null);
+  };
+
+  const handleAutomationDrop = async (date: Date, automation: { id: string; name: string }) => {
+    try {
+      const result = await createScheduledPost({
+        caption: `Automation: ${automation.name}`,
+        scheduledFor: date,
+        postType: "POST",
+        automationId: automation.id,
+      });
+      if (result.status === 200 && result.data && typeof result.data !== 'string') {
+        const newPost: ScheduledPost = {
+          id: result.data.id,
+          caption: `Automation: ${automation.name}`,
+          scheduledFor: date,
+          status: "SCHEDULED",
+          postType: "POST",
+          automationId: automation.id,
+          automationName: automation.name,
+        };
+        setScheduledPosts([...scheduledPosts, newPost]);
+        toast.success("Automation scheduled!", {
+          description: `${automation.name} scheduled for ${date.toLocaleDateString()}`
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to schedule automation");
+    }
   };
 
   const handleCloseModal = () => {
@@ -174,30 +271,31 @@ export default function SchedulerView({ slug, automations }: SchedulerViewProps)
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden gap-4">
-      {/* Left Sidebar - Content Library */}
-      <ContentLibrary
-        automations={automations}
-        onCreatePost={handleCreatePost}
-        onConnectCanva={handleConnectCanva}
-      />
+        {/* Left Sidebar - Content Library */}
+        <ContentLibrary
+          automations={automations}
+          drafts={initialDrafts}
+          onCreatePost={handleCreatePost}
+          onConnectCanva={handleConnectCanva}
+        />
 
-      {/* Main Calendar */}
-      <SchedulerCalendar
-        scheduledPosts={scheduledPosts.map(p => ({
-          id: p.id,
-          caption: p.caption,
-          mediaUrl: p.mediaUrl,
-          postType: p.postType,
-          scheduledFor: p.scheduledFor,
-          status: p.status,
-          automationId: p.automationId,
-          hashtags: p.hashtags,
-        }))}
-        onDateClick={handleDateClick}
-        onPostClick={handlePostClick}
-        onPostDelete={handleDeletePost}
-        onAutomationDrop={handleAutomationDrop}
-      />
+        {/* Main Calendar */}
+        <SchedulerCalendar
+          scheduledPosts={scheduledPosts.map(p => ({
+            id: p.id,
+            caption: p.caption,
+            mediaUrl: p.mediaUrl,
+            postType: p.postType,
+            scheduledFor: p.scheduledFor,
+            status: p.status,
+            automationId: p.automationId,
+            hashtags: p.hashtags,
+          }))}
+          onDateClick={handleDateClick}
+          onPostClick={handlePostClick}
+          onPostDelete={handleDeletePost}
+          onAutomationDrop={handleAutomationDrop}
+        />
       </div>
 
       {/* iPhone Modal */}
@@ -207,19 +305,11 @@ export default function SchedulerView({ slug, automations }: SchedulerViewProps)
         initialDate={selectedDate || undefined}
         automations={automations}
         onClose={handleCloseModal}
-        onSave={handleSavePost}
+        onSave={handleSchedule}
         onDelete={handleDeletePost}
-        onSchedule={(postData) => {
-          handleSavePost(postData);
-        }}
-        onPostNow={(postData) => {
-          const updatedPost = { ...postData, status: "SCHEDULED" as const, scheduledFor: new Date() };
-          handleSavePost(updatedPost);
-        }}
-        onSaveDraft={(postData) => {
-          const draftPost = { ...postData, status: "CANCELLED" as const };
-          handleSavePost(draftPost);
-        }}
+        onSchedule={handleSchedule}
+        onPostNow={handlePostNow}
+        onSaveDraft={handleSaveDraft}
       />
     </div>
   );
