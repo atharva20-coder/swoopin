@@ -340,6 +340,206 @@ export default function PostPreviewModal({
     </div>
   );
 
+  // Instagram Reel Preview - Full screen vertical video style
+  const InstagramReelPreview = () => (
+    <div className="bg-black h-full flex flex-col relative">
+      {/* Full screen video background */}
+      <div className="absolute inset-0">
+        {mediaUrls.length > 0 ? (
+          <img src={mediaUrls[0]} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+            <div className="text-center">
+              <Play className="w-12 h-12 text-white/50 mx-auto mb-2" />
+              <p className="text-white/50 text-xs">Add video for Reel</p>
+              <button
+                onClick={() => setShowMediaInput(true)}
+                className="mt-2 px-3 py-1.5 bg-white/20 rounded-full text-white text-xs"
+              >
+                Add Video
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/50 to-transparent" />
+
+      {/* Right side actions */}
+      <div className="absolute right-3 bottom-32 flex flex-col items-center gap-4 z-10">
+        <button className="flex flex-col items-center">
+          <Heart className="w-6 h-6 text-white" />
+          <span className="text-white text-[10px] mt-0.5">0</span>
+        </button>
+        <button className="flex flex-col items-center">
+          <MessageCircle className="w-6 h-6 text-white" />
+          <span className="text-white text-[10px] mt-0.5">0</span>
+        </button>
+        <button className="flex flex-col items-center">
+          <Send className="w-6 h-6 text-white" />
+        </button>
+        <button className="flex flex-col items-center">
+          <MoreHorizontal className="w-6 h-6 text-white" />
+        </button>
+      </div>
+
+      {/* Bottom content */}
+      <div className="absolute bottom-4 left-0 right-14 px-3 z-10">
+        {/* Account info */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0.5">
+            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+          </div>
+          <span className="text-white text-xs font-semibold">your_account</span>
+          <button className="px-3 py-1 rounded border border-white text-white text-[10px]">Follow</button>
+        </div>
+
+        {/* Caption */}
+        <textarea
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Add a caption..."
+          rows={2}
+          className="w-full bg-transparent text-white text-xs outline-none resize-none placeholder:text-white/50"
+        />
+
+        {/* Music info */}
+        <div className="flex items-center gap-2 mt-2">
+          <Music2 className="w-3 h-3 text-white" />
+          <input
+            type="text"
+            value={music}
+            onChange={(e) => setMusic(e.target.value)}
+            placeholder="Add music..."
+            className="flex-1 bg-transparent text-white text-[10px] outline-none placeholder:text-white/50"
+          />
+        </div>
+      </div>
+
+      {/* Add media overlay */}
+      {showMediaInput && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20">
+          <div className="bg-gray-900 p-4 rounded-xl w-64">
+            <p className="text-white text-sm mb-2">Video URL</p>
+            <input
+              type="text"
+              value={newMediaUrl}
+              onChange={(e) => setNewMediaUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full px-3 py-2 bg-gray-800 text-white text-sm rounded-lg outline-none"
+            />
+            <div className="flex gap-2 mt-3">
+              <Button variant="outline" size="sm" onClick={() => setShowMediaInput(false)} className="flex-1 text-white border-gray-700">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={addMediaUrl} className="flex-1">
+                Add
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Instagram Story Preview - Full screen with tap areas
+  const InstagramStoryPreview = () => (
+    <div className="bg-black h-full flex flex-col relative">
+      {/* Progress bars */}
+      <div className="absolute top-2 left-2 right-2 flex gap-1 z-20">
+        <div className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
+          <div className="h-full w-1/3 bg-white rounded-full" />
+        </div>
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-6 left-0 right-0 flex items-center justify-between px-3 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0.5">
+            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+          </div>
+          <div>
+            <span className="text-white text-xs font-semibold">your_account</span>
+            <span className="text-white/50 text-[10px] ml-2">Just now</span>
+          </div>
+        </div>
+        <X className="w-5 h-5 text-white" />
+      </div>
+
+      {/* Story content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {mediaUrls.length > 0 ? (
+          <img src={mediaUrls[0]} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
+              <Image className="w-8 h-8 text-white/50" />
+            </div>
+            <p className="text-white/50 text-xs">Add image or video</p>
+            <button
+              onClick={() => setShowMediaInput(true)}
+              className="mt-2 px-4 py-2 bg-white text-black rounded-full text-xs font-semibold"
+            >
+              Add Media
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Gradient overlays */}
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent" />
+
+      {/* Bottom actions */}
+      <div className="absolute bottom-4 left-0 right-0 px-3 z-10">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Send message"
+            className="flex-1 px-4 py-2.5 bg-white/10 rounded-full text-white text-xs outline-none placeholder:text-white/50 border border-white/20"
+          />
+          <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <Heart className="w-5 h-5 text-white" />
+          </button>
+          <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <Send className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* Add media overlay */}
+      {showMediaInput && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20">
+          <div className="bg-gray-900 p-4 rounded-xl w-64">
+            <p className="text-white text-sm mb-2">Media URL</p>
+            <input
+              type="text"
+              value={newMediaUrl}
+              onChange={(e) => setNewMediaUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full px-3 py-2 bg-gray-800 text-white text-sm rounded-lg outline-none"
+            />
+            <div className="flex gap-2 mt-3">
+              <Button variant="outline" size="sm" onClick={() => setShowMediaInput(false)} className="flex-1 text-white border-gray-700">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={addMediaUrl} className="flex-1">
+                Add
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="relative flex gap-6 items-start">
@@ -386,7 +586,9 @@ export default function PostPreviewModal({
 
                 {/* Preview Content */}
                 <div className="flex-1 overflow-hidden mt-1">
-                  <InstagramPostPreview />
+                  {postType === "POST" && <InstagramPostPreview />}
+                  {postType === "REEL" && <InstagramReelPreview />}
+                  {postType === "STORY" && <InstagramStoryPreview />}
                 </div>
 
                 {/* Home Indicator */}
@@ -414,7 +616,7 @@ export default function PostPreviewModal({
                 type="date"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -427,7 +629,7 @@ export default function PostPreviewModal({
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -439,7 +641,7 @@ export default function PostPreviewModal({
               <select
                 value={selectedAutomation}
                 onChange={(e) => setSelectedAutomation(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
               >
                 <option value="">None</option>
                 {automations.map((a) => (

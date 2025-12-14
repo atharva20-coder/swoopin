@@ -210,6 +210,13 @@ export default function SchedulerView({
   };
 
   const handleDeletePost = async (postId: string) => {
+    // Don't allow deletion of published posts
+    const post = scheduledPosts.find(p => p.id === postId);
+    if (post?.status === "POSTED") {
+      toast.error("Cannot delete published posts");
+      return;
+    }
+    
     try {
       const result = await deleteScheduledPost(postId);
       if (result.status === 200) {
@@ -222,6 +229,33 @@ export default function SchedulerView({
       toast.error("An error occurred");
     }
     setSelectedPost(null);
+  };
+
+  const handleReschedule = async (postId: string, newDate: Date) => {
+    // Don't allow rescheduling of published posts
+    const post = scheduledPosts.find(p => p.id === postId);
+    if (post?.status === "POSTED") {
+      toast.error("Cannot reschedule published posts");
+      return;
+    }
+    
+    try {
+      const result = await updateScheduledPost(postId, {
+        scheduledFor: newDate,
+      });
+      if (result.status === 200) {
+        setScheduledPosts(scheduledPosts.map(p => 
+          p.id === postId ? { ...p, scheduledFor: newDate } : p
+        ));
+        toast.success("Post rescheduled!", {
+          description: `Moved to ${newDate.toLocaleDateString()} at ${newDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+        });
+      } else {
+        toast.error("Failed to reschedule post");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
   };
 
   const handleAutomationDrop = async (date: Date, automation: { id: string; name: string }) => {
@@ -295,6 +329,7 @@ export default function SchedulerView({
           onPostClick={handlePostClick}
           onPostDelete={handleDeletePost}
           onAutomationDrop={handleAutomationDrop}
+          onPostReschedule={handleReschedule}
         />
       </div>
 
