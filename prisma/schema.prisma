@@ -27,6 +27,8 @@ model User {
   analytics    Analytics[]
   openAiKey    String?        @unique
   carouselTemplates CarouselTemplate[]
+  scheduledPosts ScheduledPost[]
+  contentDrafts ContentDraft[]
 }
 
 model Subscription {
@@ -65,6 +67,7 @@ model Automation {
   carouselTemplates CarouselTemplate[]
   flowNodes FlowNode[]
   flowEdges FlowEdge[]
+  scheduledPosts ScheduledPost[]
 }
 
 // Flow Builder - Stores canvas nodes with positions
@@ -234,4 +237,54 @@ model Button {
   payload   String?
   elementId String?   @db.Uuid
   Element   Element?  @relation(fields: [elementId], references: [id], onDelete: Cascade)
+}
+
+// Scheduler Feature - Scheduled posts for Instagram
+model ScheduledPost {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caption       String?
+  mediaUrl      String?         // URL to image/video (from Canva or external link)
+  mediaType     PostMediaType   @default(IMAGE)
+  postType      PostType        @default(POST)
+  scheduledFor  DateTime
+  status        ScheduleStatus  @default(SCHEDULED)
+  hashtags      String[]        // Array of hashtags
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  User          User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?         @db.Uuid
+  Automation    Automation?     @relation(fields: [automationId], references: [id], onDelete: SetNull)
+  automationId  String?         @db.Uuid
+}
+
+// Content drafts for scheduler
+model ContentDraft {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String?
+  caption       String?
+  mediaUrl      String?
+  mediaType     PostMediaType   @default(IMAGE)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  User          User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?         @db.Uuid
+}
+
+enum PostMediaType {
+  IMAGE
+  VIDEO
+  CAROUSEL
+}
+
+enum PostType {
+  POST
+  REEL
+  STORY
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  POSTED
+  FAILED
+  CANCELLED
 }

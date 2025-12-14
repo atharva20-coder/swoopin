@@ -4,6 +4,7 @@ import {
   RocketDuoToneWhite,
   SettingsDuoToneWhite,
   Bell,
+  CalendarDuoToneWhite,
 } from '@/icons'
 import { v4 as uuid } from 'uuid'
 
@@ -22,6 +23,11 @@ export const SIDEBAR_MENU: SideBarProps[] = [
     id: uuid(),
     label: 'home',
     icon: <HomeDuoToneWhite />,
+  },
+  {
+    id: uuid(),
+    label: 'scheduler',
+    icon: <CalendarDuoToneWhite />,
   },
   {
     id: uuid(),
