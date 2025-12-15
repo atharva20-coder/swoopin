@@ -10,8 +10,7 @@ import { FlowNodeData } from "@/components/global/automations/flow-node";
 import { Button } from "@/components/ui/button";
 import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { saveFlowData, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
-import { syncTriggersAction, saveListener, saveKeyword } from "@/actions/automations";
+import { saveAutomationFlowBatch, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
 
 type Props = {
   automationId: string;
@@ -323,11 +322,11 @@ const FlowManager = ({ automationId, slug }: Props) => {
     toast.success("Node deleted");
   }, [automationId]);
 
-  // Save entire flow to database
+  // Save entire flow to database - BATCHED to single server call
   const handleSaveFlow = async () => {
     setIsSaving(true);
     try {
-      // 1. Save flow nodes and edges
+      // Prepare all data for batch save
       const flowNodes = nodes.map(n => ({
         nodeId: n.id,
         type: n.data.type,
@@ -339,11 +338,6 @@ const FlowManager = ({ automationId, slug }: Props) => {
         config: n.data.config,
       }));
 
-      console.log("=== SAVING FLOW NODES ===");
-      flowNodes.forEach(n => {
-        console.log(`Node ${n.nodeId}: ${n.subType}`, n.config);
-      });
-
       const flowEdges = edges.map(e => ({
         edgeId: e.id,
         sourceNodeId: e.source,
@@ -352,32 +346,23 @@ const FlowManager = ({ automationId, slug }: Props) => {
         targetHandle: e.targetHandle || undefined,
       }));
 
-      const flowResult = await saveFlowData(automationId, flowNodes, flowEdges);
-      if (flowResult.status !== 200) {
-        toast.error("Failed to save flow graph");
-        return;
-      }
-
-      // 2. Sync triggers to database (only adds new, removes deleted)
+      // Extract triggers
       const triggerNodes = nodes.filter(n => 
         n.data.type === "trigger" && 
         (n.data.subType === "DM" || n.data.subType === "COMMENT")
       );
-      const triggerTypes = triggerNodes.map(n => n.data.subType);
-      await syncTriggersAction(automationId, triggerTypes);
+      const triggers = triggerNodes.map(n => n.data.subType);
 
-      // 3. Sync keywords
+      // Extract keywords
       const keywordNodes = nodes.filter(n => n.data.subType === "KEYWORDS");
+      const keywords: string[] = [];
       for (const kn of keywordNodes) {
-        const keywords = kn.data.config?.keywords || [];
-        for (const keyword of keywords) {
-          if (keyword) {
-            await saveKeyword(automationId, keyword);
-          }
-        }
+        const nodeKeywords = kn.data.config?.keywords || [];
+        keywords.push(...nodeKeywords.filter((k: string) => k));
       }
 
-      // 4. Sync action nodes to listener
+      // Extract listener from action node
+      let listener: { type: "MESSAGE" | "SMARTAI" | "CAROUSEL"; prompt: string; reply: string } | undefined;
       const actionNode = nodes.find(n => n.data.type === "action");
       if (actionNode) {
         let listenerType: "MESSAGE" | "SMARTAI" | "CAROUSEL" = "MESSAGE";
@@ -393,7 +378,6 @@ const FlowManager = ({ automationId, slug }: Props) => {
         } else if (actionNode.data.subType === "REPLY_COMMENT") {
           listenerType = "MESSAGE";
           reply = actionNode.data.config?.commentReply || "";
-          // Find DM action for prompt
           const dmAction = nodes.find(n => n.data.subType === "MESSAGE");
           prompt = dmAction?.data.config?.message || "";
         } else {
@@ -401,12 +385,25 @@ const FlowManager = ({ automationId, slug }: Props) => {
         }
 
         if (prompt || reply) {
-          await saveListener(automationId, listenerType, prompt, reply);
+          listener = { type: listenerType, prompt, reply };
         }
       }
 
-      toast.success("Flow saved successfully!");
-      refetch();
+      // Single batched server call
+      const result = await saveAutomationFlowBatch(automationId, {
+        nodes: flowNodes,
+        edges: flowEdges,
+        triggers,
+        keywords,
+        listener,
+      });
+
+      if (result.status === 200) {
+        toast.success("Flow saved successfully!");
+        refetch();
+      } else {
+        toast.error("Failed to save flow");
+      }
     } catch (error) {
       console.error("Error saving flow:", error);
       toast.error("Failed to save flow");

@@ -72,6 +72,142 @@ export const saveFlowData = async (
   }
 };
 
+/**
+ * Batch save all automation flow data in a single server call
+ * This replaces multiple sequential calls to reduce API usage
+ */
+export const saveAutomationFlowBatch = async (
+  automationId: string,
+  payload: {
+    nodes: {
+      nodeId: string;
+      type: string;
+      subType: string;
+      label: string;
+      description?: string;
+      positionX: number;
+      positionY: number;
+      config?: Record<string, any>;
+    }[];
+    edges: {
+      edgeId: string;
+      sourceNodeId: string;
+      targetNodeId: string;
+      sourceHandle?: string;
+      targetHandle?: string;
+    }[];
+    triggers: string[];
+    keywords: string[];
+    listener?: {
+      type: "MESSAGE" | "SMARTAI" | "CAROUSEL";
+      prompt: string;
+      reply: string;
+      carouselTemplateId?: string;
+    };
+  }
+) => {
+  await onCurrentUser();
+  
+  try {
+    // Use a transaction to ensure atomicity
+    await client.$transaction(async (tx) => {
+      // 1. Save flow nodes and edges
+      await tx.flowEdge.deleteMany({ where: { automationId } });
+      await tx.flowNode.deleteMany({ where: { automationId } });
+      
+      if (payload.nodes.length > 0) {
+        await tx.flowNode.createMany({
+          data: payload.nodes.map((node) => ({
+            automationId,
+            nodeId: node.nodeId,
+            type: node.type,
+            subType: node.subType,
+            label: node.label,
+            description: node.description || undefined,
+            positionX: node.positionX,
+            positionY: node.positionY,
+            config: node.config || undefined,
+          })),
+        });
+      }
+
+      if (payload.edges.length > 0) {
+        await tx.flowEdge.createMany({
+          data: payload.edges.map((edge) => ({
+            automationId,
+            edgeId: edge.edgeId,
+            sourceNodeId: edge.sourceNodeId,
+            targetNodeId: edge.targetNodeId,
+            sourceHandle: edge.sourceHandle || null,
+            targetHandle: edge.targetHandle || null,
+          })),
+        });
+      }
+
+      // 2. Sync triggers - remove old, add new
+      await tx.trigger.deleteMany({ where: { automationId } });
+      for (const triggerType of payload.triggers) {
+        await tx.trigger.create({
+          data: {
+            automationId,
+            type: triggerType as "DM" | "COMMENT",
+          },
+        });
+      }
+
+      // 3. Sync keywords - check for existing and add new ones
+      const existingKeywords = await tx.keyword.findMany({
+        where: { automationId },
+        select: { word: true },
+      });
+      const existingWords = new Set(existingKeywords.map(k => k.word?.toLowerCase()));
+      
+      for (const keyword of payload.keywords) {
+        if (keyword && !existingWords.has(keyword.toLowerCase())) {
+          await tx.keyword.create({
+            data: {
+              automationId,
+              word: keyword,
+            },
+          });
+        }
+      }
+
+      // 4. Upsert listener if provided
+      if (payload.listener) {
+        const existingListener = await tx.listener.findFirst({
+          where: { automationId },
+        });
+
+        if (existingListener) {
+          await tx.listener.update({
+            where: { id: existingListener.id },
+            data: {
+              listener: payload.listener.type,
+              prompt: payload.listener.prompt,
+              commentReply: payload.listener.reply || null,
+            },
+          });
+        } else {
+          await tx.listener.create({
+            data: {
+              automationId,
+              listener: payload.listener.type,
+              prompt: payload.listener.prompt,
+              commentReply: payload.listener.reply || null,
+            },
+          });
+        }
+      }
+    });
+
+    return { status: 200, data: "Flow saved successfully" };
+  } catch (error) {
+    console.error("Error saving automation flow batch:", error);
+    return { status: 500, data: "Failed to save flow" };
+  }
+};
+
 // Load flow nodes and edges from database
 export const getFlowData = async (automationId: string) => {
   await onCurrentUser();
