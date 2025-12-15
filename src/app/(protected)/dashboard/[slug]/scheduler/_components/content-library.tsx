@@ -154,32 +154,26 @@ export default function ContentLibrary({
             </div>
           </div>
           
-          <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
             {drafts.length > 0 ? drafts.map((draft) => {
               const TypeIcon = getTypeIcon(draft.type);
               return (
                 <button
                   key={draft.id}
                   onClick={() => onDraftClick?.(draft)}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all text-left"
+                  className="aspect-square rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all flex flex-col items-center justify-center gap-1 bg-gray-50 dark:bg-gray-800/50 group"
+                  title={draft.title}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <TypeIcon className="w-5 h-5 text-gray-500" />
+                  <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <TypeIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{draft.title}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">{draft.type}</span>
-                      {draft.status === "processing" && (
-                        <span className="text-xs text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded">Processing</span>
-                      )}
-                    </div>
-                  </div>
-                  <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-full px-1">
+                    {draft.type}
+                  </span>
                 </button>
               );
             }) : (
-              <p className="text-sm text-gray-400 text-center py-4">No drafts yet</p>
+              <p className="text-sm text-gray-400 text-center py-4 col-span-3">No drafts yet</p>
             )}
           </div>
         </div>

@@ -63,6 +63,7 @@ export default function SchedulerView({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(initialScheduledPosts);
+  const [drafts, setDrafts] = useState(initialDrafts);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDateClick = (date: Date) => {
@@ -292,6 +293,26 @@ export default function SchedulerView({
     setSelectedDate(null);
   };
 
+  // Handle draft click - open modal with draft data
+  const handleDraftClick = (draft: Draft) => {
+    // Convert draft to ScheduledPost format for editing
+    const draftAsPost: ScheduledPost = {
+      id: draft.id,
+      caption: draft.title,
+      postType: draft.type,
+      scheduledFor: draft.updatedAt, // Use last saved date
+      status: "SCHEDULED",
+    };
+    setSelectedPost(draftAsPost);
+    setSelectedDate(draft.updatedAt);
+    setIsModalOpen(true);
+  };
+
+  // Remove draft when scheduled
+  const removeDraft = (draftId: string) => {
+    setDrafts(prev => prev.filter(d => d.id !== draftId));
+  };
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Breadcrumbs */}
@@ -308,9 +329,10 @@ export default function SchedulerView({
         {/* Left Sidebar - Content Library */}
         <ContentLibrary
           automations={automations}
-          drafts={initialDrafts}
+          drafts={drafts}
           onCreatePost={handleCreatePost}
           onConnectCanva={handleConnectCanva}
+          onDraftClick={handleDraftClick}
         />
 
         {/* Main Calendar */}
