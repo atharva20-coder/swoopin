@@ -1,11 +1,13 @@
 "use client";
 import { onOAuthInstagram } from "@/actions/integrations";
 import { onUserInfo } from "@/actions/user";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import useConfirm from "@/hooks/use-confirm";
 import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), {
   ssr: false,
@@ -54,7 +56,6 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     }
   };
 
-  // Show confetti only on first successful integration
   React.useEffect(() => {
     const integrated = userData?.data?.integrations.find(
       (integration) => integration.name === strategy
@@ -65,41 +66,28 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     if (integrated?.name === strategy && !hasShownConfetti) {
       localStorage.setItem(storageKey, 'true');
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 5000); // Hide confetti after 5 seconds
+      setTimeout(() => setShowConfetti(false), 5000);
     }
   }, [userData?.data?.integrations, strategy]);
-
-  if (isLoading) {
-    return (
-      <div className="rounded-lg p-6 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-6 relative overflow-hidden border-2 border-black dark:border-gray-700 animate-pulse">
-        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-        <div className="flex flex-col flex-1 space-y-3">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-        </div>
-        <div className="w-[160px] h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-      </div>
-    );
-  }
 
   const integrated = userData?.data?.integrations.find(
     (integration) => integration.name === strategy
   );
 
-  const getBackgroundColor = (strategy: string) => {
-    switch (strategy) {
-      case 'INSTAGRAM':
-        return 'bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20';
-      case 'MESSENGER':
-        return 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20';
-      case 'WHATSAPP':
-        return 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/20';
-      case 'THREADS':
-        return 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700';
-      case 'NEWSLETTER':
-        return 'bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/20';
-    }
-  };
+  const isConnected = integrated?.name === strategy;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-4 p-4 rounded-xl animate-pulse">
+        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+        <div className="flex-1 space-y-2">
+          <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-2/3"></div>
+        </div>
+        <div className="w-12 h-6 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -113,42 +101,57 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
           gravity={0.3}
         />
       )}
-      <div className="rounded-lg p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 relative overflow-hidden border-2 border-black dark:border-gray-700">
-        {comingSoon && (
-          <div className={`absolute top-2 right-2 ${getBackgroundColor(strategy)} dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium px-2.5 py-0.5 rounded shine-effect`}>
-            Coming Soon
-          </div>
-        )}        
-        <div className="w-12 h-12 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-lg">
+      <div 
+        className={cn(
+          "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
+          "bg-white dark:bg-[#252525] border-gray-200 dark:border-gray-700/50",
+          "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
+          isConnected && "ring-2 ring-blue-500/20 border-blue-200 dark:border-blue-500/30",
+          !isConnected && !comingSoon ? "cursor-pointer" : ""
+        )}
+        onClick={!isConnected && !comingSoon ? onInstaOAuth : undefined}
+      >
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600/50">
           {icon}
         </div>
-        <div className="flex flex-col flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-          <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base mt-1 sm:mt-2">{description}</p>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+              {title.replace('Connect ', '')}
+            </h3>
+            {comingSoon && (
+              <span className="text-[10px] font-bold text-orange-500 uppercase">NEW</span>
+            )}
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 text-xs truncate mt-0.5">
+            {description}
+          </p>
         </div>
-        <Button
-          onClick={onInstaOAuth}
-          disabled={integrated?.name === strategy || isConnecting || comingSoon}
-          className="w-full sm:w-auto bg-black dark:bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 dark:hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] mt-4 sm:mt-0"
-        >
-          {isConnecting ? "Connecting..." : integrated ? "Connected" : buttonText}
-        </Button>
+
+        {/* Toggle/Action */}
+        <div className="flex items-center gap-2 shrink-0">
+          {isConnecting ? (
+            <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+          ) : (
+            <>
+              <Switch 
+                checked={isConnected}
+                disabled={comingSoon}
+                onCheckedChange={() => {
+                  if (!isConnected && !comingSoon) {
+                    onInstaOAuth();
+                  }
+                }}
+                className="data-[state=checked]:bg-blue-600"
+              />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition" />
+            </>
+          )}
+        </div>
       </div>
-      <style jsx>{`
-        @keyframes shine {
-          0% {
-            background-position: -100% 50%;
-          }
-          100% {
-            background-position: 200% 50%;
-          }
-        }
-        .shine-effect {
-          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
-          background-size: 200% 100%;
-          animation: shine 3s infinite;
-        }
-      `}</style>
     </>
   );
 };
