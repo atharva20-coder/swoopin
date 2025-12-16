@@ -35,3 +35,14 @@ export const useQueryAutomationPosts = () => {
     queryFn: fetchPosts,
   });
 };
+
+export const useQueryInstagramProfile = () => {
+  return useQuery({
+    queryKey: ["instagram-profile"],
+    queryFn: async () => {
+      const { getInstagramProfile } = await import("@/actions/user");
+      return getInstagramProfile();
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+};

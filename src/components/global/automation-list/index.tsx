@@ -8,8 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useQueryAutomations } from "@/hooks/user-queries";
 import CreateAutomation from "../create-automation";
 import { useMutationDataState } from "@/hooks/use-mutation-data";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {};
+
+const ITEMS_PER_PAGE = 10;
 
 // AutomationList component displays a list of automation cards with their details
 const AutomationList = (props: Props) => {
@@ -18,10 +21,12 @@ const AutomationList = (props: Props) => {
   const { pathname } = usePaths();
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const handleSearch = (event: CustomEvent<{ searchTerm: string }>) => {
       setSearchTerm(event.detail.searchTerm);
+      setCurrentPage(1); // Reset to first page on search
     };
 
     window.addEventListener('automationSearch', handleSearch as EventListener);
@@ -65,6 +70,20 @@ const AutomationList = (props: Props) => {
     return { data: automations };
   }, [latestVariable, data, searchTerm]);
 
+  // Pagination calculation
+  const totalItems = optimisticUiData.data?.length || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedData = optimisticUiData.data?.slice(startIndex, endIndex) || [];
+
+  // Reset page if current page exceeds total pages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   if (data?.status !== 200 || data.data.length <= 0) {
     return (
       <div className="h-[70vh] flex justify-center items-center flex-col gap-y-3">
@@ -76,7 +95,7 @@ const AutomationList = (props: Props) => {
 
   return (
     <div className="flex flex-col gap-y-3">
-      {optimisticUiData.data!.map((automation) => (
+      {paginatedData.map((automation) => (
         <div
           key={automation.id}
           className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-6 relative"
@@ -193,6 +212,66 @@ const AutomationList = (props: Props) => {
           )}
         </div>
       ))}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} automations
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                // Show first 5 pages, or pages around current page
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={cn(
+                      "w-8 h-8 p-0",
+                      currentPage === pageNum && "bg-blue-600 text-white hover:bg-blue-700"
+                    )}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

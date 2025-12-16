@@ -1,5 +1,5 @@
 import { client } from "@/lib/prisma";
-import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage } from "@/lib/fetch";
+import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage, checkIfFollower, getMediaHashtags, sendButtonTemplate, setIceBreakers, setPersistentMenu, sendSenderAction, sendProductTemplate, sendQuickReplies } from "@/lib/fetch";
 import { openai } from "@/lib/openai";
 import { OpenAI } from "openai";
 import { trackResponses } from "@/actions/webhook/queries";
@@ -84,6 +84,66 @@ const checkKeywordMatch = (
   return keywordNodes.length === 0;
 };
 
+// Evaluate a condition node
+const evaluateCondition = async (
+  node: FlowNode,
+  context: ExecutionContext
+): Promise<boolean> => {
+  const { token, pageId, senderId, mediaId, messageText } = context;
+
+  try {
+    switch (node.subType) {
+      case "IS_FOLLOWER": {
+        // Check if the sender follows the page
+        const isFollower = await checkIfFollower(pageId, senderId, token);
+        console.log(`IS_FOLLOWER check: ${isFollower}`);
+        return isFollower;
+      }
+
+      case "HAS_TAG": {
+        // Check if the media or message contains specified hashtags
+        const requiredTags = node.config?.hashtags || node.config?.keywords || [];
+        if (requiredTags.length === 0) return true;
+
+        let foundTags: string[] = [];
+        
+        // If we have a media ID, get hashtags from the post
+        if (mediaId) {
+          foundTags = await getMediaHashtags(mediaId, token);
+        }
+        
+        // Also check message text for hashtags
+        if (messageText) {
+          const messageHashtags = messageText.match(/#(\w+)/g) || [];
+          foundTags = [...foundTags, ...messageHashtags.map(t => t.toLowerCase())];
+        }
+
+        // Check if any required tag is found
+        const hasMatch = requiredTags.some((tag: string) => 
+          foundTags.includes(tag.toLowerCase().replace('#', ''))
+        );
+        console.log(`HAS_TAG check: required=${requiredTags}, found=${foundTags}, match=${hasMatch}`);
+        return hasMatch;
+      }
+
+      case "YES":
+        // YES node always returns true (path selection)
+        return true;
+
+      case "NO":
+        // NO node always returns false (path selection)
+        return false;
+
+      default:
+        console.log(`Unknown condition type: ${node.subType}`);
+        return true;
+    }
+  } catch (error) {
+    console.error(`Error evaluating condition ${node.subType}:`, error);
+    return false;
+  }
+};
+
 // Execute a single action node
 const executeActionNode = async (
   node: FlowNode,
@@ -124,35 +184,113 @@ const executeActionNode = async (
           return { success: false, message: "Smart AI requires PRO subscription" };
         }
 
+        // Import rate limiter and Gemini dynamically to avoid circular deps
+        const { checkRateLimit } = await import("@/lib/rate-limiter");
+        const { generatePersonifiedResponse } = await import("@/lib/gemini");
+        const { getChatHistory, createChatHistory } = await import("@/actions/webhook/queries");
+
+        // Check AI rate limit (5 requests per minute per user)
+        const rateLimitResult = await checkRateLimit(`ai:${senderId}`, "AI");
+        if (!rateLimitResult.success) {
+          console.log(`Rate limited AI request for sender: ${senderId}`);
+          // Send a friendly rate limit message
+          const rateLimitMsg = "I'm receiving a lot of messages right now! Please wait a moment and try again. 😊";
+          await sendDM(pageId, senderId, rateLimitMsg, token);
+          return { success: false, message: "AI rate limited" };
+        }
+
         const prompt = node.config?.message || node.config?.prompt || "";
         if (!prompt) return { success: false, message: "No prompt configured" };
 
-        const openaiClient = context.userOpenAiKey
-          ? new OpenAI({ apiKey: context.userOpenAiKey })
-          : openai;
+        // === SENDER ACTIONS: Improve conversational UX ===
+        // 1. Mark message as seen immediately
+        try {
+          await sendSenderAction(pageId, senderId, "mark_seen", token);
+        } catch (e) { console.log("Failed to mark_seen:", e); }
+        
+        // 2. Show typing indicator while generating AI response
+        try {
+          await sendSenderAction(pageId, senderId, "typing_on", token);
+        } catch (e) { console.log("Failed to typing_on:", e); }
 
-        const completion = await openaiClient.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `${prompt}: Keep responses under 2 sentences`,
-            },
-            {
-              role: "user",
-              content: context.messageText || "",
-            },
-          ],
-        });
+        // Fetch chat history for context
+        let chatHistory: { role: "user" | "model"; text: string }[] = [];
+        try {
+          const historyResult = await getChatHistory(senderId, pageId);
+          if (historyResult.history && historyResult.history.length > 0) {
+            // Convert to Gemini format and limit to last 10 messages
+            chatHistory = historyResult.history.slice(-10).map((msg) => ({
+              role: msg.role === "user" ? "user" as const : "model" as const,
+              text: msg.content,
+            }));
+          }
+        } catch (error) {
+          console.log("Could not fetch chat history, proceeding without it:", error);
+        }
 
-        const aiResponse = completion.choices[0]?.message?.content;
-        if (!aiResponse) return { success: false, message: "No AI response" };
+        // Generate response using Gemini with personified prompt
+        const aiResponse = await generatePersonifiedResponse(
+          prompt,
+          context.messageText || "",
+          chatHistory
+        );
 
+        if (!aiResponse) {
+          // Fallback to OpenAI if Gemini fails
+          console.log("Gemini failed, falling back to OpenAI");
+          const openaiClient = context.userOpenAiKey
+            ? new OpenAI({ apiKey: context.userOpenAiKey })
+            : openai;
+
+          const completion = await openaiClient.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `${prompt}: Keep responses under 2 sentences`,
+              },
+              {
+                role: "user",
+                content: context.messageText || "",
+              },
+            ],
+          });
+
+          const fallbackResponse = completion.choices[0]?.message?.content;
+          if (!fallbackResponse) {
+            // Turn off typing if we have no response
+            try { await sendSenderAction(pageId, senderId, "typing_off", token); } catch (e) {}
+            return { success: false, message: "No AI response from fallback" };
+          }
+
+          // Send the message (automatically stops typing indicator)
+          const result = await sendDM(pageId, senderId, fallbackResponse, token);
+          if (result.status === 200) {
+            // Store in chat history
+            try {
+              await createChatHistory(automationId, senderId, pageId, context.messageText || "");
+              await createChatHistory(automationId, pageId, senderId, fallbackResponse);
+            } catch (e) { console.log("Failed to store chat history:", e); }
+            
+            await trackResponses(automationId, "DM");
+            await trackAnalytics(userId, "dm").catch(console.error);
+            return { success: true, message: "Smart AI response sent (OpenAI fallback)" };
+          }
+          return { success: false, message: "Failed to send AI response" };
+        }
+
+        // Send the Gemini response as a message (automatically stops typing indicator)
         const result = await sendDM(pageId, senderId, aiResponse, token);
         if (result.status === 200) {
+          // Store messages in chat history for future context
+          try {
+            await createChatHistory(automationId, senderId, pageId, context.messageText || "");
+            await createChatHistory(automationId, pageId, senderId, aiResponse);
+          } catch (e) { console.log("Failed to store chat history:", e); }
+          
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
-          return { success: true, message: "Smart AI response sent" };
+          return { success: true, message: "Smart AI response sent (Gemini)" };
         }
         return { success: false, message: "Failed to send AI response" };
       }
@@ -182,12 +320,12 @@ const executeActionNode = async (
           return { success: false, message: "No carousel template found" };
         }
 
-        const carouselElements = template.elements.map((element) => ({
+        const carouselElements = template.elements.map((element: { title: string; subtitle?: string | null; imageUrl?: string | null; defaultAction?: string | null; buttons: { type: string; title: string; url?: string | null; payload?: string | null }[] }) => ({
           title: element.title,
           subtitle: element.subtitle || undefined,
           imageUrl: element.imageUrl || undefined,
           defaultAction: element.defaultAction || undefined,
-          buttons: element.buttons.map((button) => ({
+          buttons: element.buttons.map((button: { type: string; title: string; url?: string | null; payload?: string | null }) => ({
             type: button.type.toLowerCase() as "web_url" | "postback",
             title: button.title,
             url: button.url || undefined,
@@ -202,6 +340,126 @@ const executeActionNode = async (
           return { success: true, message: "Carousel sent" };
         }
         return { success: false, message: "Failed to send carousel" };
+      }
+
+      case "BUTTON_TEMPLATE": {
+        // Get button template config from node
+        const text = node.config?.text || node.config?.message || "";
+        const buttons = node.config?.buttons || [];
+        
+        if (!text) return { success: false, message: "No text configured for button template" };
+        if (buttons.length === 0) return { success: false, message: "No buttons configured" };
+
+        const result = await sendButtonTemplate(
+          pageId,
+          senderId,
+          text,
+          buttons,
+          token
+        );
+
+        if (result.success) {
+          await trackResponses(automationId, "DM");
+          await trackAnalytics(userId, "dm").catch(console.error);
+          return { success: true, message: "Button template sent" };
+        }
+        return { success: false, message: result.error || "Failed to send button template" };
+      }
+
+      case "PRODUCT_TEMPLATE": {
+        // Send product(s) from Facebook catalog
+        const productIds = node.config?.productIds || [];
+        
+        if (productIds.length === 0) {
+          return { success: false, message: "No product IDs configured" };
+        }
+
+        const result = await sendProductTemplate(pageId, senderId, productIds, token);
+
+        if (result.success) {
+          await trackResponses(automationId, "DM");
+          await trackAnalytics(userId, "dm").catch(console.error);
+          return { success: true, message: "Product template sent" };
+        }
+        return { success: false, message: result.error || "Failed to send product template" };
+      }
+
+      case "QUICK_REPLIES": {
+        // Send message with quick reply buttons
+        const text = node.config?.text || "";
+        const quickReplies = node.config?.quickReplies || [];
+        
+        if (!text) {
+          return { success: false, message: "No message text configured" };
+        }
+        if (quickReplies.length === 0) {
+          return { success: false, message: "No quick replies configured" };
+        }
+
+        const result = await sendQuickReplies(pageId, senderId, text, quickReplies, token);
+
+        if (result.success) {
+          await trackResponses(automationId, "DM");
+          await trackAnalytics(userId, "dm").catch(console.error);
+          return { success: true, message: "Quick replies sent" };
+        }
+        return { success: false, message: result.error || "Failed to send quick replies" };
+      }
+
+      case "ICE_BREAKERS": {
+        // Ice Breakers are profile-level FAQ questions
+        const iceBreakers = node.config?.iceBreakers || [];
+        
+        if (iceBreakers.length === 0) {
+          return { success: false, message: "No ice breakers configured" };
+        }
+
+        const result = await setIceBreakers(iceBreakers, token);
+
+        if (result.success) {
+          return { success: true, message: "Ice breakers set successfully" };
+        }
+        return { success: false, message: result.error || "Failed to set ice breakers" };
+      }
+
+      case "PERSISTENT_MENU": {
+        // Persistent Menu is a profile-level always-visible menu
+        const menuItems = node.config?.menuItems || [];
+        
+        if (menuItems.length === 0) {
+          return { success: false, message: "No menu items configured" };
+        }
+
+        const result = await setPersistentMenu(menuItems, token);
+
+        if (result.success) {
+          return { success: true, message: "Persistent menu set successfully" };
+        }
+        return { success: false, message: result.error || "Failed to set persistent menu" };
+      }
+
+      case "TYPING_ON": {
+        const result = await sendSenderAction(pageId, senderId, "typing_on", token);
+        if (result.success) {
+          return { success: true, message: "Typing indicator shown" };
+        }
+        return { success: false, message: result.error || "Failed to show typing indicator" };
+      }
+
+      case "TYPING_OFF": {
+        const result = await sendSenderAction(pageId, senderId, "typing_off", token);
+        if (result.success) {
+          return { success: true, message: "Typing indicator hidden" };
+        }
+        return { success: false, message: result.error || "Failed to hide typing indicator" };
+      }
+
+      case "MARK_SEEN": {
+        const result = await sendSenderAction(pageId, senderId, "mark_seen", token);
+        if (result.success) {
+          return { success: true, message: "Message marked as seen" };
+        }
+        return { success: false, message: result.error || "Failed to mark message as seen" };
       }
 
       default:
@@ -242,12 +500,12 @@ export const executeFlow = async (
     }
 
     // Convert to execution format
-    const flowNodes: FlowNode[] = nodes.map((n) => ({
+    const flowNodes: FlowNode[] = nodes.map((n: { nodeId: string; type: string; subType: string; label: string; config: unknown }) => ({
       nodeId: n.nodeId,
       type: n.type,
       subType: n.subType,
       label: n.label,
-      config: (n.config as Record<string, any>) || {},
+      config: (n.config as Record<string, unknown>) || {},
     }));
 
     console.log("Flow nodes:", flowNodes.map(n => `${n.type}:${n.subType} (${n.label})`));
@@ -272,29 +530,53 @@ export const executeFlow = async (
 
     console.log(`Executing flow path with ${executionPath.length} nodes`);
 
-    // Execute action nodes in order
-    const actionNodes = executionPath.filter((n) => n.type === "action");
+    // Execute nodes in order (actions and conditions)
     const results: { node: string; success: boolean; message: string }[] = [];
+    let skipNext = false;
 
-    for (const actionNode of actionNodes) {
-      const result = await executeActionNode(actionNode, context);
-      results.push({
-        node: actionNode.label,
-        success: result.success,
-        message: result.message,
-      });
+    for (const node of executionPath) {
+      // Skip trigger nodes
+      if (node.type === "trigger") continue;
 
-      if (result.success) {
-        console.log(`✓ Executed: ${actionNode.label}`);
-      } else {
-        console.log(`✗ Failed: ${actionNode.label} - ${result.message}`);
+      // If we're skipping due to a failed condition
+      if (skipNext && node.subType !== "NO") {
+        console.log(`Skipping ${node.label} due to condition branch`);
+        continue;
+      }
+      skipNext = false;
+
+      if (node.type === "condition") {
+        // Evaluate the condition
+        const conditionResult = await evaluateCondition(node, context);
+        console.log(`Condition ${node.label}: ${conditionResult}`);
+        
+        if (!conditionResult) {
+          // Condition failed, skip to "NO" branch or next non-yes nodes
+          skipNext = true;
+        }
+        continue;
+      }
+
+      if (node.type === "action") {
+        const result = await executeActionNode(node, context);
+        results.push({
+          node: node.label,
+          success: result.success,
+          message: result.message,
+        });
+
+        if (result.success) {
+          console.log(`✓ Executed: ${node.label}`);
+        } else {
+          console.log(`✗ Failed: ${node.label} - ${result.message}`);
+        }
       }
     }
 
     const successCount = results.filter((r) => r.success).length;
     return {
-      success: successCount > 0,
-      message: `Executed ${successCount}/${actionNodes.length} actions`,
+      success: successCount > 0 || results.length === 0,
+      message: results.length > 0 ? `Executed ${successCount}/${results.length} actions` : "Flow completed",
     };
   } catch (error) {
     console.error("Flow execution error:", error);

@@ -258,29 +258,51 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
   const renderSmartAIConfig = () => (
     <div className="space-y-4">
+      {/* Info Box */}
+      <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+        <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">
+          ✨ Gemini AI Powered
+        </h4>
+        <p className="text-sm text-purple-700 dark:text-purple-300">
+          Responds as you, using chat history for context. Rate limited: 5 msgs/min per user.
+        </p>
+      </div>
+
+      {/* Persona Prompt */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          AI Prompt
+          Your Persona & Response Style
         </label>
         <textarea
           value={formData.prompt || ""}
           onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
           onBlur={(e) => handleAutoSave("prompt", e.target.value)}
-          placeholder="Describe how AI should respond..."
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          placeholder="Describe how you communicate, your brand voice, and what you want AI to help with..."
+          rows={5}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
         />
       </div>
+
+      {/* Example Prompts */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Example prompts:</p>
+        <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">"I'm a friendly fitness coach. Help users with workout tips and motivation. Keep it upbeat!"</p>
+          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">"I run a bakery. Answer questions about our menu, hours (9am-6pm), and take cake orders."</p>
+        </div>
+      </div>
+
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        AI will use this prompt to generate contextual responses.
+        AI uses conversation history to personalize responses and maintain context.
       </p>
+
       <button
         type="button"
         onClick={handleSave}
         disabled={isPending || !formData.prompt}
-        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
       >
-        {isPending ? "Saving..." : "Save Configuration"}
+        {isPending ? "Saving..." : "Save AI Configuration"}
       </button>
     </div>
   );
@@ -318,6 +340,667 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         ) : (
           <CarouselTemplateForm automationId={id} onSuccess={() => {}} />
         )}
+      </div>
+    );
+  };
+
+  const renderButtonTemplateConfig = () => {
+    const buttons = formData.buttons || [];
+
+    const addButton = () => {
+      if (buttons.length >= 3) {
+        toast.error("Maximum 3 buttons allowed");
+        return;
+      }
+      const newButtons = [...buttons, { type: "web_url", title: "", url: "" }];
+      setFormData({ ...formData, buttons: newButtons });
+    };
+
+    const updateButton = (index: number, field: string, value: string) => {
+      const newButtons = buttons.map((btn: any, i: number) =>
+        i === index ? { ...btn, [field]: value } : btn
+      );
+      setFormData({ ...formData, buttons: newButtons });
+    };
+
+    const removeButton = (index: number) => {
+      const newButtons = buttons.filter((_: any, i: number) => i !== index);
+      setFormData({ ...formData, buttons: newButtons });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Message Text */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Message Text
+          </label>
+          <textarea
+            value={formData.text || ""}
+            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+            onBlur={(e) => handleAutoSave("text", e.target.value)}
+            placeholder="Enter message text (appears above buttons)..."
+            rows={3}
+            maxLength={640}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">{(formData.text || "").length}/640 characters</p>
+        </div>
+
+        {/* Buttons */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Buttons ({buttons.length}/3)
+            </label>
+            {buttons.length < 3 && (
+              <button
+                type="button"
+                onClick={addButton}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add Button
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {buttons.map((button: any, index: number) => (
+              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-500">Button {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeButton(index)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                {/* Button Type */}
+                <select
+                  value={button.type}
+                  onChange={(e) => updateButton(index, "type", e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="web_url">URL Button</option>
+                  <option value="postback">Postback Button</option>
+                </select>
+
+                {/* Button Title */}
+                <input
+                  type="text"
+                  value={button.title}
+                  onChange={(e) => updateButton(index, "title", e.target.value)}
+                  placeholder="Button text (max 20 chars)"
+                  maxLength={20}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+
+                {/* URL or Payload */}
+                {button.type === "web_url" ? (
+                  <input
+                    type="url"
+                    value={button.url || ""}
+                    onChange={(e) => updateButton(index, "url", e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={button.payload || ""}
+                    onChange={(e) => updateButton(index, "payload", e.target.value)}
+                    placeholder="Postback payload"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                )}
+              </div>
+            ))}
+
+            {buttons.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">
+                Add at least one button
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || !formData.text || buttons.length === 0}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Configuration"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderIceBreakersConfig = () => {
+    const iceBreakers = formData.iceBreakers || [];
+
+    const addIceBreaker = () => {
+      if (iceBreakers.length >= 4) {
+        toast.error("Maximum 4 ice breakers allowed");
+        return;
+      }
+      const newIceBreakers = [...iceBreakers, { question: "", payload: "" }];
+      setFormData({ ...formData, iceBreakers: newIceBreakers });
+    };
+
+    const updateIceBreaker = (index: number, field: string, value: string) => {
+      const newIceBreakers = iceBreakers.map((ib: any, i: number) =>
+        i === index ? { ...ib, [field]: value } : ib
+      );
+      setFormData({ ...formData, iceBreakers: newIceBreakers });
+    };
+
+    const removeIceBreaker = (index: number) => {
+      const newIceBreakers = iceBreakers.filter((_: any, i: number) => i !== index);
+      setFormData({ ...formData, iceBreakers: newIceBreakers });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Info Box */}
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+            Ice Breakers
+          </h4>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            FAQ questions shown when users start a conversation. Max 4 questions.
+          </p>
+        </div>
+
+        {/* Ice Breakers List */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Questions ({iceBreakers.length}/4)
+            </label>
+            {iceBreakers.length < 4 && (
+              <button
+                type="button"
+                onClick={addIceBreaker}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add Question
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {iceBreakers.map((ib: any, index: number) => (
+              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-500">Question {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeIceBreaker(index)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                {/* Question */}
+                <input
+                  type="text"
+                  value={ib.question}
+                  onChange={(e) => updateIceBreaker(index, "question", e.target.value)}
+                  placeholder="e.g., What are your business hours?"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+
+                {/* Payload */}
+                <input
+                  type="text"
+                  value={ib.payload}
+                  onChange={(e) => updateIceBreaker(index, "payload", e.target.value)}
+                  placeholder="Payload (e.g., HOURS_INQUIRY)"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+              </div>
+            ))}
+
+            {iceBreakers.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">
+                Add at least one ice breaker question
+              </p>
+            )}
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Ice breakers appear as quick-reply options when users start a new conversation.
+        </p>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || iceBreakers.length === 0 || iceBreakers.some((ib: any) => !ib.question || !ib.payload)}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Ice Breakers"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderPersistentMenuConfig = () => {
+    const menuItems = formData.menuItems || [];
+
+    const addMenuItem = () => {
+      if (menuItems.length >= 5) {
+        toast.error("Maximum 5 menu items recommended");
+        return;
+      }
+      const newItems = [...menuItems, { type: "postback", title: "", payload: "" }];
+      setFormData({ ...formData, menuItems: newItems });
+    };
+
+    const updateMenuItem = (index: number, field: string, value: string) => {
+      const newItems = menuItems.map((item: any, i: number) =>
+        i === index ? { ...item, [field]: value } : item
+      );
+      setFormData({ ...formData, menuItems: newItems });
+    };
+
+    const removeMenuItem = (index: number) => {
+      const newItems = menuItems.filter((_: any, i: number) => i !== index);
+      setFormData({ ...formData, menuItems: newItems });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Info Box */}
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+            Persistent Menu
+          </h4>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            Always-visible menu in conversations. Limit to 5 items for best UX.
+          </p>
+        </div>
+
+        {/* Menu Items List */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Menu Items ({menuItems.length}/5)
+            </label>
+            {menuItems.length < 5 && (
+              <button
+                type="button"
+                onClick={addMenuItem}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                + Add Item
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {menuItems.map((item: any, index: number) => (
+              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-500">Item {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeMenuItem(index)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                {/* Item Type */}
+                <select
+                  value={item.type}
+                  onChange={(e) => updateMenuItem(index, "type", e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="postback">Postback (Action)</option>
+                  <option value="web_url">URL (Open Link)</option>
+                </select>
+
+                {/* Title */}
+                <input
+                  type="text"
+                  value={item.title}
+                  onChange={(e) => updateMenuItem(index, "title", e.target.value)}
+                  placeholder="Menu item title"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+
+                {/* URL or Payload */}
+                {item.type === "web_url" ? (
+                  <input
+                    type="url"
+                    value={item.url || ""}
+                    onChange={(e) => updateMenuItem(index, "url", e.target.value)}
+                    placeholder="https://example.com"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={item.payload || ""}
+                    onChange={(e) => updateMenuItem(index, "payload", e.target.value)}
+                    placeholder="Postback payload (e.g., MENU_HOURS)"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                )}
+              </div>
+            ))}
+
+            {menuItems.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-4">
+                Add at least one menu item
+              </p>
+            )}
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Use descriptive titles. Menu appears in all conversations.
+        </p>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || menuItems.length === 0 || menuItems.some((item: any) => !item.title || (item.type === "web_url" ? !item.url : !item.payload))}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Persistent Menu"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderSenderActionConfig = () => {
+    const actionDescriptions: Record<string, { title: string; description: string }> = {
+      TYPING_ON: {
+        title: "Show Typing Indicator",
+        description: "Displays a typing indicator to the user, letting them know you're composing a response. Use this before processing a message to create a natural conversational feel.",
+      },
+      TYPING_OFF: {
+        title: "Hide Typing Indicator",
+        description: "Hides the typing indicator. Use this after you're done processing if you need to stop the indicator without sending a message.",
+      },
+      MARK_SEEN: {
+        title: "Mark Message as Seen",
+        description: "Marks the most recent message as seen. Send this when your bot receives a message so the user doesn't feel ignored.",
+      },
+    };
+
+    const action = selectedNode?.data.subType || "";
+    const info = actionDescriptions[action] || { title: action, description: "" };
+
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+            {info.title}
+          </h4>
+          <p className="text-sm text-green-700 dark:text-green-300">
+            {info.description}
+          </p>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          This action requires no configuration. It will execute automatically when reached in the flow.
+        </p>
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Confirm Action"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderProductTemplateConfig = () => {
+    const productIds = formData.productIds || [];
+    const newProductId = formData.newProductId || "";
+
+    const addProductId = () => {
+      if (!newProductId.trim()) return;
+      if (productIds.length >= 10) {
+        toast.error("Maximum 10 products allowed");
+        return;
+      }
+      if (productIds.includes(newProductId.trim())) {
+        toast.error("Product ID already added");
+        return;
+      }
+      const newIds = [...productIds, newProductId.trim()];
+      setFormData({ ...formData, productIds: newIds, newProductId: "" });
+    };
+
+    const removeProductId = (id: string) => {
+      const newIds = productIds.filter((pid: string) => pid !== id);
+      setFormData({ ...formData, productIds: newIds });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Info Box */}
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+            Product Template
+          </h4>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            Send products from your Facebook catalog. 1 product = single message, 2+ = carousel (max 10).
+          </p>
+        </div>
+
+        {/* Product IDs */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Product IDs ({productIds.length}/10)
+          </label>
+
+          {/* Current products */}
+          <div className="space-y-2 mb-3">
+            {productIds.map((id: string, index: number) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                <span className="flex-1 text-sm font-mono truncate text-gray-700 dark:text-gray-300">{id}</span>
+                <button
+                  type="button"
+                  onClick={() => removeProductId(id)}
+                  className="text-red-500 hover:text-red-700 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add new product */}
+          {productIds.length < 10 && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newProductId}
+                onChange={(e) => setFormData({ ...formData, newProductId: e.target.value })}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addProductId())}
+                placeholder="Enter product ID from catalog"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              />
+              <button
+                type="button"
+                onClick={addProductId}
+                className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+              >
+                Add
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Get product IDs from Facebook Commerce Manager or Catalog API.
+        </p>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || productIds.length === 0}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Product Template"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderQuickRepliesConfig = () => {
+    const quickReplies = formData.quickReplies || [];
+    const text = formData.text || "";
+
+    const addQuickReply = (type: "text" | "user_phone_number") => {
+      if (quickReplies.length >= 13) {
+        toast.error("Maximum 13 quick replies allowed");
+        return;
+      }
+      const newReply = type === "user_phone_number" 
+        ? { content_type: "user_phone_number" }
+        : { content_type: "text", title: "", payload: "" };
+      setFormData({ ...formData, quickReplies: [...quickReplies, newReply] });
+    };
+
+    const updateQuickReply = (index: number, field: string, value: string) => {
+      const updated = [...quickReplies];
+      updated[index] = { ...updated[index], [field]: value };
+      setFormData({ ...formData, quickReplies: updated });
+    };
+
+    const removeQuickReply = (index: number) => {
+      const updated = quickReplies.filter((_: unknown, i: number) => i !== index);
+      setFormData({ ...formData, quickReplies: updated });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Info Box */}
+        <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+          <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">
+            Quick Replies
+          </h4>
+          <p className="text-sm text-purple-700 dark:text-purple-300">
+            Add buttons users can tap to respond. Max 13 replies, 20 chars each. Mobile only.
+          </p>
+        </div>
+
+        {/* Message Text */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Message Text
+          </label>
+          <textarea
+            value={text}
+            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+            placeholder="Enter message to display with quick replies..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          />
+        </div>
+
+        {/* Quick Replies List */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Quick Replies ({quickReplies.length}/13)
+          </label>
+
+          <div className="space-y-2">
+            {quickReplies.map((qr: { content_type: string; title?: string; payload?: string }, index: number) => (
+              <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                {qr.content_type === "user_phone_number" ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">📱 Request Phone Number</span>
+                    <button
+                      type="button"
+                      onClick={() => removeQuickReply(index)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={qr.title || ""}
+                        onChange={(e) => updateQuickReply(index, "title", e.target.value.substring(0, 20))}
+                        placeholder="Button title (max 20 chars)"
+                        maxLength={20}
+                        className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                      <span className="text-xs text-gray-400">{(qr.title || "").length}/20</span>
+                      <button
+                        type="button"
+                        onClick={() => removeQuickReply(index)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={qr.payload || ""}
+                      onChange={(e) => updateQuickReply(index, "payload", e.target.value)}
+                      placeholder="Payload (optional, sent to webhook)"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Add Buttons */}
+          {quickReplies.length < 13 && (
+            <div className="flex gap-2 mt-3">
+              <button
+                type="button"
+                onClick={() => addQuickReply("text")}
+                className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200 dark:bg-purple-900 dark:text-purple-300"
+              >
+                + Add Text Button
+              </button>
+              <button
+                type="button"
+                onClick={() => addQuickReply("user_phone_number")}
+                className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300"
+              >
+                + Phone Number
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || !text || quickReplies.length === 0}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Quick Replies"}
+        </button>
       </div>
     );
   };
@@ -501,6 +1184,20 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         return renderSmartAIConfig();
       case "CAROUSEL":
         return renderCarouselConfig();
+      case "BUTTON_TEMPLATE":
+        return renderButtonTemplateConfig();
+      case "ICE_BREAKERS":
+        return renderIceBreakersConfig();
+      case "PERSISTENT_MENU":
+        return renderPersistentMenuConfig();
+      case "TYPING_ON":
+      case "TYPING_OFF":
+      case "MARK_SEEN":
+        return renderSenderActionConfig();
+      case "PRODUCT_TEMPLATE":
+        return renderProductTemplateConfig();
+      case "QUICK_REPLIES":
+        return renderQuickRepliesConfig();
       case "POSTS":
       case "SELECT_POSTS":
         return renderPostsConfig();

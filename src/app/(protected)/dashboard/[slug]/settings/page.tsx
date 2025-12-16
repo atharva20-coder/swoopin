@@ -5,14 +5,15 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { 
-  User, CreditCard, Key, Bell, Shield, Trash2, 
+  User, CreditCard, Bell, Shield, Trash2, 
   ChevronRight, Instagram, Zap, Crown, Check, 
-  AlertCircle, ExternalLink
+  ExternalLink, BadgeCheck, Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { OpenAISettings } from "./_components/openai-settings";
 import DeleteAccount from "./_components/delete-account";
+import { useQueryInstagramProfile } from "@/hooks/user-queries";
+import Image from "next/image";
 
 type PlanType = "FREE" | "PRO" | "ENTERPRISE";
 
@@ -34,6 +35,16 @@ export default function SettingsPage() {
     dmAlerts: true,
     weeklyReport: false,
   });
+
+  const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile();
+  const profile = instagramProfile?.status === 200 ? instagramProfile.data : null;
+
+  const formatFollowers = (count?: number) => {
+    if (!count) return null;
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
+  };
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -119,31 +130,85 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Profile */}
-        <SettingsCard icon={User} title="Profile" description="Your personal information">
-          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden shrink-0">
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                user?.firstName?.[0] || "U"
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 dark:text-white text-lg truncate">
-                {user?.fullName || "User"}
-              </p>
-              <p className="text-gray-500 dark:text-gray-400 text-sm truncate">
-                {user?.primaryEmailAddress?.emailAddress}
-              </p>
-            </div>
-            <Link href={`/dashboard/${slug}/settings/profile`}>
-              <Button variant="outline" size="sm" className="gap-2 shrink-0">
-                Edit
-              </Button>
-            </Link>
+        {/* Profile - Merged with Instagram */}
+        <div className="rounded-2xl border overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+          {/* Cover/Banner */}
+          <div 
+            className="h-32 relative bg-cover bg-center"
+            style={{ backgroundImage: "url('https://transitivebullsh.it/_next/image?url=https%3A%2F%2Fwww.notion.so%2Fimage%2Fhttps%253A%252F%252Fs3-us-west-2.amazonaws.com%252Fsecure.notion-static.com%252F0cb69622-caba-4237-9639-98cdbd6e58af%252Fbg-gradient-opt.jpg%3Ftable%3Dblock%26id%3Dd1b5dcf8-b9ff-425b-8aef-5ce6f0730202%26cache%3Dv2&w=3840&q=75')" }}
+          >
+            <div className="absolute inset-0 bg-black/20" />
           </div>
-        </SettingsCard>
+          
+          {/* Profile Content */}
+          <div className="px-6 pb-6">
+            {/* Profile Picture - Overlapping banner */}
+            <div className="relative -mt-12 mb-4 flex items-end justify-between">
+              <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
+                {profile?.profile_pic ? (
+                  <Image 
+                    src={profile.profile_pic} 
+                    alt={profile.name || "Profile"} 
+                    width={96} 
+                    height={96}
+                    className="w-full h-full object-cover"
+                  />
+                ) : user?.imageUrl ? (
+                  <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-bold text-white">
+                    {user?.firstName?.[0] || "U"}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2 mb-2">
+                <Link href={`/dashboard/${slug}/integrations`}>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Instagram className="w-4 h-4" />
+                    Manage
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Name and Username */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {profile?.name || user?.fullName || "User"}
+                </h2>
+                {profile?.is_verified_user && (
+                  <BadgeCheck className="w-5 h-5 text-blue-500" />
+                )}
+                <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">
+                  Active
+                </span>
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {isLoadingProfile ? "Loading..." : profile?.username ? `@${profile.username}` : user?.primaryEmailAddress?.emailAddress}
+              </p>
+            </div>
+
+            {/* Stats Row */}
+            <div className="flex items-center gap-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              {profile?.follower_count ? (
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-gray-400" />
+                  <span className="font-semibold text-gray-900 dark:text-white">{formatFollowers(profile.follower_count)}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">Followers</span>
+                </div>
+              ) : null}
+              <div className="flex items-center gap-2">
+                <Instagram className="w-4 h-4 text-gray-400" />
+                <span className="text-green-600 dark:text-green-400 text-sm font-medium">Connected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-500 dark:text-gray-400 text-sm">{PLAN_NAMES[currentPlan]}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Subscription */}
         <SettingsCard icon={CreditCard} title="Subscription" description="Manage your plan and billing">
@@ -176,33 +241,6 @@ export default function SettingsPage() {
               </Button>
             </Link>
           </div>
-        </SettingsCard>
-
-        {/* Instagram */}
-        <SettingsCard icon={Instagram} title="Instagram" description="Connected Instagram account">
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                <Instagram className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">@{slug}</p>
-                <p className="text-sm text-green-600 dark:text-green-400">Connected</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">Reconnect</Button>
-          </div>
-        </SettingsCard>
-
-        {/* OpenAI */}
-        <SettingsCard icon={Key} title="OpenAI API" description="Configure AI-powered responses">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <OpenAISettings />
-          </div>
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            Your API key is stored securely. Required for Smart AI responses.
-          </p>
         </SettingsCard>
 
         {/* Notifications */}

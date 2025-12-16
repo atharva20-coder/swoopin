@@ -49,6 +49,14 @@ const iconMap: Record<string, React.ReactNode> = {
   IS_FOLLOWER: <UserCheck className="w-5 h-5" />,
   DELAY: <Clock className="w-5 h-5" />,
   HAS_TAG: <Tag className="w-5 h-5" />,
+  BUTTON_TEMPLATE: <MessageSquare className="w-5 h-5" />,
+  ICE_BREAKERS: <MessageSquare className="w-5 h-5" />,
+  PERSISTENT_MENU: <MessageSquare className="w-5 h-5" />,
+  TYPING_ON: <Clock className="w-5 h-5" />,
+  TYPING_OFF: <Clock className="w-5 h-5" />,
+  MARK_SEEN: <CheckCircle className="w-5 h-5" />,
+  PRODUCT_TEMPLATE: <ImageIcon className="w-5 h-5" />,
+  QUICK_REPLIES: <MessageSquare className="w-5 h-5" />,
 };
 
 const getNodeColors = (type: string) => {

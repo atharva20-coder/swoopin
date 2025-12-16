@@ -6,8 +6,10 @@ import useConfirm from "@/hooks/use-confirm";
 import { useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, Users, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQueryInstagramProfile } from "@/hooks/user-queries";
+import Image from "next/image";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), {
   ssr: false,
@@ -28,6 +30,7 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     queryKey: ["user-profile"],
     queryFn: onUserInfo,
   });
+  const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile();
   const [showConfetti, setShowConfetti] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
@@ -58,7 +61,7 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
 
   React.useEffect(() => {
     const integrated = userData?.data?.integrations.find(
-      (integration) => integration.name === strategy
+      (integration: { name: string }) => integration.name === strategy
     );
     const storageKey = `integration_${strategy}_connected`;
     const hasShownConfetti = localStorage.getItem(storageKey);
@@ -71,10 +74,19 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
   }, [userData?.data?.integrations, strategy]);
 
   const integrated = userData?.data?.integrations.find(
-    (integration) => integration.name === strategy
+    (integration: { name: string }) => integration.name === strategy
   );
 
   const isConnected = integrated?.name === strategy;
+  const profile = instagramProfile?.status === 200 ? instagramProfile.data : null;
+
+  // Format follower count
+  const formatFollowers = (count?: number) => {
+    if (!count) return null;
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
+  };
 
   if (isLoading) {
     return (
@@ -111,24 +123,46 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
         )}
         onClick={!isConnected && !comingSoon ? onInstaOAuth : undefined}
       >
-        {/* Icon */}
+        {/* Icon / Profile Picture */}
         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600/50">
-          {icon}
+          {isConnected && profile?.profile_pic ? (
+            <Image 
+              src={profile.profile_pic} 
+              alt={profile.name || "Profile"} 
+              width={48} 
+              height={48}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            icon
+          )}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-              {title.replace('Connect ', '')}
+              {isConnected && profile?.username ? `@${profile.username}` : title.replace('Connect ', '')}
             </h3>
+            {isConnected && profile?.is_verified_user && (
+              <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
+            )}
             {comingSoon && (
               <span className="text-[10px] font-bold text-orange-500 uppercase">NEW</span>
             )}
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs truncate mt-0.5">
-            {description}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            {isConnected && profile?.follower_count ? (
+              <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <Users className="w-3 h-3" />
+                {formatFollowers(profile.follower_count)} followers
+              </span>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Toggle/Action */}

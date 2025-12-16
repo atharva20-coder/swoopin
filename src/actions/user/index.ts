@@ -106,3 +106,32 @@ export const onSubscribe = async (session_id: string) => {
     return { status: 500 };
   }
 };
+
+export const getInstagramProfile = async () => {
+  const user = await onCurrentUser();
+  try {
+    const profile = await findUser(user.id);
+    if (!profile || profile.integrations.length === 0) {
+      return { status: 404, error: "No Instagram integration found" };
+    }
+
+    const token = profile.integrations[0].token;
+    const { getInstagramUserProfile } = await import("@/lib/fetch");
+    const result = await getInstagramUserProfile(token);
+
+    if (result.success && result.data) {
+      return { 
+        status: 200, 
+        data: {
+          ...result.data,
+          instagramId: profile.integrations[0].instagramId,
+        }
+      };
+    }
+
+    return { status: 400, error: result.error };
+  } catch (error) {
+    console.error("Error fetching Instagram profile:", error);
+    return { status: 500, error: "Server error" };
+  }
+};

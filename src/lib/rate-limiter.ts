@@ -43,6 +43,11 @@ export const RateLimitTier = {
     tokens: 5,
     window: "1m" as const,
   },
+  // AI: 5 requests per minute per user (prevent AI abuse)
+  AI: {
+    tokens: 5,
+    window: "1m" as const,
+  },
 } as const;
 
 export type RateLimitTierType = keyof typeof RateLimitTier;
