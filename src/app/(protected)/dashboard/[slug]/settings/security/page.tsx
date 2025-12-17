@@ -207,7 +207,7 @@ export default function SecurityPage() {
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white">Active Sessions</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage devices where you're currently logged in
+              Manage devices where you&apos;re currently logged in
             </p>
           </div>
         </div>

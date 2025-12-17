@@ -82,6 +82,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
     };
     
     loadFlow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.data, automationId]);
 
   // Generate flow from legacy automation data (triggers, listener, keywords)

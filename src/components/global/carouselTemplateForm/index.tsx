@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createCarouselTemplate } from "@/actions/automations";
 import { toast } from "sonner";
-import { Trash, Plus, Image } from "lucide-react";
+import { Trash, Plus, Image as ImageIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -202,7 +202,7 @@ export default function CarouselTemplateForm({ automationId, onSuccess }: Props)
                     aria-label="Select image"
                     type="button"
                   >
-                    <Image className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

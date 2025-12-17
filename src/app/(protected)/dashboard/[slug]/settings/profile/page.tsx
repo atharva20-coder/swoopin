@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Camera, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { user, isLoaded } = useUser();
@@ -82,7 +83,7 @@ export default function ProfilePage() {
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
               {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                <Image src={user.imageUrl} alt="Profile" width={96} height={96} className="w-full h-full object-cover" />
               ) : (
                 user?.firstName?.[0] || "U"
               )}

@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { 
   X, ChevronLeft, ChevronRight, Clock, MapPin, Hash, Music2, Users, AtSign, 
-  Zap, Calendar, Send, Save, Image, Film, Plus, Trash2,
+  Zap, Calendar, Send, Save, Image as ImageIcon, Film, Plus, Trash2,
   User, Heart, MessageCircle, Bookmark, MoreHorizontal, Play, Layers, Battery, Wifi, Signal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import Image from "next/image";
 
 type ScheduledPost = {
   id: string;
@@ -48,7 +49,7 @@ type PostPreviewModalProps = {
 };
 
 const POST_TYPES = [
-  { value: "POST", label: "Post", icon: Image },
+  { value: "POST", label: "Post", icon: ImageIcon },
   { value: "REEL", label: "Reel", icon: Film },
   { value: "STORY", label: "Story", icon: Clock },
 ] as const;
@@ -238,7 +239,8 @@ export default function PostPreviewModal({
       <div className="aspect-square bg-gray-50 dark:bg-gray-900 relative flex-shrink-0">
         {mediaUrls.length > 0 ? (
           <>
-            <img src={mediaUrls[currentSlide]} alt="" className="w-full h-full object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={mediaUrls[currentSlide]} alt="Post media" className="w-full h-full object-cover" />
             {mediaUrls.length > 1 && (
               <>
                 {currentSlide > 0 && (
@@ -268,7 +270,7 @@ export default function PostPreviewModal({
           </>
         ) : (
           <button onClick={() => setShowMediaInput(true)} className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-gray-600">
-            <Image className="w-10 h-10" />
+            <ImageIcon className="w-10 h-10" />
             <span className="text-xs">Add Media</span>
           </button>
         )}
@@ -278,7 +280,8 @@ export default function PostPreviewModal({
       <div className="flex gap-1 p-2 bg-gray-50 dark:bg-gray-900 overflow-x-auto">
         {mediaUrls.map((url, i) => (
           <button key={i} onClick={() => setCurrentSlide(i)} className={cn("w-10 h-10 rounded shrink-0 overflow-hidden", i === currentSlide && "ring-2 ring-blue-500")}>
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
           </button>
         ))}
         <button onClick={() => setShowMediaInput(true)} className="w-10 h-10 shrink-0 rounded border border-dashed border-gray-300 flex items-center justify-center hover:border-blue-400">
@@ -346,7 +349,8 @@ export default function PostPreviewModal({
       {/* Full screen video background */}
       <div className="absolute inset-0">
         {mediaUrls.length > 0 ? (
-          <img src={mediaUrls[0]} alt="" className="w-full h-full object-cover" />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={mediaUrls[0]} alt="Reel preview" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
             <div className="text-center">
@@ -474,11 +478,12 @@ export default function PostPreviewModal({
       {/* Story content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {mediaUrls.length > 0 ? (
-          <img src={mediaUrls[0]} alt="" className="w-full h-full object-cover" />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={mediaUrls[0]} alt="Story preview" className="w-full h-full object-cover" />
         ) : (
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
-              <Image className="w-8 h-8 text-white/50" />
+              <ImageIcon className="w-8 h-8 text-white/50" />
             </div>
             <p className="text-white/50 text-xs">Add image or video</p>
             <button

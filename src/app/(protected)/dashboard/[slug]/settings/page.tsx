@@ -161,7 +161,7 @@ export default function SettingsPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : user?.imageUrl ? (
-                    <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                    <Image src={user.imageUrl} alt="Profile" width={96} height={96} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-3xl font-bold text-white">
                       {user?.firstName?.[0] || "U"}
