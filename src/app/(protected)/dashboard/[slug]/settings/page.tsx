@@ -39,6 +39,12 @@ export default function SettingsPage() {
   const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile();
   const profile = instagramProfile?.status === 200 ? instagramProfile.data : null;
 
+  // Prevent hydration mismatch
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formatFollowers = (count?: number) => {
     if (!count) return null;
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -145,20 +151,24 @@ export default function SettingsPage() {
             {/* Profile Picture - Overlapping banner */}
             <div className="relative -mt-12 mb-4 flex items-end justify-between">
               <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 overflow-hidden bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
-                {profile?.profile_pic ? (
-                  <Image 
-                    src={profile.profile_pic} 
-                    alt={profile.name || "Profile"} 
-                    width={96} 
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                ) : user?.imageUrl ? (
-                  <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                {mounted ? (
+                  profile?.profile_pic ? (
+                    <Image 
+                      src={profile.profile_pic} 
+                      alt={profile.name || "Profile"} 
+                      width={96} 
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : user?.imageUrl ? (
+                    <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl font-bold text-white">
+                      {user?.firstName?.[0] || "U"}
+                    </span>
+                  )
                 ) : (
-                  <span className="text-3xl font-bold text-white">
-                    {user?.firstName?.[0] || "U"}
-                  </span>
+                  <span className="text-3xl font-bold text-white">U</span>
                 )}
               </div>
               <div className="flex gap-2 mb-2">
