@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { authClient, sendVerificationEmail } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, XCircle, Mail } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -20,17 +20,13 @@ export default function VerifyPage() {
   const error = searchParams.get("error");
 
   useEffect(() => {
-    // If there's an error query param, show error state
     if (error) {
       setStatus("error");
       return;
     }
 
-    // If we reach this page without error, verification was successful
-    // Better-Auth auto-redirects here after successful verification
     setStatus("success");
     
-    // Auto-redirect to dashboard after 2 seconds
     const timer = setTimeout(() => {
       router.push("/dashboard");
     }, 2000);
@@ -62,11 +58,22 @@ export default function VerifyPage() {
   // Loading state
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-600" />
+      <div className="min-h-[calc(100vh-80px)] flex">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
+          <div className="max-w-sm mx-auto w-full text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto text-gray-900 dark:text-white" />
             <p className="text-gray-600 dark:text-gray-400 mt-4">Verifying your email...</p>
+          </div>
+        </div>
+        <div className="hidden lg:block lg:w-1/2 p-6">
+          <div className="relative h-full w-full rounded-2xl overflow-hidden">
+            <Image
+              src="/auth/auth-hero.jpg"
+              alt="Authentication"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
         </div>
       </div>
@@ -76,86 +83,148 @@ export default function VerifyPage() {
   // Success state
   if (status === "success") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+      <div className="min-h-[calc(100vh-80px)] flex">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
+          <div className="max-w-sm mx-auto w-full">
+            <div className="mb-8">
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl lg:text-4xl font-serif text-gray-900 dark:text-white mb-2">
                 Email Verified!
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Your email has been successfully verified. Redirecting to dashboard...
+              <p className="text-gray-600 dark:text-gray-400">
+                Your account is now active
               </p>
-              
-              <Link href="/dashboard">
-                <Button className="w-full">
-                  Go to Dashboard
-                </Button>
-              </Link>
             </div>
+
+            <p className="text-gray-700 dark:text-gray-300 mb-8">
+              Your email has been successfully verified. Redirecting to dashboard...
+            </p>
+
+            <Link href="/dashboard">
+              <Button className="w-full h-11 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 rounded-full font-medium">
+                Go to Dashboard
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="hidden lg:block lg:w-1/2 p-6">
+          <div className="relative h-full w-full rounded-2xl overflow-hidden">
+            <Image
+              src="/auth/auth-hero.jpg"
+              alt="Authentication"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
         </div>
       </div>
     );
   }
 
-  // Error state - verification failed
+  // Error state
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+    <div className="min-h-[calc(100vh-80px)] flex">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
+        <div className="max-w-sm mx-auto w-full">
+          <div className="mb-8">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
+              <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl lg:text-4xl font-serif text-gray-900 dark:text-white mb-2">
               Verification Failed
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-2">
+            <p className="text-gray-600 dark:text-gray-400">
               {error === "invalid_token" 
                 ? "The verification link is invalid or has expired."
                 : "Email verification failed. Please try again."}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Enter your email below to receive a new verification link.
-            </p>
-            
-            <form onSubmit={handleResendVerification} className="space-y-4 text-left">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    className="pl-10"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Resend Verification Email
+          </div>
+
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            Enter your email below to receive a new verification link.
+          </p>
+
+          <form onSubmit={handleResendVerification} className="space-y-3">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full h-11 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-full px-5 border border-gray-300 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-700 focus-visible:border-gray-400 dark:focus-visible:border-gray-500"
+              required
+            />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 rounded-full font-medium"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Resend Verification Email
+            </Button>
+          </form>
+
+          <div className="mt-6">
+            <Link href="/sign-in">
+              <Button
+                variant="ghost"
+                className="w-full h-11 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+              >
+                Back to Sign In
               </Button>
-            </form>
-            
-            <div className="mt-4">
-              <Link href="/sign-in">
-                <Button variant="ghost" className="w-full">
-                  Back to Sign In
-                </Button>
-              </Link>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
+
+      <div className="hidden lg:block lg:w-1/2 p-6">
+        <div className="relative h-full w-full rounded-2xl overflow-hidden">
+          <Image
+            src="/auth/auth-hero.jpg"
+            alt="Authentication"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function LoadingFallback() {
+  return (
+    <div className="min-h-[calc(100vh-80px)] flex">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
+        <div className="max-w-sm mx-auto w-full text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto text-gray-900 dark:text-white" />
+          <p className="text-gray-600 dark:text-gray-400 mt-4">Loading...</p>
+        </div>
+      </div>
+      <div className="hidden lg:block lg:w-1/2 p-6">
+        <div className="relative h-full w-full rounded-2xl overflow-hidden">
+          <Image
+            src="/auth/auth-hero.jpg"
+            alt="Authentication"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Wrap in Suspense for useSearchParams
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyContent />
+    </Suspense>
   );
 }

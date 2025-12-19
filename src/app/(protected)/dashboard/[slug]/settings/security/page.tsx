@@ -42,17 +42,17 @@ export default function SecurityPage() {
 
     setIsLoading(true);
     try {
-      // Use Better-Auth's password change via emailOtp plugin
-      // First send OTP for password reset
-      const result = await authClient.forgetPassword.emailOtp({
+      // Use Better-Auth's forgetPassword to send a password reset link
+      const { forgetPassword } = await import("@/lib/auth-client");
+      const result = await forgetPassword({
         email: user?.email || "",
+        redirectTo: "/auth/reset-password",
       });
       
-      if (result.error) {
+      if (result?.error) {
         toast.error(result.error.message || "Failed to initiate password change");
       } else {
-        toast.success("Password reset OTP sent to your email");
-        // TODO: Add OTP verification flow
+        toast.success("Password reset link sent to your email");
       }
       setIsChangingPassword(false);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
