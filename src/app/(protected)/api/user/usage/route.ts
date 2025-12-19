@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { getUserUsage, getUserPlanLimits } from "@/lib/access-control";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { getUserUsageByEmail, getUserPlanLimitsByEmail } from "@/lib/access-control";
 import { applyRateLimit } from "@/lib/rate-limiter";
 
 export async function GET(req: NextRequest) {
@@ -10,15 +11,18 @@ export async function GET(req: NextRequest) {
     return rateLimitResult.response;
   }
 
-  const user = await currentUser();
-  if (!user) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (!session?.user) {
     return NextResponse.json({ status: 401, error: "Unauthorized" });
   }
 
   try {
     const [usage, planInfo] = await Promise.all([
-      getUserUsage(user.id),
-      getUserPlanLimits(user.id),
+      getUserUsageByEmail(session.user.email),
+      getUserPlanLimitsByEmail(session.user.email),
     ]);
 
     return NextResponse.json({

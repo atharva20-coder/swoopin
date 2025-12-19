@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
@@ -91,7 +91,8 @@ const FAQ = [
 ];
 
 export default function BillingPage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const params = useParams();
   const slug = params.slug as string;
   
@@ -272,7 +273,7 @@ export default function BillingPage() {
             {usagePercentage(usage.dmsUsed, usage.dmsLimit) > 80 && (
               <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span className="text-sm">You're running low on DMs. Upgrade to Pro for unlimited messages!</span>
+                <span className="text-sm">You&apos;re running low on DMs. Upgrade to Pro for unlimited messages!</span>
               </div>
             )}
           </div>
@@ -499,7 +500,7 @@ export default function BillingPage() {
               Cancel Subscription?
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              You'll be downgraded to the Starter plan at the end of your billing period. Your automations beyond the free limit will be paused.
+              You&apos;ll be downgraded to the Starter plan at the end of your billing period. Your automations beyond the free limit will be paused.
             </p>
             <div className="flex gap-3">
               <Button

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { onCurrentUser, onUserInfo } from "../user";
+import { getDbUser, onUserInfo } from "../user";
 import {
   createIntegration,
   deleteIntegration,
@@ -19,13 +19,13 @@ export const onOAuthInstagram = (strategy: "INSTAGRAM" | "CRM") => {
 };
 
 export const onIntegrate = async (code: string) => {
-  const user = await onCurrentUser();
+  const user = await getDbUser();
   try {
     const integration = await getIntegration(user.id);
 
     if (integration && integration.integrations.length === 0) {
       const token = await generateTokens(code);
-      console.log(token);
+
 
       if (token) {
         const insta_id = await axios.get(
@@ -46,13 +46,13 @@ export const onIntegrate = async (code: string) => {
         );
         return { status: 200, data: create };
       }
-      console.log("🔴 401");
+
       return { status: 401 };
     }
-    console.log("🔴 404");
+
     return { status: 404 };
   } catch (error) {
-    console.log("🔴 500", error);
+
     return { status: 500 };
   }
 };
@@ -69,11 +69,11 @@ export const disconnectIntegrate = async (integrationId: string) => {
       );
       return { status: 200, data: "unintegrated successfully" };
     }
-    console.log("🔴 404");
+
 
     return { status: 404 };
   } catch (error) {
-    console.log("🔴 500", error);
+
     return { status: 500 };
   }
 };

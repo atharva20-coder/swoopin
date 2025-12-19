@@ -4,7 +4,7 @@ import { client } from "@/lib/prisma";
 
 // Find automation by keyword match or catch-all trigger
 export const matchKeyword = async (messageText: string, triggerType: "DM" | "COMMENT" = "DM") => {
-  console.log("matchKeyword called with:", messageText, "triggerType:", triggerType);
+
   
   // First, try legacy keyword table - check if message contains any keyword
   const legacyKeywords = await client.keyword.findMany({
@@ -17,7 +17,7 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
   
   for (const kw of legacyKeywords) {
     if (messageText.toLowerCase().includes(kw.word.toLowerCase())) {
-      console.log("Legacy keyword match found:", kw.word, "in automation:", kw.automationId);
+
       return kw;
     }
   }
@@ -35,25 +35,25 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
     },
   });
   
-  console.log("Found", keywordNodes.length, "FlowNode KEYWORDS nodes to check");
+
   
   // Check each KEYWORDS node's config for matching keyword
   for (const node of keywordNodes) {
     const config = node.config as Record<string, any> || {};
     const keywords = config.keywords || [];
     
-    console.log("Checking node:", node.nodeId, "keywords:", keywords);
+
     
     for (const kw of keywords) {
       if (typeof kw === "string" && messageText.toLowerCase().includes(kw.toLowerCase())) {
-        console.log("FlowNode keyword match found:", kw, "in automation:", node.automationId);
+
         return { automationId: node.automationId };
       }
     }
   }
   
   // No keyword match - look for CATCH-ALL automations (trigger without keywords)
-  console.log("No keyword match, searching for catch-all flows...");
+
   
   // Get automations that have trigger nodes but NO keywords node
   const catchAllFlows = await client.flowNode.findMany({
@@ -80,12 +80,12 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
     );
     
     if (!hasKeywords) {
-      console.log("Found catch-all automation (no keywords):", triggerNode.automationId);
+
       return { automationId: triggerNode.automationId };
     }
   }
   
-  console.log("No keyword match and no catch-all flows found");
+
   return null;
 };
 

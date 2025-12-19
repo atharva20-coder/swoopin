@@ -96,7 +96,7 @@ const evaluateCondition = async (
       case "IS_FOLLOWER": {
         // Check if the sender follows the page
         const isFollower = await checkIfFollower(pageId, senderId, token);
-        console.log(`IS_FOLLOWER check: ${isFollower}`);
+
         return isFollower;
       }
 
@@ -122,7 +122,7 @@ const evaluateCondition = async (
         const hasMatch = requiredTags.some((tag: string) => 
           foundTags.includes(tag.toLowerCase().replace('#', ''))
         );
-        console.log(`HAS_TAG check: required=${requiredTags}, found=${foundTags}, match=${hasMatch}`);
+
         return hasMatch;
       }
 
@@ -135,7 +135,7 @@ const evaluateCondition = async (
         return false;
 
       default:
-        console.log(`Unknown condition type: ${node.subType}`);
+
         return true;
     }
   } catch (error) {
@@ -476,10 +476,10 @@ export const executeFlow = async (
   automationId: string,
   context: ExecutionContext
 ): Promise<{ success: boolean; message: string }> => {
-  console.log("=== FLOW EXECUTOR START ===");
-  console.log("Automation ID:", automationId);
-  console.log("Trigger type:", context.triggerType);
-  console.log("Message:", context.messageText);
+
+
+
+
   
   try {
     // Load flow data
@@ -491,11 +491,11 @@ export const executeFlow = async (
       where: { automationId },
     });
 
-    console.log("Found", nodes.length, "nodes and", edges.length, "edges");
+
 
     // If no flow nodes, fall back to legacy execution
     if (nodes.length === 0) {
-      console.log("No flow nodes found - falling back to legacy");
+
       return { success: false, message: "No flow nodes found - using legacy execution" };
     }
 

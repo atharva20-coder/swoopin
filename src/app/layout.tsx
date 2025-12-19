@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from '@clerk/nextjs' 
 import { ThemeProvider } from '@/contexts/theme-context';
 import { Toaster } from "sonner";
 import ReactQueryProvider from "@/providers/react-query-provider";
@@ -59,17 +58,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={jakarta.className}>
-        <ClerkProvider>
-          <ReactQueryProvider>
-            <ReduxProvider>
-              <ThemeProvider>
-                {children}
-                <Toaster />
-                <CookieConsent />
-              </ThemeProvider>
-            </ReduxProvider>
-          </ReactQueryProvider>
-        </ClerkProvider>
+        <ReactQueryProvider>
+          <ReduxProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster />
+              <CookieConsent />
+            </ThemeProvider>
+          </ReduxProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

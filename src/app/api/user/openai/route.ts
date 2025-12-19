@@ -1,4 +1,4 @@
-import { onCurrentUser } from "@/actions/user";
+import { getDbUser } from "@/actions/user";
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from "@/lib/rate-limiter";
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = await onCurrentUser();
+    const user = await getDbUser();
     const { apiKey } = await req.json();
 
     if (!apiKey) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const updated = await client.user.update({
-      where: { clerkId: user.id },
+      where: { id: user.id },
       data: { openAiKey: apiKey },
     });
 

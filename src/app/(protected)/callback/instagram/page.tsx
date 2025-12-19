@@ -13,8 +13,10 @@ const Page = async ({ searchParams: { code } }: Props) => {
     console.log(code)
     const user = await onIntegrate(code.split('#_')[0])
     if (user.status === 200) {
+      // Use name field and remove spaces for URL slug
+      const slug = user.data?.name?.replace(/\s+/g, '') || 'user';
       return redirect(
-        `/dashboard/${user.data?.firstname}${user.data?.lastname}/integrations`
+        `/dashboard/${slug}/integrations`
       )
     }
   }

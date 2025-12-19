@@ -6,17 +6,18 @@ let initialized = false;
 
 const getRedis = () => {
   if (initialized) return redis;
-  
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token) {
-    console.warn("⚠️ Redis not configured. Rate limiting disabled.");
+  // Check if Redis is configured
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // Silent check - rate limiting disabled if Redis not configured
+  if (!redisUrl || !redisToken) {
     initialized = true;
     return null;
   }
 
-  redis = new Redis({ url, token });
+  redis = new Redis({ url: redisUrl, token: redisToken });
   initialized = true;
   return redis;
 };

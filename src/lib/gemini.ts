@@ -4,9 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 // API key is read from GEMINI_API_KEY environment variable
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
-if (!geminiApiKey) {
-  console.warn("Warning: GEMINI_API_KEY environment variable is not set. Gemini AI features will not work.");
-}
+// Silent check - no console warnings in production
 
 export const gemini = new GoogleGenAI({ apiKey: geminiApiKey || "" });
 

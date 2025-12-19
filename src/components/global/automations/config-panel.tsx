@@ -287,8 +287,8 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Example prompts:</p>
         <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">"I'm a friendly fitness coach. Help users with workout tips and motivation. Keep it upbeat!"</p>
-          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">"I run a bakery. Answer questions about our menu, hours (9am-6pm), and take cake orders."</p>
+          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">&quot;I&apos;m a friendly fitness coach. Help users with workout tips and motivation. Keep it upbeat!&quot;</p>
+          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">&quot;I run a bakery. Answer questions about our menu, hours (9am-6pm), and take cake orders.&quot;</p>
         </div>
       </div>
 

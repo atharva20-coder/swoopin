@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Better-Auth requires native modules to be external
+  experimental: {
+    serverComponentsExternalPackages: ["@node-rs/argon2"],
+  },
   images: {
     remotePatterns: [
       // Instagram domains

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,7 +24,8 @@ const PLAN_NAMES: Record<PlanType, string> = {
 };
 
 export default function SettingsPage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const params = useParams();
   const slug = params.slug as string;
 
@@ -160,11 +161,11 @@ export default function SettingsPage() {
                       height={96}
                       className="w-full h-full object-cover"
                     />
-                  ) : user?.imageUrl ? (
-                    <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                  ) : user?.image ? (
+                    <Image src={user.image} alt="Profile" width={96} height={96} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-3xl font-bold text-white">
-                      {user?.firstName?.[0] || "U"}
+                      {user?.name?.[0] || "U"}
                     </span>
                   )
                 ) : (
@@ -185,7 +186,7 @@ export default function SettingsPage() {
             <div className="mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {profile?.name || user?.fullName || "User"}
+                  {profile?.name || user?.name || "User"}
                 </h2>
                 {profile?.is_verified_user && (
                   <BadgeCheck className="w-5 h-5 text-blue-500" />
@@ -195,7 +196,7 @@ export default function SettingsPage() {
                 </span>
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {isLoadingProfile ? "Loading..." : profile?.username ? `@${profile.username}` : user?.primaryEmailAddress?.emailAddress}
+                {isLoadingProfile ? "Loading..." : profile?.username ? `@${profile.username}` : user?.email}
               </p>
             </div>
 

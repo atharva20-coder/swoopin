@@ -70,7 +70,7 @@ export const sendDM = async (
   prompt: string,
   token: string
 ) => {
-  console.log("sending message");
+
   return await axios.post(
     `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/messages`,
     {
@@ -274,7 +274,7 @@ export const sendPrivateMessage = async (
   prompt: string,
   token: string
 ) => {
-  console.log("sending message");
+
   return await axios.post(
     `${process.env.INSTAGRAM_BASE_URL}/${userId}/messages`,
     {
@@ -295,7 +295,7 @@ export const sendPrivateMessage = async (
 };
 
 export const replyToComment = async (commentId: string, message: string, token: string) => {
-  console.log("replying to comment");
+
   // Encode the message for URL safety
   const encodedMessage = encodeURIComponent(message);
   // Include API version and pass message as a query parameter
@@ -823,7 +823,7 @@ export const generateTokens = async (code: string) => {
     }
 
     const token = await shortTokenRes.json();
-    console.log("Short-term token generated:", token);
+
 
     if (!token || !token.access_token) {
       throw new Error("Invalid token response");
@@ -844,7 +844,7 @@ export const generateTokens = async (code: string) => {
         },
       }
     );
-    console.log("Long-term token generated:", longTokenResponse.data);
+
 
     return longTokenResponse.data;
   } catch (error) {
@@ -890,7 +890,7 @@ export const checkIfFollower = async (
     // For now, we'll use a heuristic: if we can send DMs, they likely follow
     // A more accurate approach would require the user to grant additional permissions
     // TODO: Implement proper follower check when Instagram API supports it
-    console.log("Follower check response:", response.data);
+
     
     // Return true by default as we can't directly check follower status
     // The automation will proceed, and if the user doesn't follow, DMs may fail

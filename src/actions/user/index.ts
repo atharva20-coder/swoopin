@@ -1,25 +1,52 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
-import { createNotification } from "@/actions/notifications";
-
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createUser, findUser, updateSubscription } from "./queries";
+import { auth } from "@/lib/auth";
+import { createNotification } from "@/actions/notifications";
+import { createUser, findUser, findUserByEmail, updateSubscription } from "./queries";
 import { refreshToken } from "@/lib/fetch";
 import { updateIntegration } from "../integrations/queries";
 import { stripe } from "@/lib/stripe";
 
+// Get current authenticated user from Better-Auth session
 export const onCurrentUser = async () => {
-  const user = await currentUser();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!user) return redirect("/sign-in");
-  return user;
+  if (!session?.user) {
+    return redirect("/sign-in");
+  }
+  
+  return session.user;
+};
+
+// Get database user from Better-Auth session (returns user with database UUID)
+export const getDbUser = async () => {
+  const authUser = await onCurrentUser();
+  const dbUser = await findUserByEmail(authUser.email);
+  
+  if (!dbUser) {
+    return redirect("/sign-in");
+  }
+  
+  return dbUser;
+};
+
+// Get session without redirect (for optional auth checks)
+export const getSession = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  return session;
 };
 
 export const onBoardUser = async () => {
   const user = await onCurrentUser();
   try {
-    const found = await findUser(user.id);
+    // Find user by email instead of clerkId
+    const found = await findUserByEmail(user.email);
     if (found) {
       if (found.integrations.length > 0) {
         const today = new Date();
@@ -28,10 +55,10 @@ export const onBoardUser = async () => {
 
         const days = Math.round(time_left / (1000 * 3600 * 24));
         if (days < 5) {
-          console.log("refresh");
+
 
           const refresh = await refreshToken(found.integrations[0].token);
-          console.log(refresh);
+
 
           const today = new Date();
           const expire_date = today.setDate(today.getDate() + 60);
@@ -42,7 +69,7 @@ export const onBoardUser = async () => {
             found.integrations[0].id
           );
           if (!update_token) {
-            console.log("Update token failed");
+
           } else if (update_token.userId) {
             createNotification(
               "You have been reintegrated!",
@@ -55,20 +82,22 @@ export const onBoardUser = async () => {
       return {
         status: 200,
         data: {
-          firstname: found.firstname,
-          lastname: found.lastname,
+          name: found.name,
         },
       };
     }
+    
+    // Create new user if not found
+    const nameParts = user.name?.split(" ") || [];
     const created = await createUser(
       user.id,
-      user.firstName!,
-      user.lastName!,
-      user.emailAddresses[0].emailAddress
+      nameParts[0] || "",
+      nameParts.slice(1).join(" ") || "",
+      user.email
     );
     return { status: 201, data: created };
   } catch (error) {
-    console.log(error);
+
     return { status: 500 };
   }
 };
@@ -76,7 +105,7 @@ export const onBoardUser = async () => {
 export const onUserInfo = async () => {
   const user = await onCurrentUser();
   try {
-    const profile = await findUser(user.id);
+    const profile = await findUserByEmail(user.email);
     if (profile) return { status: 200, data: profile };
 
     return { status: 404 };
@@ -90,7 +119,10 @@ export const onSubscribe = async (session_id: string) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
     if (session) {
-      const subscribed = await updateSubscription(user.id, {
+      const dbUser = await findUserByEmail(user.email);
+      if (!dbUser) return { status: 404 };
+      
+      const subscribed = await updateSubscription(dbUser.id, {
         customerId: session.customer as string,
         plan: "PRO",
       });
@@ -110,7 +142,7 @@ export const onSubscribe = async (session_id: string) => {
 export const getInstagramProfile = async () => {
   const user = await onCurrentUser();
   try {
-    const profile = await findUser(user.id);
+    const profile = await findUserByEmail(user.email);
     if (!profile || profile.integrations.length === 0) {
       return { status: 404, error: "No Instagram integration found" };
     }

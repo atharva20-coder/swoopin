@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Checkmark } from "@/icons";
@@ -9,8 +9,8 @@ import DeleteModal from "./delete-modal";
 type Props = {};
 
 const DeleteAccount = (props: Props) => {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const [deleteConfirmation, setDeleteConfirmation] = React.useState("");
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -18,7 +18,7 @@ const DeleteAccount = (props: Props) => {
 
   /** Handle account deletion with email verification and cleanup */
   const handleDeleteAccount = async () => {
-    if (!user?.emailAddresses?.[0]?.emailAddress) {
+    if (!user?.email) {
       toast.error("Unable to verify user email");
       return;
     }
@@ -33,7 +33,7 @@ const DeleteAccount = (props: Props) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: user.emailAddresses[0].emailAddress,
+          email: user.email,
         }),
       });
   

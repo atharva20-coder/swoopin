@@ -1,5 +1,6 @@
 import { stripe } from "@/lib/stripe";
-import { currentUser } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from "@/lib/rate-limiter";
 import { client } from "@/lib/prisma";
@@ -23,8 +24,13 @@ export async function GET(req: NextRequest) {
     return rateLimitResult.response;
   }
 
-  const user = await currentUser();
-  if (!user) return NextResponse.json({ status: 404 });
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (!session?.user) {
+    return NextResponse.json({ status: 404 });
+  }
 
   // Get plan and cycle from query params
   const { searchParams } = new URL(req.url);
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
   let customerId: string | undefined;
   
   const dbUser = await client.user.findUnique({
-    where: { clerkId: user.id },
+    where: { email: session.user.email },
     include: { subscription: true },
   });
 
@@ -60,10 +66,10 @@ export async function GET(req: NextRequest) {
   } else {
     // Create new Stripe customer
     const customer = await stripe.customers.create({
-      email: user.emailAddresses[0]?.emailAddress,
-      name: `${user.firstName} ${user.lastName}`,
+      email: session.user.email,
+      name: session.user.name || undefined,
       metadata: {
-        clerkId: user.id,
+        userId: session.user.id,
       },
     });
     customerId = customer.id;
@@ -78,7 +84,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Create Stripe checkout session
-  const session = await stripe.checkout.sessions.create({
+  const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [
@@ -91,16 +97,16 @@ export async function GET(req: NextRequest) {
     success_url: `${process.env.NEXT_PUBLIC_HOST_URL}/payment?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_HOST_URL}/payment?cancel=true`,
     metadata: {
-      clerkId: user.id,
+      userId: session.user.id,
       plan,
       cycle,
     },
   });
 
-  if (session) {
+  if (checkoutSession) {
     return NextResponse.json({
       status: 200,
-      session_url: session.url,
+      session_url: checkoutSession.url,
     });
   }
 

@@ -106,7 +106,7 @@ export default function IntegrationsPage() {
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="text-xs h-8 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              I'll do this later
+              I&apos;ll do this later
             </Button>
             <Button size="sm" className="gap-1 text-xs h-8 bg-blue-600 hover:bg-blue-700">
               Continue <ChevronRight className="w-3 h-3" />

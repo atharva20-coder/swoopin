@@ -1,5 +1,6 @@
 import { stripe } from "@/lib/stripe";
-import { currentUser } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit } from "@/lib/rate-limiter";
 import { client } from "@/lib/prisma";
@@ -11,15 +12,18 @@ export async function POST(req: NextRequest) {
     return rateLimitResult.response;
   }
 
-  const user = await currentUser();
-  if (!user) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (!session?.user) {
     return NextResponse.json({ status: 401, error: "Unauthorized" });
   }
 
   try {
     // Get user's subscription
     const dbUser = await client.user.findUnique({
-      where: { clerkId: user.id },
+      where: { email: session.user.email },
       include: { subscription: true },
     });
 

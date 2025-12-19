@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,27 +8,27 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Camera, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function ProfilePage() {
-  const { user, isLoaded } = useUser();
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.primaryEmailAddress?.emailAddress || "",
+    name: "",
+    email: "",
   });
 
   // Update form when user loads
   React.useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.primaryEmailAddress?.emailAddress || "",
+        name: user.name || "",
+        email: user.email || "",
       });
     }
   }, [user]);
@@ -36,12 +36,10 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // Update user profile via Clerk
-      await user?.update({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-      toast.success("Profile updated successfully");
+      // Note: Better-Auth user profile updates need to be implemented
+      // via your own API endpoint that updates the database
+      toast.info("Profile updates will be implemented via API");
+      // TODO: Implement profile update API
     } catch (error) {
       toast.error("Failed to update profile");
       console.error(error);
@@ -50,7 +48,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isLoaded) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -81,10 +79,10 @@ export default function ProfilePage() {
         <div className="flex items-center gap-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+              {user?.image ? (
+                <Image src={user.image} alt="Profile" width={96} height={96} className="w-full h-full object-cover" />
               ) : (
-                user?.firstName?.[0] || "U"
+                user?.name?.[0] || "U"
               )}
             </div>
             <button className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -106,25 +104,14 @@ export default function ProfilePage() {
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
         <div className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
+          <div>
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Your name"
+            />
           </div>
           <div>
             <Label htmlFor="email">Email Address</Label>
@@ -133,30 +120,22 @@ export default function ProfilePage() {
               type="email"
               value={formData.email}
               disabled
-              className="mt-1 bg-gray-50 dark:bg-gray-800"
+              className="bg-gray-50 dark:bg-gray-800"
             />
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed here</p>
+            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
           </div>
         </div>
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isLoading} className="gap-2">
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={isLoading}>
           {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Saving...
-            </>
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
           ) : (
-            <>
-              <Save className="w-4 h-4" />
-              Save Changes
-            </>
+            <Save className="w-4 h-4 mr-2" />
           )}
+          Save Changes
         </Button>
       </div>
     </div>

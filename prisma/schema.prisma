@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,104 +8,160 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerkId      String         @unique
-  email        String         @unique
-  firstname    String?        
-  lastname     String?        
-  createdAt    DateTime       @default(now())
-  subscription Subscription?
-  integrations Integrations[]
-  automations  Automation[]
-  notification Notification[]
-  analytics    Analytics[]
-  openAiKey    String?        @unique
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String             @unique
+  name              String?
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt @default(now())
+  
+  // Better-Auth relations
+  accounts          Account[]
+  sessions          Session[]
+  
+  // App fields
+  openAiKey         String?            @unique
+  
+  // App relations
+  analytics         Analytics[]
+  automations       Automation[]
   carouselTemplates CarouselTemplate[]
-  scheduledPosts ScheduledPost[]
-  contentDrafts ContentDraft[]
+  contentDrafts     ContentDraft[]
+  integrations      Integrations[]
+  notification      Notification[]
+  scheduledPosts    ScheduledPost[]
+  subscription      Subscription?
+}
+
+// Better-Auth: Account table for credentials and OAuth
+model Account {
+  id                    String    @id @default(uuid())
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+// Better-Auth: Session management
+model Session {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+  token          String   @unique
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Better-Auth: Verification table for OTPs
+model Verification {
+  id         String    @id @default(uuid())
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  @@unique([identifier, value])
 }
 
 model Subscription {
   id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  User       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String?           @unique @db.Uuid
   createdAt  DateTime          @default(now())
   plan       SUBSCRIPTION_PLAN @default(FREE)
   updatedAt  DateTime          @default(now())
   customerId String?           @unique
+  User       User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Integrations {
   id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        INTEGRATIONS @default(INSTAGRAM)
   createdAt   DateTime     @default(now())
-  User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String?      @db.Uuid
   token       String       @unique
   expiresAt   DateTime?
   instagramId String?      @unique
+  User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Automation {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String    @default("Untitled")
-  createdAt DateTime  @default(now())
-  active    Boolean   @default(false)
-  trigger   Trigger[]
-  listener  Listener?
-  posts     Post[]
-  dms       Dms[]
-  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String?   @db.Uuid
-  keywords  Keyword[]
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String             @default("Untitled")
+  createdAt         DateTime           @default(now())
+  active            Boolean            @default(false)
+  userId            String?            @db.Uuid
+  User              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   carouselTemplates CarouselTemplate[]
-  flowNodes FlowNode[]
-  flowEdges FlowEdge[]
-  scheduledPosts ScheduledPost[]
+  dms               Dms[]
+  flowEdges         FlowEdge[]
+  flowNodes         FlowNode[]
+  keywords          Keyword[]
+  listener          Listener?
+  posts             Post[]
+  scheduledPosts    ScheduledPost[]
+  trigger           Trigger[]
 }
 
-// Flow Builder - Stores canvas nodes with positions
 model FlowNode {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nodeId       String      // Client-side node ID (e.g., "node-123456")
-  type         String      // "trigger", "action", "condition"
-  subType      String      // "DM", "COMMENT", "MESSAGE", "SMARTAI", etc.
+  nodeId       String
+  type         String
+  subType      String
   label        String
   description  String?
   positionX    Float       @default(0)
   positionY    Float       @default(0)
-  config       Json?       // Store node-specific configuration
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  config       Json?
   automationId String?     @db.Uuid
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, nodeId])
 }
 
-// Flow Builder - Stores canvas edges (connections between nodes)
 model FlowEdge {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  edgeId       String      // Client-side edge ID
-  sourceNodeId String      // Client-side source node ID
-  targetNodeId String      // Client-side target node ID
-  sourceHandle String?     // Handle position (top, bottom, left, right)
-  targetHandle String?     // Handle position
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  edgeId       String
+  sourceNodeId String
+  targetNodeId String
+  sourceHandle String?
+  targetHandle String?
   automationId String?     @db.Uuid
   createdAt    DateTime    @default(now())
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, edgeId])
 }
 
 model Dms {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  Automation   Automation? @relation(fields: [automationId], references: [id])
   automationId String?     @db.Uuid
   createdAt    DateTime    @default(now())
   senderId     String?
   reciever     String?
   message      String?
+  Automation   Automation? @relation(fields: [automationId], references: [id])
 }
 
 model Post {
@@ -120,63 +170,136 @@ model Post {
   caption      String?
   media        String
   mediaType    MEDIATYPE   @default(IMAGE)
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
   automationId String?     @db.Uuid
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 }
 
 model Listener {
-  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  Automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
-  automationId String     @unique @db.Uuid
-  listener     LISTENERS  @default(MESSAGE)
-  prompt       String
-  commentReply String?
-  dmCount      Int        @default(0)
-  commentCount Int        @default(0)
-  carouselTemplateId String?         @db.Uuid
-  carouselTemplate  CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id])
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  automationId       String            @unique @db.Uuid
+  listener           LISTENERS         @default(MESSAGE)
+  prompt             String
+  commentReply       String?
+  dmCount            Int               @default(0)
+  commentCount       Int               @default(0)
+  carouselTemplateId String?           @db.Uuid
+  Automation         Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  carouselTemplate   CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id])
 }
 
 model Trigger {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type         String
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
   automationId String?     @db.Uuid
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 }
 
 model Keyword {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   word         String
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
   automationId String?     @db.Uuid
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
-  @@unique([automationId, word]) //this constraints ensure user cant use the same keyword on multiple automations
+  @@unique([automationId, word])
 }
 
 model Notification {
-  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  User    User?   @relation(fields: [userId], references: [id])
-  userId  String? @db.Uuid
-  isSeen Boolean @default(false)
-  content String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?  @db.Uuid
+  isSeen    Boolean  @default(false)
+  content   String
   createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
 }
 
 model Analytics {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String    @db.Uuid
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date        DateTime  @default(now())
-  dmCount     Int       @default(0)
-  commentCount Int      @default(0)
-  commentReplyCount Int @default(0)
-  postCount   Int       @default(0)
-  automationCount Int   @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @db.Uuid
+  date              DateTime @default(now())
+  dmCount           Int      @default(0)
+  commentCount      Int      @default(0)
+  commentReplyCount Int      @default(0)
+  postCount         Int      @default(0)
+  automationCount   Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  User              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model CarouselTemplate {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  automationId String?     @db.Uuid
+  userId       String      @db.Uuid
+  createdAt    DateTime    @default(now())
+  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  User         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  elements     Element[]
+  listeners    Listener[]
+}
+
+model Element {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title              String            @db.VarChar(80)
+  subtitle           String?           @db.VarChar(80)
+  imageUrl           String?
+  carouselTemplateId String?           @db.Uuid
+  defaultAction      String?
+  order              Int               @default(0)
+  buttons            Button[]
+  CarouselTemplate   CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id], onDelete: Cascade)
+}
+
+model Button {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      ButtonType
+  title     String     @db.VarChar(20)
+  url       String?
+  payload   String?
+  elementId String?    @db.Uuid
+  Element   Element?   @relation(fields: [elementId], references: [id], onDelete: Cascade)
+}
+
+model ScheduledPost {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caption       String?
+  mediaUrl      String?
+  mediaType     PostMediaType  @default(IMAGE)
+  postType      PostType       @default(POST)
+  scheduledFor  DateTime
+  status        ScheduleStatus @default(SCHEDULED)
+  hashtags      String[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  containerId   String?
+  igMediaId     String?
+  errorMessage  String?
+  carouselItems Json?
+  altText       String?
+  location      String?
+  locationId    String?
+  music         String?
+  taggedUsers   String[]
+  collaborators String[]
+  trialParams   Json?
+  userId        String?        @db.Uuid
+  automationId  String?        @db.Uuid
+  Automation    Automation?    @relation(fields: [automationId], references: [id])
+  User          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContentDraft {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String?
+  caption   String?
+  mediaUrl  String?
+  mediaType PostMediaType @default(IMAGE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  userId    String?       @db.Uuid
+  User      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum SUBSCRIPTION_PLAN {
@@ -203,89 +326,6 @@ enum LISTENERS {
 enum ButtonType {
   WEB_URL
   POSTBACK
-}
-
-
-model CarouselTemplate {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  automationId String?     @db.Uuid
-  Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
-  userId       String      @db.Uuid
-  User         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  elements     Element[]
-  listeners    Listener[]  // Add this relation
-  createdAt    DateTime    @default(now())
-}
-
-model Element {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title              String            @db.VarChar(80)
-  subtitle           String?           @db.VarChar(80)
-  imageUrl           String?
-  carouselTemplateId String?           @db.Uuid
-  CarouselTemplate   CarouselTemplate? @relation(fields: [carouselTemplateId], references: [id], onDelete: Cascade)
-  defaultAction      String?
-  buttons            Button[]
-  order              Int               @default(0)
-}
-
-model Button {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type      ButtonType
-  title     String    @db.VarChar(20)
-  url       String?
-  payload   String?
-  elementId String?   @db.Uuid
-  Element   Element?  @relation(fields: [elementId], references: [id], onDelete: Cascade)
-}
-
-// Scheduler Feature - Scheduled posts for Instagram
-model ScheduledPost {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  caption       String?
-  mediaUrl      String?         // URL to image/video (from Canva or external link)
-  mediaType     PostMediaType   @default(IMAGE)
-  postType      PostType        @default(POST)
-  scheduledFor  DateTime
-  status        ScheduleStatus  @default(SCHEDULED)
-  hashtags      String[]        // Array of hashtags
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  
-  // Instagram API publishing fields
-  containerId   String?         // Instagram media container ID from /<IG_ID>/media
-  igMediaId     String?         // Published media ID from /<IG_ID>/media_publish
-  errorMessage  String?         // Error details if publishing fails
-  carouselItems Json?           // JSON array of carousel item URLs [{imageUrl?, videoUrl?}]
-  altText       String?         // Accessibility text for images (max 1000 chars)
-  
-  // Post metadata
-  location      String?         // Location display name
-  locationId    String?         // Facebook Page location ID
-  music         String?         // Music track name (for reels)
-  taggedUsers   String[]        // Array of tagged Instagram usernames
-  collaborators String[]        // Array of collaborator usernames (max 3)
-  
-  // Trial reels parameters
-  trialParams   Json?           // {graduationStrategy: "MANUAL" | "SS_PERFORMANCE"}
-  
-  User          User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String?         @db.Uuid
-  Automation    Automation?     @relation(fields: [automationId], references: [id], onDelete: SetNull)
-  automationId  String?         @db.Uuid
-}
-
-// Content drafts for scheduler
-model ContentDraft {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title         String?
-  caption       String?
-  mediaUrl      String?
-  mediaType     PostMediaType   @default(IMAGE)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  User          User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String?         @db.Uuid
 }
 
 enum PostMediaType {

@@ -8,7 +8,9 @@ type Props = {};
 const Page = async (props: Props) => {
   const user = await onBoardUser();
   if (user.status === 200 || user.status === 201) {
-    return redirect(`dashboard/${user.data?.firstname}${user.data?.lastname}`);
+    // Use name field and remove spaces for URL slug
+    const slug = user.data?.name?.replace(/\s+/g, '') || 'user';
+    return redirect(`dashboard/${slug}`);
   }
 
   return redirect("/sign-in");

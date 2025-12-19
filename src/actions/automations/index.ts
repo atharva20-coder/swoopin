@@ -1,7 +1,7 @@
 "use server";
 
 import { createNotification } from "../notifications";
-import { onCurrentUser } from "../user";
+import { getDbUser, onCurrentUser } from "../user";
 import { findUser } from "../user/queries";
 import {
   addKeyWord,
@@ -20,15 +20,15 @@ import {
 } from "./queries";
 
 export const createAutomations = async (id?: string) => {
-  const user = await onCurrentUser();
+  const user = await getDbUser();
   try {
-    console.log(id);
+
     const create = await createAutomation(user.id, id);
     if (create) return { status: 200, data: "Automation created", res: create };
 
     return { status: 404, data: "Oops! something went wrong" };
   } catch (error) {
-    console.log(error);
+
     return { status: 500, data: "Internal server error" };
   }
 };
@@ -44,13 +44,13 @@ export const deleteAutomations = async (id: string) => {
       };
     return { status: 404, data: "Automation not found" };
   } catch (error) {
-    console.log(error);
+
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
 
 export const getAllAutomations = async () => {
-  const user = await onCurrentUser();
+  const user = await getDbUser();
   try {
     const automations = await getAutomations(user.id);
     if (automations) return { status: 200, data: automations.automations };
@@ -156,7 +156,7 @@ export const deleteKeyword = async (id: string) => {
       };
     return { status: 404, data: "Keyword not found" };
   } catch (error) {
-    console.log(error);
+
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
@@ -177,7 +177,7 @@ export const editKeywords = async (
     }
     return { status: 404, data: "Keyword not found" };
   } catch (error) {
-    console.log(error);
+
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
@@ -190,12 +190,12 @@ export const getProfilePosts = async () => {
       `${process.env.INSTAGRAM_BASE_URL}/me/media?fields=id,caption,media_url,media_type,timestamp&limit=10&access_token=${profile?.integrations[0].token}`
     );
     const parsed = await posts.json();
-    console.log(parsed);
+
     if (parsed) return { status: 200, data: parsed };
-    console.log("🔴 Error in getting posts");
+
     return { status: 404 };
   } catch (error) {
-    console.log("🔴 server side Error in getting posts ", error);
+
     return { status: 500 };
   }
 };

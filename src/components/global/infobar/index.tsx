@@ -5,9 +5,19 @@ import React from "react";
 import { Separator } from "@/components/ui/separator";
 import { Notifications } from "./notifications";
 import { usePaths } from "@/hooks/use-nav";
-import { useUser } from "@clerk/nextjs";
-import { UserButton } from "@clerk/nextjs";
+import { useSession, signOut } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type Props = {
   slug: string;
@@ -15,9 +25,22 @@ type Props = {
 
 const InfoBar = ({ slug }: Props) => {
   const { page } = usePaths();
-  const { user } = useUser();
-  const firstName = user?.firstName || "user";
+  const { data: session } = useSession();
+  const router = useRouter();
+  const user = session?.user;
+  const firstName = user?.name?.split(" ")[0] || "user";
   const currentPage = PAGE_BREAD_CRUMBS.includes(page) || page == slug;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      router.push("/sign-in");
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
+  };
 
   return (
     currentPage && (
@@ -31,12 +54,44 @@ const InfoBar = ({ slug }: Props) => {
           <div className="flex items-center gap-4">
             <Notifications slug={slug} />
             <Separator orientation="vertical" className="h-6 dark:bg-gray-700" />
-            <UserButton afterSignOutUrl="/" appearance={{
-              elements: {
-                avatarBox: "w-9 h-9 mr-2",
-                userButtonAvatarBox: "w-12 h-12"
-              }
-            }} />
+            
+            {/* User Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="focus:outline-none">
+                  <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition-opacity">
+                    <AvatarImage src={user?.image || undefined} />
+                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex items-center gap-2 p-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.image || undefined} />
+                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings/profile`)}>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <Separator className="w-full my-2 dark:bg-gray-700" />
