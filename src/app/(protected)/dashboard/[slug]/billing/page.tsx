@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
@@ -91,7 +91,8 @@ const FAQ = [
 ];
 
 export default function BillingPage() {
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const params = useParams();
   const slug = params.slug as string;
   

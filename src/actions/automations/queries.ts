@@ -3,10 +3,10 @@
 
 import { client } from "@/lib/prisma";
 
-export const createAutomation = async (clerkId: string, id?: string) => {
+export const createAutomation = async (userId: string, id?: string) => {
   return await client.user.update({
     where: {
-      clerkId,
+      id: userId,
     },
     data: {
       automations: {
@@ -25,10 +25,10 @@ export const deleteAutomation = async (id: string) => {
   });
 };
 
-export const getAutomations = async (clerkId: string) => {
+export const getAutomations = async (userId: string) => {
   return await client.user.findUnique({
     where: {
-      clerkId,
+      id: userId,
     },
     select: {
       automations: {

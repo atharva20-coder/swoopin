@@ -1,16 +1,20 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { client } from "@/lib/prisma";
 
 export const getUserAnalytics = async (slug: string) => {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (!session?.user) redirect("/sign-in");
 
   try {
     const dbUser = await client.user.findUnique({
-      where: { clerkId: user.id },
+      where: { email: session.user.email },
       include: {
         analytics: {
           orderBy: { date: "asc" },
@@ -23,11 +27,12 @@ export const getUserAnalytics = async (slug: string) => {
         },
       },
     });
+    
     const formattedSlug = decodeURIComponent(slug).replace(/\s+/g, " ").trim();
-    const fullName = `${dbUser?.firstname}${dbUser?.lastname}`.trim();
+    const fullName = dbUser?.name?.replace(/\s+/g, "").trim() || "";
 
     // Security check - verify user owns this dashboard
-    if (!dbUser || formattedSlug !== fullName) {
+    if (!dbUser || formattedSlug !== fullName.replace(/\s+/g, "")) {
       return { status: 404 };
     }
 

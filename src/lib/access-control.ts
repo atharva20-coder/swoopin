@@ -46,11 +46,11 @@ export const PLAN_LIMITS = {
 };
 
 /**
- * Get user's current plan and limits
+ * Get user's current plan and limits by email
  */
-export async function getUserPlanLimits(userId: string) {
+export async function getUserPlanLimitsByEmail(email: string) {
   const user = await client.user.findUnique({
-    where: { clerkId: userId },
+    where: { email },
     include: { subscription: true },
   });
 
@@ -63,20 +63,37 @@ export async function getUserPlanLimits(userId: string) {
 }
 
 /**
- * Check if user can perform action based on plan
+ * Get user's current plan and limits (legacy - by userId)
  */
-export async function canPerformAction(
-  userId: string,
+export async function getUserPlanLimits(userId: string) {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    include: { subscription: true },
+  });
+
+  const plan = (user?.subscription?.plan || "FREE") as keyof typeof PLAN_LIMITS;
+  return {
+    plan,
+    limits: PLAN_LIMITS[plan],
+    subscription: user?.subscription,
+  };
+}
+
+/**
+ * Check if user can perform action based on plan (by email)
+ */
+export async function canPerformActionByEmail(
+  email: string,
   action: "create_automation" | "send_dm" | "schedule_post" | "use_ai" | "access_api"
 ): Promise<{ allowed: boolean; reason?: string; upgrade?: string }> {
-  const { plan, limits } = await getUserPlanLimits(userId);
+  const { plan, limits } = await getUserPlanLimitsByEmail(email);
 
   switch (action) {
     case "create_automation": {
       if (limits.automations === -1) return { allowed: true };
       
       const automationCount = await client.automation.count({
-        where: { User: { clerkId: userId } },
+        where: { User: { email } },
       });
       
       if (automationCount >= limits.automations) {
@@ -99,7 +116,7 @@ export async function canPerformAction(
       
       const dmCount = await client.dms.count({
         where: {
-          Automation: { User: { clerkId: userId } },
+          Automation: { User: { email } },
           createdAt: { gte: startOfMonth },
         },
       });
@@ -119,7 +136,7 @@ export async function canPerformAction(
       
       const scheduledCount = await client.scheduledPost.count({
         where: {
-          User: { clerkId: userId },
+          User: { email },
           status: "SCHEDULED",
         },
       });
@@ -162,10 +179,26 @@ export async function canPerformAction(
 }
 
 /**
- * Get user's current usage stats
+ * Check if user can perform action (legacy - by userId)
  */
-export async function getUserUsage(userId: string) {
-  const { limits } = await getUserPlanLimits(userId);
+export async function canPerformAction(
+  userId: string,
+  action: "create_automation" | "send_dm" | "schedule_post" | "use_ai" | "access_api"
+): Promise<{ allowed: boolean; reason?: string; upgrade?: string }> {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  
+  if (!user) return { allowed: false, reason: "User not found" };
+  return canPerformActionByEmail(user.email, action);
+}
+
+/**
+ * Get user's current usage stats by email
+ */
+export async function getUserUsageByEmail(email: string) {
+  const { limits } = await getUserPlanLimitsByEmail(email);
   
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -174,16 +207,16 @@ export async function getUserUsage(userId: string) {
   const [dmCount, automationCount, scheduledCount] = await Promise.all([
     client.dms.count({
       where: {
-        Automation: { User: { clerkId: userId } },
+        Automation: { User: { email } },
         createdAt: { gte: startOfMonth },
       },
     }),
     client.automation.count({
-      where: { User: { clerkId: userId } },
+      where: { User: { email } },
     }),
     client.scheduledPost.count({
       where: {
-        User: { clerkId: userId },
+        User: { email },
         status: "SCHEDULED",
       },
     }),
@@ -206,4 +239,24 @@ export async function getUserUsage(userId: string) {
       unlimited: limits.scheduledPosts === -1,
     },
   };
+}
+
+/**
+ * Get user's current usage stats (legacy - by userId)
+ */
+export async function getUserUsage(userId: string) {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  
+  if (!user) {
+    return {
+      dms: { used: 0, limit: 200, unlimited: false },
+      automations: { used: 0, limit: 3, unlimited: false },
+      scheduledPosts: { used: 0, limit: 1, unlimited: false },
+    };
+  }
+  
+  return getUserUsageByEmail(user.email);
 }

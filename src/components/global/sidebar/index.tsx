@@ -3,9 +3,9 @@ import { usePaths } from "@/hooks/use-nav";
 import React from "react";
 import Items from "./items";
 import { HelpDuoToneWhite } from "@/icons";
-import ClerkAuthState from "../clerk-auth-state";
+import AuthState from "../auth-state";
 import { SubscriptionPlan } from "../subscription-plan";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useTheme } from "@/contexts/theme-context";
 import UpgradeCard from "./upgrade";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,7 +19,8 @@ type Props = {
 
 const Sidebar = ({ slug }: Props) => {
   const { page } = usePaths();
-  const { user } = useUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const { theme, toggleTheme } = useTheme();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   
@@ -63,15 +64,15 @@ const Sidebar = ({ slug }: Props) => {
         {/* User Profile */}
         <div className={`p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
           <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700">
-            <AvatarImage src={user?.imageUrl} />
-            <AvatarFallback>{user?.firstName?.[0]}{user?.lastName?.[0]}</AvatarFallback>
+            <AvatarImage src={user?.image || undefined} />
+            <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div className={`flex flex-col min-w-0 ${isCollapsed ? 'hidden' : ''}`}>
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+              {user?.name || 'Guest User'}
             </p>
             <p className="text-xs text-[#4B4EC6] dark:text-[#4B4EC6] truncate">
-              <strong>{user?.emailAddresses[0]?.emailAddress}</strong>
+              <strong>{user?.email}</strong>
             </p>
           </div>
         </div>

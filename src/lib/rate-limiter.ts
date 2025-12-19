@@ -104,7 +104,7 @@ export const checkRateLimit = async (
 ): Promise<RateLimitResult> => {
   // If rate limiting is disabled via env var, allow all requests
   if (isRateLimitDisabled()) {
-    console.log("⚠️ Rate limiting DISABLED via DISABLE_RATE_LIMIT env var");
+
     return {
       success: true,
       limit: 999999,
@@ -115,7 +115,7 @@ export const checkRateLimit = async (
 
   // If Redis not configured, allow all requests (development mode)
   if (!isRedisAvailable()) {
-    console.log("⚠️ Rate limiting skipped - Redis not configured");
+
     return {
       success: true,
       limit: RateLimitTier[tier].tokens,
@@ -147,7 +147,7 @@ export const checkRateLimit = async (
     if (!result.success) {
       // Calculate retry-after in seconds
       response.retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
-      console.log(`🚫 Rate limit exceeded for ${identifier} (${tier}). Retry after ${response.retryAfter}s`);
+
     }
 
     return response;

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useSession, authClient } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function SecurityPage() {
-  const { user, isLoaded } = useUser();
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
@@ -41,12 +42,18 @@ export default function SecurityPage() {
 
     setIsLoading(true);
     try {
-      // Note: This uses Clerk's API - will need to change for better-auth
-      await user?.updatePassword({
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
+      // Use Better-Auth's forgetPassword to send a password reset link
+      const { forgetPassword } = await import("@/lib/auth-client");
+      const result = await forgetPassword({
+        email: user?.email || "",
+        redirectTo: "/auth/reset-password",
       });
-      toast.success("Password updated successfully");
+      
+      if (result?.error) {
+        toast.error(result.error.message || "Failed to initiate password change");
+      } else {
+        toast.success("Password reset link sent to your email");
+      }
       setIsChangingPassword(false);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error: any) {
@@ -69,7 +76,7 @@ export default function SecurityPage() {
     }
   };
 
-  if (!isLoaded) {
+  if (isPending) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
