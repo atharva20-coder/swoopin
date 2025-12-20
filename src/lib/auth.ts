@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { hash, verify, type Options } from "@node-rs/argon2";
 import { client } from "./prisma";
 import { sendEmailAction } from "@/actions/send-email.action";
@@ -106,6 +107,8 @@ export const auth = betterAuth({
         });
       },
     }),
+    // Next.js cookies plugin - must be last for proper cookie handling
+    nextCookies(),
   ],
 });
 
