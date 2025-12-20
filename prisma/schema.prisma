@@ -10,20 +10,13 @@ datasource db {
 model User {
   id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email             String             @unique
-  name              String?
+  createdAt         DateTime           @default(now())
+  openAiKey         String?            @unique
   emailVerified     Boolean            @default(false)
   image             String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt @default(now())
-  
-  // Better-Auth relations
+  name              String?
+  updatedAt         DateTime           @default(now()) @updatedAt
   accounts          Account[]
-  sessions          Session[]
-  
-  // App fields
-  openAiKey         String?            @unique
-  
-  // App relations
   analytics         Analytics[]
   automations       Automation[]
   carouselTemplates CarouselTemplate[]
@@ -31,56 +24,59 @@ model User {
   integrations      Integrations[]
   notification      Notification[]
   scheduledPosts    ScheduledPost[]
+  sessions          Session[]
   subscription      Subscription?
+
+  @@map("user")
 }
 
-// Better-Auth: Account table for credentials and OAuth
 model Account {
   id                    String    @id @default(uuid())
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  userId                String    @db.Uuid
   accountId             String
   providerId            String
-  userId                String    @db.Uuid
   accessToken           String?
   refreshToken          String?
-  idToken               String?   @db.Text
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
   password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  scope                 String?
+  refreshTokenExpiresAt DateTime?
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@index([userId])
+  @@map("account")
 }
 
-// Better-Auth: Session management
 model Session {
   id             String   @id @default(uuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  expiresAt      DateTime
+  userId         String   @db.Uuid
   token          String   @unique
+  expiresAt      DateTime
   ipAddress      String?
   userAgent      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   impersonatedBy String?
-  userId         String   @db.Uuid
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("session")
 }
 
-// Better-Auth: Verification table for OTPs
 model Verification {
   id         String    @id @default(uuid())
-  createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @updatedAt
   identifier String
   value      String
   expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 
   @@unique([identifier, value])
+  @@map("verification")
 }
 
 model Subscription {
