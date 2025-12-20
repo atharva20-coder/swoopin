@@ -37,8 +37,11 @@ export default function SignInPage() {
         }
       } else {
         toast.success("Signed in successfully!");
-        router.push("/dashboard");
+        // Refresh first to ensure Next.js recognizes the new session cookie
         router.refresh();
+        // Small delay to ensure cookie is properly set before redirect
+        await new Promise(resolve => setTimeout(resolve, 100));
+        router.push("/dashboard");
       }
     } catch (error) {
       toast.error("Something went wrong");

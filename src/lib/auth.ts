@@ -90,13 +90,26 @@ export const auth = betterAuth({
     database: {
       generateId: false,
     },
-    // Fix OAuth state cookie issue - ensure cookies work across redirects
+    // IMPORTANT: Disable crossSubDomainCookies - it can cause state_mismatch errors
+    // when not configured with a custom domain
     crossSubDomainCookies: {
-      enabled: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined,
+      enabled: false,
     },
     // Use secure cookies in production
     useSecureCookies: process.env.NODE_ENV === "production",
+    // Ensure cookies work properly for OAuth redirects
+    cookies: {
+      // OAuth state cookie needs SameSite=Lax to survive the redirect
+      sessionToken: {
+        name: "better-auth.session_token",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+        },
+      },
+    },
   },
   
   // Session configuration
