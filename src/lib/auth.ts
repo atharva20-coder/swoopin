@@ -74,6 +74,10 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Explicitly set redirect URI to match Google Console
+      redirectURI: `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/api/auth/callback/google`,
+      // Disable PKCE if code_verifier cookie is being lost
+      disableIdTokenSignIn: false,
     },
   },
   
@@ -97,19 +101,6 @@ export const auth = betterAuth({
     },
     // Use secure cookies in production
     useSecureCookies: process.env.NODE_ENV === "production",
-    // Ensure cookies work properly for OAuth redirects
-    cookies: {
-      // OAuth state cookie needs SameSite=Lax to survive the redirect
-      sessionToken: {
-        name: "better-auth.session_token",
-        options: {
-          httpOnly: true,
-          sameSite: "lax",
-          path: "/",
-          secure: process.env.NODE_ENV === "production",
-        },
-      },
-    },
   },
   
   // Session configuration
