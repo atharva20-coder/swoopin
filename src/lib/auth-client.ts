@@ -1,8 +1,21 @@
 import { createAuthClient } from "better-auth/react";
 import { magicLinkClient } from "better-auth/client/plugins";
 
+// Get the base URL - prioritize env var, then use window.location.origin for production
+const getBaseURL = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // In browser, use current origin (works for deployed apps)
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  // Fallback for SSR/build time
+  return "http://localhost:3000";
+};
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+  baseURL: getBaseURL(),
   plugins: [
     magicLinkClient(),
   ],
