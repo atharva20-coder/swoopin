@@ -1,175 +1,159 @@
 'use client'
-import { Card, CardContent } from '@/components/ui/card'
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
 import React from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { useParams } from 'next/navigation'
+import { TrendingUp } from 'lucide-react'
+import { usePlatform } from '@/context/platform-context'
 
-type Props = {
-  hasActivity?: boolean
+const PLATFORM_COLORS: Record<string, string> = {
+  all: '#6366F1',
+  instagram: '#E1306C',
+  facebook: '#1877F2',
+  twitter: '#1DA1F2',
+  linkedin: '#0A66C2',
+  youtube: '#FF0000',
+  whatsapp: '#25D366',
+  gmail: '#EA4335',
 }
 
-const chartConfig = {
-  dmCount: {
-    label: 'Messages',
-    color: '#2F329F',
-  },
-  commentCount: {
-    label: 'Comments',
-    color: '#4B4EC6',
-  },
-  commentReply: {
-    label: 'Replies',
-    color: '#7273E9',
-  },
-} as const
+const PLATFORM_NAMES: Record<string, string> = {
+  all: 'All Platforms',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  twitter: 'Twitter',
+  linkedin: 'LinkedIn',
+  youtube: 'YouTube',
+  whatsapp: 'WhatsApp',
+  gmail: 'Gmail',
+}
 
-const Chart = ({ hasActivity = false }: Props) => {
+const Chart = () => {
   const params = useParams()
   const { data: analytics, isLoading } = useAnalytics(params.slug as string)
+  const { activePlatform } = usePlatform()
+
+  const platformColor = PLATFORM_COLORS[activePlatform] || PLATFORM_COLORS.all
+  const platformName = PLATFORM_NAMES[activePlatform] || 'All Platforms'
 
   if (isLoading) {
     return (
-      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-800">
-        <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Loading chart data...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-6 w-40 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+        </div>
+        <div className="h-[300px] bg-gradient-to-b from-gray-50 to-transparent dark:from-gray-800/50 rounded-xl animate-pulse" />
+      </div>
     )
   }
 
-  if (!analytics?.data?.chartData || analytics.data.chartData.length === 0) {
-    return (
-      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-800">
-        <CardContent className="p-6 flex items-center justify-center min-h-[280px]">
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-            No activity data available yet.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
+  const chartData = analytics?.data?.chartData?.map((item) => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString('default', { month: 'short', day: 'numeric' }),
+  })) || []
+
+  const totalDms = analytics?.data?.totalDms || 0
+  const totalComments = analytics?.data?.totalComments || 0
 
   return (
-    <div className="w-full">
-      <Card className="border-none rounded-xl shadow-sm bg-white dark:bg-gray-900">
-        <CardContent className="p-4">
-          <ResponsiveContainer height={320} width="100%">
-            <ChartContainer config={chartConfig}>
-              <BarChart
-                data={analytics.data.chartData.map((item) => ({
-                  ...item,
-                  date: new Date(item.date).toLocaleDateString('default', {
-                    month: 'short',
-                    day: 'numeric',
-                  }),
-                }))}
-                margin={{ top: 20, right: 10, left: 0, bottom: 10 }}
-              >
-                <CartesianGrid
-                  stroke="currentColor"
-                  strokeDasharray="5 5"
-                  vertical={false}
-                  className="opacity-10 dark:opacity-20"
-                />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={{ stroke: 'currentColor' }}
-                  tickMargin={10}
-                  fontSize={12}
-                  tick={{ fill: 'currentColor' }}
-                  className="text-gray-600 dark:text-gray-400"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={{ stroke: 'currentColor' }}
-                  tickMargin={10}
-                  fontSize={12}
-                  tick={{ fill: 'currentColor' }}
-                  className="text-gray-600 dark:text-gray-400"
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      hideLabel
-                      className="w-[160px] bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-lg"
-                      formatter={(value, name, item, index) => (
-                        <>
-                          <div
-                            className="h-3 w-3 shrink-0 rounded-full"
-                            style={{
-                              backgroundColor:
-                                chartConfig[name as keyof typeof chartConfig]?.color,
-                            }}
-                          />
-                          {chartConfig[name as keyof typeof chartConfig]?.label || name}
-                          <div className="ml-auto text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {value}
-                          </div>
-                          {index === 2 && (
-                            <div className="mt-2 flex items-center border-t border-gray-200 dark:border-gray-600 pt-2 text-xs text-gray-700 dark:text-gray-300">
-                              Total
-                              <div className="ml-auto font-medium">
-                                {item.payload.dmCount +
-                                  item.payload.commentCount +
-                                  item.payload.commentReply}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    />
-                  }
-                  cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                />
-                <Bar
-                  dataKey="dmCount"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={50}
-                  fill={chartConfig.dmCount.color}
-                  barSize={30}
-                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
-                  minPointSize={5} // Small bump for zero values
-                />
-                <Bar
-                  dataKey="commentCount"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={50}
-                  fill={chartConfig.commentCount.color}
-                  barSize={30}
-                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
-                  minPointSize={5} // Small bump for zero values
-                />
-                <Bar
-                  dataKey="commentReply"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={50}
-                  fill={chartConfig.commentReply.color}
-                  barSize={30}
-                  background={{ fill: 'currentColor', radius: 6, opacity: 0.05 }}
-                  minPointSize={5} // Small bump for zero values
-                />
-              </BarChart>
-            </ChartContainer>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+    <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Overview</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {activePlatform === 'all' ? 'Cross-platform analytics' : `${platformName} analytics`}
+          </p>
+        </div>
+        
+        {/* Platform Badge */}
+        <div 
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium"
+          style={{ 
+            backgroundColor: `${platformColor}15`,
+            color: platformColor 
+          }}
+        >
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: platformColor }} />
+          {platformName}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-6 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: platformColor }} />
+          <span className="text-sm text-gray-600 dark:text-gray-400">Messages ({totalDms})</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-gray-400" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">Responses ({totalComments})</span>
+        </div>
+      </div>
+      
+      {/* Chart */}
+      {chartData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[300px] text-gray-400">
+          <TrendingUp className="w-12 h-12 mb-3 opacity-20" />
+          <p className="text-sm">No activity data yet</p>
+          <p className="text-xs mt-1 text-gray-400">Connect a platform and create automations to start tracking</p>
+        </div>
+      ) : (
+        <ResponsiveContainer height={300} width="100%">
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="primaryGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={platformColor} stopOpacity={0.3}/>
+                <stop offset="100%" stopColor={platformColor} stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="secondaryGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#9CA3AF" stopOpacity={0.2}/>
+                <stop offset="100%" stopColor="#9CA3AF" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <XAxis 
+              dataKey="date" 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              width={40}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                padding: '12px 16px'
+              }}
+              labelStyle={{ color: '#111', fontWeight: 600, marginBottom: '8px' }}
+              itemStyle={{ color: '#666', padding: '2px 0' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="dmCount"
+              name="Messages"
+              stroke={platformColor}
+              strokeWidth={2.5}
+              fill="url(#primaryGradient)"
+            />
+            <Area
+              type="monotone"
+              dataKey="commentCount"
+              name="Responses"
+              stroke="#9CA3AF"
+              strokeWidth={1.5}
+              fill="url(#secondaryGradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
     </div>
   )
 }

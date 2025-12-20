@@ -1,178 +1,136 @@
 'use client'
 import React from 'react'
 import { useAnalytics } from '@/hooks/use-analytics'
+import { useQueryInstagramProfile } from '@/hooks/user-queries'
 import { useParams } from 'next/navigation'
-import { Montserrat } from 'next/font/google'
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  display: 'swap',
-})
+import { Send, MessageCircle, TrendingUp, Zap, Users, Link2 } from 'lucide-react'
+import { usePlatform } from '@/context/platform-context'
 
 type MetricCardProps = {
   label: string
   value: string | number
   change: number
-  previousValue: string | number
+  icon: React.ReactNode
+  gradient: string
   isLoading?: boolean
 }
 
-const MetricCard = ({ label, value, change, previousValue, isLoading = false }: MetricCardProps) => {
+const MetricCard = ({ label, value, change, icon, gradient, isLoading = false }: MetricCardProps) => {
   const isPositive = change >= 0
-  const formattedChange = Math.abs(change).toFixed(1)
   
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-1">
-        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-        <div className="h-10 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+      <div className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 animate-pulse">
+        <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 mb-4" />
+        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
     )
   }
   
   return (
-    <div className="flex flex-col">
-      <span className="text-gray-600 dark:text-gray-400 text-xs">{label}</span>
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-black dark:text-white">{value}</span>
-        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${isPositive ? 'bg-[#ECFDF3] dark:bg-[#0D3321] text-[#27AE60]' : 'bg-[#FEE4E2] dark:bg-[#3A1618] text-[#EB5757]'}`}>
-          {isPositive ? '+' : '-'}{formattedChange}%
-        </span>
+    <div className="group p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-300">
+      <div className={`w-10 h-10 rounded-xl ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+        {icon}
       </div>
-      <span className="text-gray-500 dark:text-gray-400 text-xs">{previousValue} from previous month</span>
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+        </div>
+        {change !== 0 && (
+          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+            isPositive 
+              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' 
+              : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+          }`}>
+            {isPositive ? '+' : ''}{change.toFixed(1)}%
+          </span>
+        )}
+      </div>
     </div>
   )
 }
 
 const formatValue = (value: number): string => {
-  if (value >= 1000000) {
-    return `${(value / 1000000).toFixed(1)}M`
-  } else if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k`
-  }
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`
   return value.toString()
 }
 
 const AnalyticsSummary = () => {
   const params = useParams()
-  const { data: analytics, isLoading } = useAnalytics(params.slug as string)
+  const { data: analytics, isLoading: isLoadingAnalytics } = useAnalytics(params.slug as string)
+  const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile()
+  const { activePlatform } = usePlatform()
+  
+  const isLoading = isLoadingAnalytics || isLoadingProfile
+  const followerCount = instagramProfile?.status === 200 ? instagramProfile.data?.follower_count || 0 : 0
   
   const processedMetrics = React.useMemo(() => {
+    // If specific platform selected but not Instagram, show zeros (other platforms coming soon)
+    if (activePlatform !== 'all' && activePlatform !== 'instagram') {
+      return {
+        totalMessages: { value: '0', change: 0 },
+        totalResponses: { value: '0', change: 0 },
+        engagement: { value: '0%', change: 0 },
+        automations: { value: '0', change: 0 },
+        reach: { value: '0', change: 0 },
+        conversions: { value: '0', change: 0 }
+      }
+    }
+
     if (!analytics?.data) {
       return {
-        totalDms: { value: '0', change: 0, previousValue: '0' },
-        totalComments: { value: '0', change: 0, previousValue: '0' },
-        engagement: { value: '0%', change: 0, previousValue: '0%' },
-        activity: { value: '0', change: 0, previousValue: '0' },
-        interactions: { value: '0', change: 0, previousValue: '0' }
+        totalMessages: { value: '0', change: 0 },
+        totalResponses: { value: '0', change: 0 },
+        engagement: { value: '0%', change: 0 },
+        automations: { value: '0', change: 0 },
+        reach: { value: '0', change: 0 },
+        conversions: { value: '0', change: 0 }
       }
     }
 
     const chartData = analytics.data.chartData || []
     const currentMonth = new Date().getMonth()
     
-    const currentData = chartData.find(item => new Date(item.date).getMonth() === currentMonth) || {
-      dmCount: 0,
-      commentCount: 0,
-      activity: 0
-    }
-
+    const currentData = chartData.find(item => new Date(item.date).getMonth() === currentMonth) || { dmCount: 0, commentCount: 0, activity: 0 }
     const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
-    const previousData = chartData.find(item => new Date(item.date).getMonth() === previousMonth) || {
-      dmCount: 0,
-      commentCount: 0,
-      activity: 0
-    }
+    const previousData = chartData.find(item => new Date(item.date).getMonth() === previousMonth) || { dmCount: 0, commentCount: 0, activity: 0 }
 
     const calculateChange = (current: number, previous: number) => {
-      if (previous === 0) return 0
+      if (previous === 0) return current > 0 ? 100 : 0
       return ((current - previous) / previous) * 100
     }
 
     const totalInteractions = currentData.dmCount + currentData.commentCount
     const previousInteractions = previousData.dmCount + previousData.commentCount
-    const engagementRate = totalInteractions > 0 ? (currentData.activity / totalInteractions) : 0
-    const previousEngagementRate = previousInteractions > 0 ? (previousData.activity / previousInteractions) : 0
+    const engagementRate = followerCount > 0 ? (totalInteractions / followerCount) * 100 : 0
 
     return {
-      totalDms: {
-        value: formatValue(analytics.data.totalDms || 0),
-        change: calculateChange(currentData.dmCount, previousData.dmCount),
-        previousValue: formatValue(previousData.dmCount)
-      },
-      totalComments: {
-        value: formatValue(analytics.data.totalComments || 0),
-        change: calculateChange(currentData.commentCount, previousData.commentCount),
-        previousValue: formatValue(previousData.commentCount)
-      },
-      engagement: {
-        value: `${(engagementRate * 100).toFixed(1)}%`,
-        change: calculateChange(engagementRate, previousEngagementRate),
-        previousValue: `${(previousEngagementRate * 100).toFixed(1)}%`
-      },
-      activity: {
-        value: formatValue(currentData.activity || 0),
-        change: calculateChange(currentData.activity, previousData.activity),
-        previousValue: formatValue(previousData.activity)
-      },
-      interactions: {
-        value: formatValue(totalInteractions),
-        change: calculateChange(totalInteractions, previousInteractions),
-        previousValue: formatValue(previousInteractions)
-      }
+      totalMessages: { value: formatValue(analytics.data.totalDms || 0), change: calculateChange(currentData.dmCount, previousData.dmCount) },
+      totalResponses: { value: formatValue(analytics.data.totalComments || 0), change: calculateChange(currentData.commentCount, previousData.commentCount) },
+      engagement: { value: `${engagementRate.toFixed(1)}%`, change: 0 },
+      automations: { value: formatValue(0), change: 0 },
+      reach: { value: formatValue(totalInteractions), change: calculateChange(totalInteractions, previousInteractions) },
+      conversions: { value: formatValue(analytics.data.totalDms || 0), change: 0 }
     }
-  }, [analytics?.data])
+  }, [analytics?.data, followerCount, activePlatform])
+  
+  const metrics = [
+    { label: 'Messages Sent', ...processedMetrics.totalMessages, icon: <Send className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
+    { label: 'Responses', ...processedMetrics.totalResponses, icon: <MessageCircle className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-purple-500 to-purple-600' },
+    { label: 'Engagement', ...processedMetrics.engagement, icon: <TrendingUp className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600' },
+    { label: 'Active Automations', ...processedMetrics.automations, icon: <Zap className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-orange-500 to-orange-600' },
+    { label: 'Total Reach', ...processedMetrics.reach, icon: <Users className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-pink-500 to-pink-600' },
+    { label: 'Conversions', ...processedMetrics.conversions, icon: <Link2 className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-indigo-500 to-indigo-600' }
+  ]
   
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
-          <MetricCard 
-            label="Total DMs" 
-            value={processedMetrics.totalDms.value} 
-            change={processedMetrics.totalDms.change} 
-            previousValue={processedMetrics.totalDms.previousValue}
-            isLoading={isLoading} 
-          />
-        </div>
-        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
-          <MetricCard 
-            label="Total Comments" 
-            value={processedMetrics.totalComments.value} 
-            change={processedMetrics.totalComments.change} 
-            previousValue={processedMetrics.totalComments.previousValue}
-            isLoading={isLoading} 
-          />
-        </div>
-        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
-          <MetricCard 
-            label="Engagement Rate" 
-            value={processedMetrics.engagement.value} 
-            change={processedMetrics.engagement.change} 
-            previousValue={processedMetrics.engagement.previousValue}
-            isLoading={isLoading} 
-          />
-        </div>
-        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
-          <MetricCard 
-            label="Activity" 
-            value={processedMetrics.activity.value} 
-            change={processedMetrics.activity.change} 
-            previousValue={processedMetrics.activity.previousValue}
-            isLoading={isLoading} 
-          />
-        </div>
-        <div className="p-3 sm:p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 sm:border-0 shadow-sm sm:shadow-none">
-          <MetricCard 
-            label="Total Interactions" 
-            value={processedMetrics.interactions.value} 
-            change={processedMetrics.interactions.change} 
-            previousValue={processedMetrics.interactions.previousValue}
-            isLoading={isLoading} 
-          />
-        </div>
-      </div>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {metrics.map((metric, index) => (
+        <MetricCard key={index} {...metric} isLoading={isLoading} />
+      ))}
     </div>
   )
 }
