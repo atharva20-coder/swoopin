@@ -15,6 +15,16 @@ const argon2Opts: Options = {
 };
 
 export const auth = betterAuth({
+  // Required for production OAuth - must match your deployed URL
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET,
+  
+  // Trusted origins for OAuth callbacks
+  trustedOrigins: [
+    "https://swoopin.vercel.app",
+    "http://localhost:3000",
+  ],
+  
   database: prismaAdapter(client, { provider: "postgresql" }),
   
   // Email/Password with Argon2 hashing
