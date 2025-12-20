@@ -77,6 +77,7 @@ export default function SignInPage() {
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard",
+        newUserCallbackURL: "/dashboard",
       });
     } catch (error) {
       toast.error("Google sign in failed");
