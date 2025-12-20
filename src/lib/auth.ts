@@ -90,6 +90,23 @@ export const auth = betterAuth({
     database: {
       generateId: false,
     },
+    // Fix OAuth state cookie issue - ensure cookies work across redirects
+    crossSubDomainCookies: {
+      enabled: process.env.NODE_ENV === "production",
+      domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined,
+    },
+    // Use secure cookies in production
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
+  
+  // Session configuration
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
   },
   
   // Plugins
