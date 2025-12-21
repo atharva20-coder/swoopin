@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Check, CreditCard, Zap, Crown, Rocket, X, AlertCircle,
   ChevronDown, ChevronUp, Smartphone, Calendar, BarChart3,
-  MessageSquare, Bot, Users, Shield, Sparkles, Clock
+  MessageSquare, Bot, Users, Shield, Sparkles, Clock, Mail, Instagram
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -18,55 +18,62 @@ const PLANS = {
   FREE: {
     name: "Starter",
     icon: Zap,
-    description: "Perfect for getting started",
+    description: "Try it out - see instant results",
     monthlyPrice: 0,
     annualPrice: 0,
     color: "from-gray-500 to-gray-600",
     popular: false,
     features: [
-      { text: "200 DMs & Comments/month", included: true },
-      { text: "3 Automations", included: true },
-      { text: "1 Scheduled Post", included: true },
-      { text: "Basic analytics", included: true },
-      { text: "Email support", included: true },
+      { text: "50 DMs & Comments/month", included: true },
+      { text: "1 Automation", included: true },
+      { text: "7 days analytics history", included: true },
+      { text: "Community support", included: true },
+      { text: '"Powered by Swoopin" branding', included: true, subtle: true },
+      { text: "Post scheduling", included: false },
       { text: "AI-powered responses", included: false },
-      { text: "Priority support", included: false },
+      { text: "Comment replies", included: false },
     ],
   },
   PRO: {
     name: "Pro",
     icon: Crown,
-    description: "For creators & growing businesses",
-    monthlyPrice: 799,
-    annualPrice: 7990,
+    description: "For serious creators & businesses",
+    monthlyPrice: 999,
+    annualPrice: 9990,
     color: "from-blue-500 to-indigo-600",
     popular: true,
     features: [
-      { text: "Unlimited DMs & Comments", included: true },
-      { text: "Unlimited Automations", included: true },
-      { text: "Unlimited Post Scheduling", included: true },
-      { text: "Detailed Analytics & Tracking", included: true },
-      { text: "AI-powered responses", included: true },
-      { text: "Priority support", included: true },
-      { text: "Early access to features", included: false },
+      { text: "1,000 DMs & Comments/month", included: true },
+      { text: "10 Automations", included: true },
+      { text: "20 Scheduled Posts/month", included: true },
+      { text: "50 AI responses/month", included: true },
+      { text: "90 days analytics history", included: true },
+      { text: "Comment replies", included: true },
+      { text: "3 Carousel templates", included: true },
+      { text: "No branding", included: true },
+      { text: "Priority email support", included: true },
     ],
   },
   ENTERPRISE: {
     name: "Enterprise",
     icon: Rocket,
-    description: "For agencies & large teams",
-    monthlyPrice: 2499,
-    annualPrice: 24990,
+    description: "For agencies & power users",
+    monthlyPrice: 0,
+    annualPrice: 0,
     color: "from-purple-500 to-pink-600",
     popular: false,
+    isContactPlan: true,
     features: [
-      { text: "Everything in Pro", included: true },
-      { text: "Custom AI training", included: true },
-      { text: "Dedicated account manager", included: true },
+      { text: "Unlimited DMs & Comments", included: true },
+      { text: "Unlimited Automations", included: true },
+      { text: "Unlimited Scheduling", included: true },
+      { text: "Unlimited AI responses", included: true },
+      { text: "Unlimited analytics history", included: true },
+      { text: "Unlimited Carousel templates", included: true },
       { text: "API access", included: true },
-      { text: "Early access to features", included: true },
-      { text: "White-label options", included: true },
-      { text: "Custom integrations", included: true },
+      { text: "Multi-account management", included: true },
+      { text: "Custom AI training", included: true },
+      { text: "Dedicated support", included: true },
     ],
   },
 };
@@ -102,6 +109,8 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState<Plan | null>(null);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<Date | null>(null);
   
   // Usage stats from API
   const [usage, setUsage] = useState({
@@ -129,6 +138,11 @@ export default function BillingPage() {
             scheduledPosts: data.data.usage.scheduledPosts.used,
             scheduledPostsLimit: data.data.usage.scheduledPosts.unlimited ? -1 : data.data.usage.scheduledPosts.limit,
           });
+          // Set cancellation status
+          setCancelAtPeriodEnd(data.data.cancelAtPeriodEnd || false);
+          if (data.data.currentPeriodEnd) {
+            setCurrentPeriodEnd(new Date(data.data.currentPeriodEnd));
+          }
         }
       } catch (error) {
         console.error("Failed to fetch usage:", error);
@@ -186,12 +200,21 @@ export default function BillingPage() {
     setIsLoading("FREE");
     try {
       const response = await fetch("/api/payment/cancel", { method: "POST" });
-      if (response.ok) {
-        toast.success("Subscription cancelled");
-        setCurrentPlan("FREE");
+      const data = await response.json();
+      if (response.ok && data.status === 200) {
+        const endDate = new Date(data.endsAt);
+        setCancelAtPeriodEnd(true);
+        setCurrentPeriodEnd(endDate);
         setShowCancelModal(false);
+        toast.success(
+          `Subscription cancelled. You'll have Pro access until ${endDate.toLocaleDateString("en-IN", { 
+            day: "numeric", 
+            month: "long", 
+            year: "numeric" 
+          })}`
+        );
       } else {
-        toast.error("Failed to cancel subscription");
+        toast.error(data.error || "Failed to cancel subscription");
       }
     } catch (error) {
       toast.error("Something went wrong");
@@ -216,7 +239,30 @@ export default function BillingPage() {
           </p>
         </div>
 
-        {/* Usage Stats Card - Only show for paid users or when limits exist */}
+        {/* Cancellation Notice - Show when subscription is set to cancel */}
+        {cancelAtPeriodEnd && currentPeriodEnd && currentPlan === "PRO" && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 mb-8">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+                  Subscription Ending Soon
+                </h3>
+                <p className="text-yellow-700 dark:text-yellow-300">
+                  Your Pro subscription is set to cancel. You&apos;ll continue to have full Pro access until{" "}
+                  <strong>
+                    {currentPeriodEnd.toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </strong>
+                  . After that, you&apos;ll be moved to the Free plan.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {currentPlan === "FREE" && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800">
             <div className="flex items-center justify-between mb-4">
@@ -359,49 +405,84 @@ export default function BillingPage() {
 
                   {/* Price */}
                   <div className="mb-6">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                        {formatPrice(price)}
-                      </span>
-                      <span className="text-gray-500 dark:text-gray-400">
-                        /{billingCycle === "monthly" ? "month" : "year"}
-                      </span>
-                    </div>
-                    {billingCycle === "annual" && planKey !== "FREE" && (
-                      <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                        Save {formatPrice(getSavings(planKey))} per year
-                      </p>
+                    {(plan as any).isContactPlan ? (
+                      <>
+                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                          Custom
+                        </span>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          Tailored pricing for your needs
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                            {formatPrice(price)}
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            /{billingCycle === "monthly" ? "month" : "year"}
+                          </span>
+                        </div>
+                        {billingCycle === "annual" && planKey !== "FREE" && (
+                          <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                            Save {formatPrice(getSavings(planKey))} per year
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
 
-                  {/* CTA Button */}
-                  <Button
-                    onClick={() => handleSubscribe(planKey)}
-                    disabled={isLoading !== null}
-                    className={cn(
-                      "w-full mb-6",
-                      isCurrentPlan
-                        ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
-                        : planKey === "PRO"
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : planKey === "ENTERPRISE"
-                        ? "bg-purple-600 hover:bg-purple-700 text-white"
-                        : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
-                    )}
-                  >
-                    {isLoading === planKey ? (
-                      <span className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </span>
-                    ) : isCurrentPlan ? (
-                      "Current Plan"
-                    ) : currentPlan === "FREE" ? (
-                      "Get Started"
-                    ) : (
-                      "Switch Plan"
-                    )}
-                  </Button>
+                  {/* CTA Button - Different for Enterprise */}
+                  {(plan as any).isContactPlan ? (
+                    <div className="space-y-3 mb-6">
+                      <a
+                        href={`mailto:atharva@swoopin.in?subject=${encodeURIComponent('Enterprise Plan Inquiry')}&body=${encodeURIComponent(`Hi Swoopin Team,\n\nI'm interested in the Enterprise plan for my business.\n\n--- Please fill in your details ---\nName: \nCompany: \nTeam Size: \nUse Case: \nExpected Monthly Volume (DMs/Comments): \n\nLooking forward to hearing from you!\n\nBest regards`)}`}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Contact via Email
+                      </a>
+                      <a
+                        href="https://instagram.com/swoopin.in"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 text-white font-semibold rounded-lg transition-opacity"
+                      >
+                        <Instagram className="w-4 h-4" />
+                        DM on Instagram
+                      </a>
+                      <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                        Send &quot;ENTERPRISE&quot; to start the conversation
+                      </p>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => handleSubscribe(planKey)}
+                      disabled={isLoading !== null}
+                      className={cn(
+                        "w-full mb-6",
+                        isCurrentPlan
+                          ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
+                          : planKey === "PRO"
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+                      )}
+                    >
+                      {isLoading === planKey ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Processing...
+                        </span>
+                      ) : isCurrentPlan ? (
+                        "Current Plan"
+                      ) : currentPlan === "FREE" ? (
+                        "Get Started"
+                      ) : (
+                        "Switch Plan"
+                      )}
+                    </Button>
+                  )}
 
                   {/* Features */}
                   <div className="space-y-3">

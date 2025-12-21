@@ -31,6 +31,8 @@ export async function GET(req: NextRequest) {
         plan: planInfo.plan,
         planName: planInfo.limits.name,
         usage,
+        cancelAtPeriodEnd: planInfo.subscription?.cancelAtPeriodEnd || false,
+        currentPeriodEnd: planInfo.subscription?.currentPeriodEnd || null,
       },
     });
   } catch (error) {

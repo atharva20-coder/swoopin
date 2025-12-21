@@ -55,18 +55,23 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Update database to FREE plan (will take effect at period end)
+    const periodEndDate = new Date(subscription.current_period_end * 1000);
+
+    // Mark subscription as cancelled but keep PRO plan until period ends
+    // The plan will be changed to FREE when the period actually ends (via webhook or cron)
     await client.subscription.update({
       where: { id: dbUser.subscription.id },
       data: {
-        plan: "FREE",
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: periodEndDate,
+        // Keep the current plan - don't change to FREE yet!
       },
     });
 
     return NextResponse.json({
       status: 200,
       message: "Subscription will be cancelled at end of billing period",
-      endsAt: new Date(subscription.current_period_end * 1000).toISOString(),
+      endsAt: periodEndDate.toISOString(),
     });
   } catch (error) {
     console.error("Error cancelling subscription:", error);

@@ -8,40 +8,59 @@
 import { client } from "@/lib/prisma";
 import { SUBSCRIPTION_PLAN } from "@prisma/client";
 
-// Plan limits configuration
+// Plan limits configuration - Strategic limitations to drive upgrades
 export const PLAN_LIMITS = {
   FREE: {
     name: "Starter",
-    dmsPerMonth: 200,
-    automations: 3,
-    scheduledPosts: 1,
-    aiResponses: false,
+    dmsPerMonth: 50,           // Very limited - forces upgrade quickly
+    automations: 1,            // Can only test ONE automation
+    scheduledPosts: 0,         // Scheduling is a PRO feature
+    aiResponses: false,        // AI is PRO feature
+    aiResponsesPerMonth: 0,
     analytics: "basic",
+    analyticsRetentionDays: 7, // Only 7 days of history
     prioritySupport: false,
     earlyAccess: false,
     apiAccess: false,
+    showBranding: true,        // "Powered by Swoopin" in messages
+    carouselTemplates: 0,      // No carousel templates
+    commentReply: false,       // No comment replies - DM only
   },
   PRO: {
     name: "Pro",
-    dmsPerMonth: -1, // Unlimited
-    automations: -1, // Unlimited
-    scheduledPosts: -1, // Unlimited
+    dmsPerMonth: 1000,         // Generous but capped
+    automations: 10,           // Enough for most users
+    scheduledPosts: 20,        // Good for active creators
     aiResponses: true,
+    aiResponsesPerMonth: 50,   // Limited AI - not unlimited
     analytics: "detailed",
+    analyticsRetentionDays: 90, // 90 days history
     prioritySupport: true,
     earlyAccess: false,
     apiAccess: false,
+    showBranding: false,       // No branding
+    carouselTemplates: 3,      // Limited templates
+    commentReply: true,        // Full comment reply access
   },
   ENTERPRISE: {
     name: "Enterprise",
-    dmsPerMonth: -1, // Unlimited
-    automations: -1, // Unlimited
-    scheduledPosts: -1, // Unlimited
+    dmsPerMonth: -1,           // Unlimited
+    automations: -1,           // Unlimited
+    scheduledPosts: -1,        // Unlimited
     aiResponses: true,
+    aiResponsesPerMonth: -1,   // Unlimited AI
     analytics: "detailed",
+    analyticsRetentionDays: -1, // Unlimited history
     prioritySupport: true,
     earlyAccess: true,
     apiAccess: true,
+    showBranding: false,       // White-label ready
+    carouselTemplates: -1,     // Unlimited templates
+    commentReply: true,        // Full access
+    multiAccount: true,        // Multiple Instagram accounts
+    teamSeats: true,           // Team collaboration
+    customAiTraining: true,    // Train AI on brand voice
+    dedicatedSupport: true,    // Email/Instagram DM support
   },
 };
 
@@ -252,9 +271,9 @@ export async function getUserUsage(userId: string) {
   
   if (!user) {
     return {
-      dms: { used: 0, limit: 200, unlimited: false },
-      automations: { used: 0, limit: 3, unlimited: false },
-      scheduledPosts: { used: 0, limit: 1, unlimited: false },
+      dms: { used: 0, limit: 50, unlimited: false },
+      automations: { used: 0, limit: 1, unlimited: false },
+      scheduledPosts: { used: 0, limit: 0, unlimited: false },
     };
   }
   

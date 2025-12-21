@@ -105,18 +105,37 @@ export const updateSubscription = async (
   userId: string,
   props: { customerId?: string; plan?: "PRO" | "FREE" }
 ) => {
-  return await client.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      subscription: {
-        update: {
-          data: {
-            ...props,
+  // First check if subscription exists
+  const existingSubscription = await client.subscription.findUnique({
+    where: { userId },
+  });
+
+  if (existingSubscription) {
+    // Update existing subscription
+    return await client.user.update({
+      where: { id: userId },
+      data: {
+        subscription: {
+          update: {
+            data: {
+              ...props,
+            },
           },
         },
       },
-    },
-  });
+    });
+  } else {
+    // Create new subscription for the user
+    return await client.user.update({
+      where: { id: userId },
+      data: {
+        subscription: {
+          create: {
+            ...props,
+            plan: props.plan || "PRO",
+          },
+        },
+      },
+    });
+  }
 };
