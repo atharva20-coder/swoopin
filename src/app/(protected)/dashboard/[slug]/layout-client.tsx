@@ -25,7 +25,7 @@ const LayoutClient = ({ children, params }: Props) => {
           className="
             lg:ml-[var(--sidebar-width,250px)] 
             lg:pl-10 
-            lg:py-5 
+            lg:pt-2
             flex 
             flex-col 
             overflow-auto

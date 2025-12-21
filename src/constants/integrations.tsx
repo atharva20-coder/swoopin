@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Instagram, MessageCircle, AtSign, Mail, Facebook, Twitter, Linkedin, Youtube } from "lucide-react";
 
 type Props = {
   title: string;
@@ -14,22 +14,31 @@ export const INTEGRATION_CARDS: Props[] = [
   {
     title: "Connect Instagram",
     description: "Integrate your Instagram account to reach your audience",
-    icon: <Image src="/icons/Instagram.svg" alt="Instagram" width={40} height={40} />,
+    icon: <Instagram className="w-6 h-6 text-[#E1306C]" />,
     strategy: "INSTAGRAM",
     buttonText: "Connect Instagram",
     onConnect: async () => {
-      // TODO: Implement Instagram connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
   },
   {
+    title: "Connect Facebook",
+    description: "Connect with Facebook to expand your reach",
+    icon: <Facebook className="w-6 h-6 text-[#1877F2]" />,
+    strategy: "CRM",
+    buttonText: "Connect Facebook",
+    onConnect: async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    comingSoon: true,
+  },
+  {
     title: "Connect Messenger",
     description: "Connect with Facebook Messenger to engage with customers",
-    icon: <Image src="/icons/messenger.svg" alt="Messenger" width={40} height={40} />,
+    icon: <MessageCircle className="w-6 h-6 text-[#0084FF]" />,
     strategy: "CRM",
     buttonText: "Connect Messenger",
     onConnect: async () => {
-      // TODO: Implement Messenger connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
     comingSoon: true,
@@ -37,11 +46,43 @@ export const INTEGRATION_CARDS: Props[] = [
   {
     title: "Connect Threads",
     description: "Expand your reach through Threads integration",
-    icon: <Image src="/icons/threads.svg" alt="Threads" width={40} height={40} />,
+    icon: <AtSign className="w-6 h-6 text-gray-900 dark:text-white" />,
     strategy: "CRM",
     buttonText: "Connect Threads",
     onConnect: async () => {
-      // TODO: Implement Threads connection logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    comingSoon: true,
+  },
+  {
+    title: "Connect Twitter",
+    description: "Engage with your audience on Twitter/X",
+    icon: <Twitter className="w-6 h-6 text-gray-900 dark:text-white" />,
+    strategy: "CRM",
+    buttonText: "Connect Twitter",
+    onConnect: async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    comingSoon: true,
+  },
+  {
+    title: "Connect LinkedIn",
+    description: "Build professional connections on LinkedIn",
+    icon: <Linkedin className="w-6 h-6 text-[#0A66C2]" />,
+    strategy: "CRM",
+    buttonText: "Connect LinkedIn",
+    onConnect: async () => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    comingSoon: true,
+  },
+  {
+    title: "Connect YouTube",
+    description: "Manage your YouTube channel and engage viewers",
+    icon: <Youtube className="w-6 h-6 text-[#FF0000]" />,
+    strategy: "CRM",
+    buttonText: "Connect YouTube",
+    onConnect: async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
     comingSoon: true,
@@ -49,11 +90,10 @@ export const INTEGRATION_CARDS: Props[] = [
   {
     title: "Connect Newsletter",
     description: "Engage your audience through email newsletters",
-    icon: <Image src="/icons/email.png" alt="Newsletter" width={40} height={40} />,
+    icon: <Mail className="w-6 h-6 text-[#EA4335]" />,
     strategy: "CRM",
     buttonText: "Connect Newsletter",
     onConnect: async () => {
-      // TODO: Implement Newsletter connection logic
       await new Promise(resolve => setTimeout(resolve, 1000));
     },
     comingSoon: true,

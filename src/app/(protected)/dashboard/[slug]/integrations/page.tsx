@@ -4,8 +4,7 @@ import { INTEGRATION_CARDS } from '@/constants/integrations'
 import React, { useState } from 'react'
 import IntegrationCard from './_components/integration-card'
 import { cn } from '@/lib/utils'
-import { ChevronRight, SlidersHorizontal } from 'lucide-react'
-import Image from 'next/image'
+import { ChevronRight, SlidersHorizontal, Instagram, MessageCircle, AtSign, Mail, Facebook, Twitter, Linkedin, Youtube } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
@@ -19,20 +18,18 @@ const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'coming-soon', label: 'Coming Soon' },
 ];
 
-// Grid configuration
 const CELL_SIZE = 70;
 
-// Scattered icons - fewer, no repeats, random positions
-const GRID_ICONS: { icon: string; row: number; col: number }[] = [
-  { icon: '/icons/Instagram.svg', row: 0, col: 0 },
-  { icon: '/icons/threads.svg', row: 0, col: 3 },
-  { icon: '/icons/messenger.svg', row: 1, col: 1 },
-  { icon: '/icons/whatsapp.svg', row: 2, col: 3 },
-  { icon: '/icons/google-logo.svg', row: 3, col: 0 },
-  { icon: '/icons/email.png', row: 4, col: 2 },
-  { icon: '/icons/chat.svg', row: 5, col: 0 },
-  { icon: '/icons/threads.svg', row: 6, col: 3 },
-  { icon: '/icons/messenger.svg', row: 7, col: 1 },
+// Grid icons using Lucide
+const GRID_ICONS = [
+  { Icon: Instagram, color: '#E1306C', row: 0, col: 0 },
+  { Icon: AtSign, color: '#000', row: 0, col: 3 },
+  { Icon: MessageCircle, color: '#0084FF', row: 1, col: 1 },
+  { Icon: Facebook, color: '#1877F2', row: 2, col: 3 },
+  { Icon: Twitter, color: '#1DA1F2', row: 3, col: 0 },
+  { Icon: Mail, color: '#EA4335', row: 4, col: 2 },
+  { Icon: Linkedin, color: '#0A66C2', row: 5, col: 0 },
+  { Icon: Youtube, color: '#FF0000', row: 6, col: 3 },
 ];
 
 export default function IntegrationsPage() {
@@ -43,7 +40,7 @@ export default function IntegrationsPage() {
   const filteredCards = INTEGRATION_CARDS.filter(card => {
     if (activeCategory === 'all') return true;
     if (activeCategory === 'coming-soon') return card.comingSoon;
-    if (activeCategory === 'social') return card.strategy === 'INSTAGRAM';
+    if (activeCategory === 'social') return card.strategy === 'INSTAGRAM' || card.title.includes('Facebook') || card.title.includes('Twitter') || card.title.includes('LinkedIn') || card.title.includes('YouTube');
     if (activeCategory === 'messaging') return card.title.toLowerCase().includes('messenger') || card.title.toLowerCase().includes('threads');
     if (activeCategory === 'marketing') return card.title.toLowerCase().includes('newsletter');
     return true;
@@ -51,7 +48,7 @@ export default function IntegrationsPage() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] p-4 gap-4">
-      {/* Left Card - Grid with Scattered Icons */}
+      {/* Left Card - Grid with Icons */}
       <div className="hidden lg:flex w-[320px] shrink-0 bg-gray-100 dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden flex-col relative">
         {/* Grid Background Pattern */}
         <div 
@@ -78,24 +75,24 @@ export default function IntegrationsPage() {
         
         {/* Scattered Icons */}
         <div className="flex-1 relative p-2">
-          {GRID_ICONS.map((item, i) => (
-            <div
-              key={i}
-              className="absolute w-[56px] h-[56px] rounded-xl bg-white dark:bg-[#2a2a2a] shadow-sm border border-gray-200 dark:border-gray-600/50 flex items-center justify-center transition-transform hover:scale-110 hover:shadow-md"
-              style={{
-                top: item.row * CELL_SIZE + 7,
-                left: item.col * CELL_SIZE + 7,
-              }}
-            >
-              <Image 
-                src={item.icon} 
-                alt="" 
-                width={28} 
-                height={28}
-                className="object-contain"
-              />
-            </div>
-          ))}
+          {GRID_ICONS.map((item, i) => {
+            const IconComponent = item.Icon;
+            return (
+              <div
+                key={i}
+                className="absolute w-[56px] h-[56px] rounded-xl bg-white dark:bg-[#2a2a2a] shadow-sm border border-gray-200 dark:border-gray-600/50 flex items-center justify-center transition-transform hover:scale-110 hover:shadow-md"
+                style={{
+                  top: item.row * CELL_SIZE + 7,
+                  left: item.col * CELL_SIZE + 7,
+                }}
+              >
+                <IconComponent 
+                  className="w-7 h-7" 
+                  style={{ color: item.color }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Bottom CTA */}

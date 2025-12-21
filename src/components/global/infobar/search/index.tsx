@@ -2,17 +2,15 @@
 
 import { Input } from "@/components/ui/input";
 import { useQueryAutomations } from "@/hooks/user-queries";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useMemo, useState, useRef, useEffect } from "react";
-import CreateAutomation from "../../create-automation";
 
 type Props = {
   slug: string;
 };
 
-// Inline useDebounce hook
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -32,13 +30,12 @@ function useDebounce<T>(value: T, delay: number): T {
 const Search = ({ slug }: Props) => {
   const { data, isLoading } = useQueryAutomations();
   const [searchValue, setSearchValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Use the inline useDebounce hook
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
-  // Expose the search value to parent components through a custom event
   useEffect(() => {
     const event = new CustomEvent('automationSearch', {
       detail: { searchTerm: debouncedSearchValue }
@@ -50,17 +47,41 @@ const Search = ({ slug }: Props) => {
     setSearchValue(e.target.value);
   };
 
+  const clearSearch = () => {
+    setSearchValue("");
+    inputRef.current?.focus();
+  };
+
   return (
-    <div className="relative flex-1 w-full max-w-4xl">
-      <div className="flex items-center gap-x-3 px-3 sm:px-5 py-2 sm:py-3 bg-[#18181B1A] dark:bg-gray-800/50 rounded-lg transition-all duration-200 hover:bg-[#18181B30] dark:hover:bg-gray-700/50">
-        <SearchIcon className="min-w-[20px] w-5 h-5 text-[#9B9CA0] dark:text-gray-400" />
+    <div className="relative w-full">
+      <div className={`
+        flex items-center gap-3 px-4 py-3 
+        bg-white dark:bg-gray-900 
+        border-2 rounded-xl 
+        transition-all duration-200
+        ${isFocused 
+          ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' 
+          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+        }
+      `}>
+        <SearchIcon className={`w-5 h-5 transition-colors ${isFocused ? 'text-indigo-500' : 'text-gray-400'}`} />
         <Input
           ref={inputRef}
-          placeholder="Search automations..."
-          className="border-none bg-transparent text-sm sm:text-base placeholder:text-[#9B9CA0] dark:placeholder:text-gray-400 text-[#000000] dark:text-white focus-visible:ring-0 p-0 w-full"
+          placeholder="Search automations by name..."
+          className="border-none bg-transparent text-base placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-white focus-visible:ring-0 p-0"
           value={searchValue}
           onChange={handleInputChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
+        {searchValue && (
+          <button
+            onClick={clearSearch}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
+        )}
       </div>
     </div>
   );
