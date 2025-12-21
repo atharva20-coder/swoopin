@@ -55,7 +55,7 @@ const InstagramStats = () => {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
       {/* Profile Card */}
-      <div className="flex-1 flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-100 dark:border-gray-800">
+      <div className="flex-1 flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-100 dark:border-neutral-800">
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="w-12 h-12 ring-2 ring-pink-500/30 ring-offset-2 ring-offset-white dark:ring-offset-gray-900">
@@ -64,7 +64,7 @@ const InstagramStats = () => {
                 {profile?.name?.[0] || 'I'}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-neutral-900" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const InstagramStats = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-neutral-800">
           <Users className="w-4 h-4 text-gray-500" />
           <span className="text-xl font-bold text-gray-900 dark:text-white">
             {profile?.follower_count ? formatNumber(profile.follower_count) : '0'}
@@ -86,7 +86,7 @@ const InstagramStats = () => {
 
       {/* Top Content Card */}
       {topContent ? (
-        <div className="sm:w-80 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-100 dark:border-gray-800">
+        <div className="sm:w-80 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-100 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-3">
             <Eye className="w-4 h-4 text-pink-500" />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Latest Post</span>
@@ -97,7 +97,7 @@ const InstagramStats = () => {
           
           <div className="flex gap-3">
             {/* Thumbnail */}
-            <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+            <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-700 shrink-0">
               {topContent.media_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img 
@@ -131,13 +131,13 @@ const InstagramStats = () => {
           </div>
         </div>
       ) : isLoadingPosts ? (
-        <div className="sm:w-80 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 animate-pulse">
-          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+        <div className="sm:w-80 p-4 rounded-2xl bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-800 animate-pulse">
+          <div className="h-4 w-24 bg-gray-200 dark:bg-neutral-700 rounded mb-3" />
           <div className="flex gap-3">
-            <div className="w-16 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            <div className="w-16 h-20 bg-gray-200 dark:bg-neutral-700 rounded-lg" />
             <div className="flex-1 space-y-2">
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+              <div className="h-3 bg-gray-200 dark:bg-neutral-700 rounded" />
+              <div className="h-3 bg-gray-200 dark:bg-neutral-700 rounded w-3/4" />
             </div>
           </div>
         </div>

@@ -63,7 +63,7 @@ const MobileNav = ({ slug }: Props) => {
       <div 
         onClick={handleNavClick}
         className={cn(
-          "lg:hidden fixed left-1/2 -translate-x-1/2 bg-[#E1E5E9] dark:bg-gray-800 rounded-full shadow-lg z-[1000] transition-all duration-500 ease-in-out",
+          "lg:hidden fixed left-1/2 -translate-x-1/2 bg-[#E1E5E9] dark:bg-neutral-800 rounded-full shadow-lg z-[1000] transition-all duration-500 ease-in-out",
           isExpanded ? "top-6" : "bottom-6",
           isVisible && !isExpanded ? "translate-y-0" : !isExpanded ? "translate-y-full opacity-0" : "opacity-100"
         )}
@@ -81,8 +81,8 @@ const MobileNav = ({ slug }: Props) => {
                 className={cn(
                   "p-2 rounded-full transition-all duration-300 relative",
                   isActive
-                    ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-gray-700/50"
+                    ? "bg-white dark:bg-neutral-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-white/10 dark:hover:bg-neutral-700/50"
                 )}
               >
                 <span className="w-5 h-5">{item.icon}</span>

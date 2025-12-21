@@ -34,8 +34,8 @@ export const Notifications = ({ slug }: { slug: string }) => {
           ) : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[350px] shadow-border rounded-md p-0 shadow-md border border-border bg-background dark:bg-gray-900">
-        <div className="flex items-center justify-between p-4 bg-muted dark:bg-gray-800/50">
+      <PopoverContent className="w-[350px] shadow-border rounded-md p-0 shadow-md border border-border bg-background dark:bg-neutral-900">
+        <div className="flex items-center justify-between p-4 bg-muted dark:bg-neutral-800/50">
           <h3 className="font-semibold text-lg text-foreground dark:text-gray-100">
             Notifications
           </h3>
@@ -59,7 +59,7 @@ export const Notifications = ({ slug }: { slug: string }) => {
             </svg>
           </Button>
         </div>
-        <div className="scrollbar-thumb overflow-y-auto max-h-[350px] min-h-[95px] bg-background dark:bg-gray-900">
+        <div className="scrollbar-thumb overflow-y-auto max-h-[350px] min-h-[95px] bg-background dark:bg-neutral-900">
           <div className="space-y-0.5">
             {popoverNotifications?.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground dark:text-gray-400">

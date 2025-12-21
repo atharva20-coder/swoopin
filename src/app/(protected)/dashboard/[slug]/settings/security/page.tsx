@@ -102,9 +102,9 @@ export default function SecurityPage() {
       </div>
 
       {/* Password Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
             <Key className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </div>
           <div className="flex-1">
@@ -180,9 +180,9 @@ export default function SecurityPage() {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
             <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </div>
           <div className="flex-1">
@@ -206,9 +206,9 @@ export default function SecurityPage() {
       </div>
 
       {/* Active Sessions */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6">
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
             <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </div>
           <div>
@@ -220,7 +220,7 @@ export default function SecurityPage() {
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-800/50 rounded-lg">
             <div>
               <p className="font-medium text-gray-900 dark:text-white text-sm">Current Device</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">This browser • Active now</p>

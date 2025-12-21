@@ -19,10 +19,10 @@ const MetricsCard = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 animate-pulse">
-        <div className="h-6 w-40 bg-gray-100 dark:bg-gray-800 rounded mb-6" />
+      <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 animate-pulse">
+        <div className="h-6 w-40 bg-gray-100 dark:bg-neutral-800 rounded mb-6" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-100 dark:bg-neutral-800 rounded-xl" />)}
         </div>
       </div>
     )
@@ -36,7 +36,7 @@ const MetricsCard = () => {
   ]
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+    <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Platform Breakdown</h3>
       
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -46,7 +46,7 @@ const MetricsCard = () => {
             className={`p-4 rounded-xl transition-all ${
               platform.isActive 
                 ? 'bg-gradient-to-br from-pink-50 to-orange-50 dark:from-pink-900/10 dark:to-orange-900/10 border border-pink-200 dark:border-pink-900/30' 
-                : 'bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800'
+                : 'bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-800'
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -57,7 +57,7 @@ const MetricsCard = () => {
                 </span>
               </div>
               {!platform.isActive && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-neutral-700 text-gray-500 dark:text-gray-400">
                   Soon
                 </span>
               )}

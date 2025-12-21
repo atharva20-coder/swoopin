@@ -50,7 +50,7 @@ const DoubleGradientCard = ({
       <a 
         onClick={handleCardClick}
         href={href}
-        className="block relative bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-200 w-full lg:w-[calc(33.33%-1rem)] cursor-pointer hover:border-blue-200 dark:hover:border-blue-700"
+        className="block relative bg-white dark:bg-neutral-800 rounded-lg p-6 border border-gray-200 dark:border-neutral-700 hover:shadow-lg transition-all duration-200 w-full lg:w-[calc(33.33%-1rem)] cursor-pointer hover:border-blue-200 dark:hover:border-blue-700"
       >
       <div className="flex flex-col h-full justify-between gap-y-4">
         <div className="space-y-2">
@@ -87,7 +87,7 @@ const DoubleGradientCard = ({
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row relative">
+          <div className="bg-white dark:bg-neutral-800 rounded-lg w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 z-10"

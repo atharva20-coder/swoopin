@@ -45,6 +45,12 @@ export const getSession = async () => {
 export const onBoardUser = async () => {
   const user = await onCurrentUser();
   try {
+    // Parse admin emails from env
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email.length > 0);
+      
     // Find user by email instead of clerkId
     const found = await findUserByEmail(user.email);
     if (found) {
@@ -78,11 +84,14 @@ export const onBoardUser = async () => {
           }
         }
       }
+      // Check if user is admin
+      const isAdmin = adminEmails.includes(user.email.toLowerCase());
 
       return {
         status: 200,
         data: {
           name: found.name,
+          isAdmin,
         },
       };
     }
@@ -95,7 +104,10 @@ export const onBoardUser = async () => {
       nameParts.slice(1).join(" ") || "",
       user.email
     );
-    return { status: 201, data: created };
+    
+    // Check if new user is admin
+    const isAdmin = adminEmails.includes(user.email.toLowerCase());
+    return { status: 201, data: { ...created, isAdmin } };
   } catch (error) {
 
     return { status: 500 };
@@ -106,7 +118,20 @@ export const onUserInfo = async () => {
   const user = await onCurrentUser();
   try {
     const profile = await findUserByEmail(user.email);
-    if (profile) return { status: 200, data: profile };
+    if (profile) {
+      // Parse admin emails from env
+      const adminEmails = (process.env.ADMIN_EMAILS || "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter((email) => email.length > 0);
+        
+      const isAdmin = adminEmails.includes(user.email.toLowerCase());
+      
+      return { 
+        status: 200, 
+        data: { ...profile, isAdmin } 
+      };
+    }
 
     return { status: 404 };
   } catch (error) {

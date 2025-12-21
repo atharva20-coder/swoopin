@@ -46,7 +46,7 @@ const Page = async ({ params }: Props) => {
         <div className="absolute top-4 left-4 z-20">
           <Link
             href={`/dashboard/${params.slug}/automations`}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>

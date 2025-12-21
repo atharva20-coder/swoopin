@@ -9,7 +9,7 @@ type Props = {
 
 const Layout = ({ children }: Props) => {
   return (
-    <div className="min-h-screen bg-[#F5F0EB] dark:bg-gray-900">
+    <div className="min-h-screen bg-[#F5F0EB] dark:bg-neutral-900">
       <LandingNav />
       {/* Add padding-top to account for fixed navbar height */}
       <div className="pt-[72px] md:pt-[80px] lg:pt-[72px]">

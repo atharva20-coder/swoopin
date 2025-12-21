@@ -56,12 +56,12 @@ const Search = ({ slug }: Props) => {
     <div className="relative w-full">
       <div className={`
         flex items-center gap-3 px-4 py-3 
-        bg-white dark:bg-gray-900 
+        bg-white dark:bg-neutral-900 
         border-2 rounded-xl 
         transition-all duration-200
         ${isFocused 
           ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' 
-          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+          : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
         }
       `}>
         <SearchIcon className={`w-5 h-5 transition-colors ${isFocused ? 'text-indigo-500' : 'text-gray-400'}`} />
@@ -77,7 +77,7 @@ const Search = ({ slug }: Props) => {
         {searchValue && (
           <button
             onClick={clearSearch}
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
           >
             <X className="w-4 h-4 text-gray-400" />
           </button>

@@ -42,24 +42,29 @@ export const PLAN_LIMITS = {
     carouselTemplates: 3,      // Limited templates
     commentReply: true,        // Full comment reply access
   },
+  // ENTERPRISE is a custom plan - limits are configured per user by admin
+  // These are defaults that can be overridden with custom limits stored in DB
   ENTERPRISE: {
     name: "Enterprise",
-    dmsPerMonth: -1,           // Unlimited
-    automations: -1,           // Unlimited
-    scheduledPosts: -1,        // Unlimited
+    isCustomPlan: true,        // Flag indicating this is a custom, negotiated plan
+    // Default to PRO limits - admin configures actual limits per user
+    dmsPerMonth: 1000,         // Customizable per user
+    automations: 10,           // Customizable per user
+    scheduledPosts: 20,        // Customizable per user
     aiResponses: true,
-    aiResponsesPerMonth: -1,   // Unlimited AI
+    aiResponsesPerMonth: 50,   // Customizable per user
     analytics: "detailed",
-    analyticsRetentionDays: -1, // Unlimited history
+    analyticsRetentionDays: 90, // Customizable per user
     prioritySupport: true,
     earlyAccess: true,
-    apiAccess: true,
-    showBranding: false,       // White-label ready
-    carouselTemplates: -1,     // Unlimited templates
-    commentReply: true,        // Full access
-    multiAccount: true,        // Multiple Instagram accounts
-    teamSeats: true,           // Team collaboration
-    customAiTraining: true,    // Train AI on brand voice
+    apiAccess: true,           // Enterprise gets API access
+    showBranding: false,
+    carouselTemplates: 3,      // Customizable per user
+    commentReply: true,
+    // Enterprise-exclusive features (can be toggled per user)
+    multiAccount: false,       // Configurable per user
+    teamSeats: false,          // Configurable per user  
+    customAiTraining: false,   // Configurable per user
     dedicatedSupport: true,    // Email/Instagram DM support
   },
 };

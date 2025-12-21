@@ -20,16 +20,16 @@ const MetricCard = ({ label, value, change, icon, gradient, isLoading = false }:
   
   if (isLoading) {
     return (
-      <div className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 animate-pulse">
-        <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 mb-4" />
-        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="p-5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 animate-pulse">
+        <div className="w-10 h-10 rounded-xl bg-neutral-200 dark:bg-neutral-700 mb-4" />
+        <div className="h-8 w-16 bg-neutral-200 dark:bg-neutral-700 rounded mb-2" />
+        <div className="h-4 w-20 bg-neutral-200 dark:bg-neutral-700 rounded" />
       </div>
     )
   }
   
   return (
-    <div className="group p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-300">
+    <div className="group p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 transition-all duration-300">
       <div className={`w-10 h-10 rounded-xl ${gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
         {icon}
       </div>

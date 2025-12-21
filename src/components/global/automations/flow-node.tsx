@@ -84,7 +84,7 @@ const getNodeColors = (type: string) => {
       };
     default:
       return {
-        bg: "bg-gray-50 dark:bg-gray-950",
+        bg: "bg-gray-50 dark:bg-neutral-950",
         border: "border-gray-500",
         icon: "text-gray-500",
         header: "bg-gray-500",
@@ -177,7 +177,7 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
           </p>
         )}
         {data.config && Object.keys(data.config).length > 0 && (
-          <div className="mt-2 text-xs bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
+          <div className="mt-2 text-xs bg-white dark:bg-neutral-800 p-2 rounded border border-gray-200 dark:border-neutral-700">
             {data.config.message && (
               <p className="text-gray-700 dark:text-gray-300 truncate">
                 {data.config.message.substring(0, 30)}...

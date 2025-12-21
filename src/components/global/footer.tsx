@@ -7,7 +7,7 @@ export default function Footer() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <footer className="py-20 px-4 sm:px-6 lg:px-8 bg-black dark:bg-gray-900 mt-20 relative bg-[url('/landingpage-images/footer-bg.png')] bg-cover bg-center bg-no-repeat before:content-[''] before:absolute before:inset-0 before:bg-black/60 dark:before:bg-black/80 before:z-0">
+    <footer className="py-20 px-4 sm:px-6 lg:px-8 bg-black dark:bg-neutral-900 mt-20 relative bg-[url('/landingpage-images/footer-bg.png')] bg-cover bg-center bg-no-repeat before:content-[''] before:absolute before:inset-0 before:bg-black/60 dark:before:bg-black/80 before:z-0">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 relative z-10">
         {/* Left Column */}
         <div className="flex flex-col justify-between">
@@ -113,7 +113,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="col-span-1 lg:col-span-2 flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-600 dark:border-gray-700 mt-12">
+        <div className="col-span-1 lg:col-span-2 flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-600 dark:border-neutral-700 mt-12">
           <p className="text-sm text-gray-400 mb-4 md:mb-0">©2025, AUCTORN, INC.</p>
           <div className="flex space-x-6">
             <Link href="./privacy_policy" className="text-sm text-gray-400 hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">PRIVACY POLICY</Link>

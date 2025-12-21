@@ -29,6 +29,12 @@ const config: Config = {
         'background-90': '#121212',
         'background-80': '#1E1E1E',
         'text-secondary': '#B4B5B9',
+        // Dark theme neutral colors (pure blacks, no blue tint)
+        'dark-bg': '#0a0a0a',        // neutral-950
+        'dark-card': '#171717',      // neutral-900
+        'dark-secondary': '#262626', // neutral-800
+        'dark-border': '#262626',    // neutral-800
+        'dark-muted': '#404040',     // neutral-700
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

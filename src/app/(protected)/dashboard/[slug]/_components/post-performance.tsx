@@ -61,17 +61,17 @@ const PostPerformance = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 animate-pulse h-[500px]">
-        <div className="h-6 w-48 bg-gray-100 dark:bg-gray-800 rounded-lg mb-6" />
+      <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 animate-pulse h-[500px]">
+        <div className="h-6 w-48 bg-neutral-100 dark:bg-neutral-800 rounded-lg mb-6" />
         <div className="grid grid-cols-4 gap-4 mb-6">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded-xl" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-neutral-100 dark:bg-neutral-800 rounded-xl" />)}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 h-[500px] flex flex-col">
+    <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 h-[500px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
@@ -104,7 +104,7 @@ const PostPerformance = () => {
           { label: 'Comments', value: displayStats.comments, icon: MessageCircle, color: 'text-green-500' },
           { label: 'Engagement', value: `${displayStats.engagementRate}%`, icon: TrendingUp, color: 'text-orange-500' }
         ].map((stat, i) => (
-          <div key={i} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+          <div key={i} className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50">
             <div className="flex items-center gap-2 mb-1">
               <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
               <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{stat.label}</span>
@@ -139,14 +139,14 @@ const PostPerformance = () => {
                   className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
                     isSelected 
                       ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800' 
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent'
+                      : 'hover:bg-gray-50 dark:hover:bg-neutral-800/50 border border-transparent'
                   }`}
                 >
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                     index === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-                    index === 1 ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' :
+                    index === 1 ? 'bg-gray-200 text-gray-600 dark:bg-neutral-700 dark:text-gray-300' :
                     index === 2 ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
-                    'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                    'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-gray-400'
                   }`}>
                     {index + 1}
                   </div>

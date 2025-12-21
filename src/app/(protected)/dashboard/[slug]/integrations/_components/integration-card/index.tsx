@@ -91,12 +91,12 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
   if (isLoading) {
     return (
       <div className="flex items-center gap-4 p-4 rounded-xl animate-pulse">
-        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+        <div className="w-12 h-12 bg-gray-200 dark:bg-neutral-800 rounded-xl"></div>
         <div className="flex-1 space-y-2">
-          <div className="h-5 bg-gray-200 dark:bg-gray-800 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-2/3"></div>
+          <div className="h-5 bg-gray-200 dark:bg-neutral-800 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 dark:bg-neutral-800 rounded w-2/3"></div>
         </div>
-        <div className="w-12 h-6 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
+        <div className="w-12 h-6 bg-gray-200 dark:bg-neutral-800 rounded-full"></div>
       </div>
     );
   }
@@ -116,7 +116,7 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
       <div 
         className={cn(
           "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
-          "bg-white dark:bg-[#252525] border-gray-200 dark:border-gray-700/50",
+          "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
           "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
           isConnected && "ring-2 ring-blue-500/20 border-blue-200 dark:border-blue-500/30",
           !isConnected && !comingSoon ? "cursor-pointer" : ""

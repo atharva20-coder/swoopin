@@ -6,6 +6,7 @@ import {
   Bell,
   CalendarDuoToneWhite,
 } from '@/icons'
+import { Users, BarChart3, Building2, CreditCard } from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 
 export type FieldProps = {
@@ -48,5 +49,27 @@ export const SIDEBAR_MENU: SideBarProps[] = [
     id: uuid(),
     label: 'settings',
     icon: <SettingsDuoToneWhite />,
+  },
+]
+
+// Admin-specific sidebar menu
+export const ADMIN_SIDEBAR_MENU: SideBarProps[] = [
+  {
+    id: uuid(),
+    label: 'admin',
+    icon: <BarChart3 className="w-5 h-5 text-gray-600 dark:text-gray-300" />,
+    name: 'Dashboard',
+  },
+  {
+    id: uuid(),
+    label: 'admin/enquiries',
+    icon: <Building2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />,
+    name: 'Enterprise Enquiries',
+  },
+  {
+    id: uuid(),
+    label: 'admin/settings',
+    icon: <SettingsDuoToneWhite />,
+    name: 'Settings',
   },
 ]

@@ -38,11 +38,11 @@ const Chart = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+      <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800">
         <div className="flex items-center justify-between mb-6">
-          <div className="h-6 w-40 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+          <div className="h-6 w-40 bg-neutral-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
         </div>
-        <div className="h-[300px] bg-gradient-to-b from-gray-50 to-transparent dark:from-gray-800/50 rounded-xl animate-pulse" />
+        <div className="h-[300px] bg-gradient-to-b from-neutral-50 to-transparent dark:from-neutral-800/50 rounded-xl animate-pulse" />
       </div>
     )
   }
@@ -56,7 +56,7 @@ const Chart = () => {
   const totalComments = analytics?.data?.totalComments || 0
 
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+    <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

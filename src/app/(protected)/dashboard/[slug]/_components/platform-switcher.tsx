@@ -68,7 +68,7 @@ const PlatformSwitcher = () => {
   return (
     <div className="relative">
       {/* Floating Dock */}
-      <div className="flex items-center justify-center gap-2 p-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 mx-auto w-fit">
+      <div className="flex items-center justify-center gap-2 p-2 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-neutral-700/50 shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 mx-auto w-fit">
         {platforms.map((platform, index) => {
           const isActive = activePlatform === platform.id
           const isHovered = hoveredPlatform === platform.id
@@ -104,8 +104,8 @@ const PlatformSwitcher = () => {
                   isActive 
                     ? `bg-gradient-to-br ${platform.bgGradient} shadow-lg` 
                     : platform.connected
-                      ? "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      : "bg-gray-50 dark:bg-gray-800/50"
+                      ? "bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700"
+                      : "bg-gray-50 dark:bg-neutral-800/50"
                 )}
                 style={!isActive && platform.connected ? { boxShadow: `0 0 0 2px ${platform.color}40` } : undefined}
               >
@@ -119,7 +119,7 @@ const PlatformSwitcher = () => {
                 
                 {/* Connection indicator dot */}
                 {platform.connected && !isActive && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-neutral-900" />
                 )}
                 
                 {/* Bottom reflection for active */}
@@ -135,19 +135,19 @@ const PlatformSwitcher = () => {
         })}
 
         {/* Divider */}
-        <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-1" />
+        <div className="w-px h-8 bg-gray-200 dark:bg-neutral-700 mx-1" />
 
         {/* Add Platform Button */}
         <Link
           href={`/dashboard/${params.slug}/integrations`}
-          className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-all duration-200 hover:scale-105"
+          className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 flex items-center justify-center transition-all duration-200 hover:scale-105"
         >
           <Plus className="w-5 h-5 text-gray-500" />
         </Link>
       </div>
 
       {/* Active Platform Stats Card */}
-      <div className="mt-6 p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 transition-all duration-300">
+      <div className="mt-6 p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 transition-all duration-300">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={cn(
@@ -202,7 +202,7 @@ const PlatformSwitcher = () => {
               </Link>
             )}
 
-            <div className="text-right px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div className="text-right px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-neutral-800">
               <p className="text-xs text-gray-500 dark:text-gray-400">Connected</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{connectedCount}/7</p>
             </div>

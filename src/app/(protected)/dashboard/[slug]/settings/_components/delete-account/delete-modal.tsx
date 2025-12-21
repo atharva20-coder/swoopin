@@ -48,7 +48,7 @@ const DeleteModal = ({
           )}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-md max-w-md w-[95%] sm:w-full mx-auto">
+      <AlertDialogContent className="bg-white dark:bg-neutral-900 p-4 sm:p-6 rounded-md max-w-md w-[95%] sm:w-full mx-auto">
         <AlertDialogHeader className="space-y-2 sm:space-y-3">
           <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
@@ -60,11 +60,11 @@ const DeleteModal = ({
             value={deleteConfirmation}
             onChange={(e) => onDeleteConfirmationChange(e.target.value)}
             placeholder="Type 'Delete My Account'"
-            className="w-full px-3 sm:px-4 py-2 mt-2 border bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2 mt-2 border bg-white dark:bg-neutral-800 text-black dark:text-white border-gray-200 dark:border-neutral-700 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base"
           />
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <AlertDialogCancel className="w-full sm:flex-1 px-3 sm:px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-md font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200 text-sm sm:text-base">Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="w-full sm:flex-1 px-3 sm:px-4 py-2 border border-gray-200 dark:border-neutral-700 rounded-md font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors duration-200 text-sm sm:text-base">Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onDelete}
             disabled={!isDeleteConfirmed || isDeleting}

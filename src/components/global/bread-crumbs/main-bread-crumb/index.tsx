@@ -14,7 +14,7 @@ const MainBreadCrumb = ({ page }: Props) => {
   return (
     <div className="w-full py-4 mb-6">
       <div className="flex items-center gap-4 mb-4">
-        <div className="w-8 h-8 flex items-center justify-center dark:bg-gray-800/30 rounded-lg">
+        <div className="w-8 h-8 flex items-center justify-center dark:bg-neutral-800/30 rounded-lg">
           {PAGE_ICON[page.toUpperCase()] || <HomeDuoToneBlue />}
         </div>
         <h1 className="text-2xl font-medium text-gray-900 dark:text-gray-100">

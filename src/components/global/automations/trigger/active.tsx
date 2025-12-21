@@ -17,7 +17,7 @@ const ActiveTrigger = ({ keywords, type, automationId }: Props) => {
   console.log(type);
 
   return (
-    <div className="bg-[#ededef] dark:bg-gray-800 hover:bg-[#dfdfdf] transition-colors duration-200 p-3 rounded-xl w-full">
+    <div className="bg-[#ededef] dark:bg-neutral-800 hover:bg-[#dfdfdf] transition-colors duration-200 p-3 rounded-xl w-full">
       <div className="flex gap-x-2 items-center">
         {type === "COMMENT" ? (
           <InstagramBlue />

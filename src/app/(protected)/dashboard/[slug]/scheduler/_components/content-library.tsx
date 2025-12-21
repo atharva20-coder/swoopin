@@ -77,20 +77,20 @@ export default function ContentLibrary({
   };
 
   return (
-    <div className="w-72 shrink-0 flex flex-col h-full bg-white dark:bg-gray-950 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="w-72 shrink-0 flex flex-col h-full bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">Content Library</h2>
       </div>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Canva Integration */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="p-4 border-b border-gray-100 dark:border-neutral-800">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Design Tools</h3>
           <button
             onClick={handleConnectCanva}
-            className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 hover:border-cyan-400 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20 transition-all"
+            className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-gray-200 dark:border-neutral-700 hover:border-cyan-400 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20 transition-all"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center">
               <CanvaLogo />
@@ -104,13 +104,13 @@ export default function ContentLibrary({
         </div>
 
         {/* Automations */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="p-4 border-b border-gray-100 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-500" />
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Automations</h3>
             </div>
-            <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-gray-400 bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full">
               {automations.length}
             </span>
           </div>
@@ -129,7 +129,7 @@ export default function ContentLibrary({
                     "hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700",
                     automation.active
                       ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20"
-                      : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
+                      : "border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900"
                   )}
                 >
                   <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
@@ -161,10 +161,10 @@ export default function ContentLibrary({
                 <button
                   key={draft.id}
                   onClick={() => onDraftClick?.(draft)}
-                  className="aspect-square rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all flex flex-col items-center justify-center gap-1 bg-gray-50 dark:bg-gray-800/50 group"
+                  className="aspect-square rounded-xl border border-gray-200 dark:border-neutral-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-md transition-all flex flex-col items-center justify-center gap-1 bg-gray-50 dark:bg-neutral-800/50 group"
                   title={draft.title}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="w-8 h-8 rounded-lg bg-white dark:bg-neutral-700 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                     <TypeIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                   </div>
                   <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-full px-1">
@@ -180,7 +180,7 @@ export default function ContentLibrary({
       </div>
 
       {/* Create Post Button */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
         <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={onCreatePost}>
           <Plus className="w-4 h-4 mr-2" />
           Create Post

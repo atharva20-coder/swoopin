@@ -11,7 +11,7 @@ type Props = {
 
 const DoubleGradientCard = ({ description, label, subLabel, isPopular }: Props) => {
   return (
-    <div className="relative border-[1px] border-in-active/50 dark:border-gray-700 p-6 rounded-xl flex flex-col gap-y-6 overflow-hidden snap-center min-w-[85%] md:min-w-full bg-card hover:bg-card/80 dark:bg-gray-800/80 dark:hover:bg-gray-700/90 transition-colors">
+    <div className="relative border-[1px] border-in-active/50 dark:border-neutral-700 p-6 rounded-xl flex flex-col gap-y-6 overflow-hidden snap-center min-w-[85%] md:min-w-full bg-card hover:bg-card/80 dark:bg-neutral-800/80 dark:hover:bg-neutral-700/90 transition-colors">
       <div className="flex flex-col z-40 relative">
         {isPopular && (
           <span className="absolute -top-1 right-0 px-3 py-1 text-xs font-medium rounded-full dark:bg-orange-400/20 dark:text-orange-300" style={{ backgroundColor: '#FFF1E2', color: '#FF8A65' }}>POPULAR</span>

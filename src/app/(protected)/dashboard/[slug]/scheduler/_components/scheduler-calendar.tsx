@@ -351,7 +351,7 @@ export default function SchedulerCalendar({
   // Month View
   const MonthView = () => (
     <>
-      <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-800">
+      <div className="grid grid-cols-7 border-b border-gray-200 dark:border-neutral-800">
         {DAYS.map((day) => (
           <div key={day} className="py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
             {day}
@@ -375,8 +375,8 @@ export default function SchedulerCalendar({
               onDragLeave={() => setDragOverDate(null)}
               onDrop={(e) => handleDrop(e, date)}
               className={cn(
-                "border-b border-r border-gray-100 dark:border-gray-800 p-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-h-[120px] overflow-hidden",
-                !inCurrentMonth && "bg-gray-50 dark:bg-gray-900/50",
+                "border-b border-r border-gray-100 dark:border-neutral-800 p-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-h-[120px] overflow-hidden",
+                !inCurrentMonth && "bg-gray-50 dark:bg-neutral-900/50",
                 isCurrentDay && "bg-blue-50/50 dark:bg-blue-950/30",
                 isDragOver && "bg-green-100 dark:bg-green-900/30 ring-2 ring-green-400 ring-inset"
               )}
@@ -414,13 +414,13 @@ export default function SchedulerCalendar({
   // Week View
   const WeekView = () => (
     <>
-      <div className="grid grid-cols-8 border-b border-gray-200 dark:border-gray-800">
-        <div className="py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-800">
+      <div className="grid grid-cols-8 border-b border-gray-200 dark:border-neutral-800">
+        <div className="py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-neutral-800">
           Time
         </div>
         {weekDays.map((day) => (
           <div key={day.toISOString()} className={cn(
-            "py-3 text-center text-xs font-medium border-r border-gray-100 dark:border-gray-800",
+            "py-3 text-center text-xs font-medium border-r border-gray-100 dark:border-neutral-800",
             isToday(day) ? "text-blue-600 bg-blue-50/50 dark:bg-blue-950/30" : "text-gray-500 dark:text-gray-400"
           )}>
             <div>{DAYS[day.getDay()]}</div>
@@ -433,8 +433,8 @@ export default function SchedulerCalendar({
 
       <div className="flex-1 overflow-y-auto">
         {HOURS.map((hour) => (
-          <div key={hour} className="grid grid-cols-8 border-b border-gray-100 dark:border-gray-800 min-h-[60px]">
-            <div className="py-2 px-2 text-xs text-gray-500 border-r border-gray-200 dark:border-gray-800 text-right">
+          <div key={hour} className="grid grid-cols-8 border-b border-gray-100 dark:border-neutral-800 min-h-[60px]">
+            <div className="py-2 px-2 text-xs text-gray-500 border-r border-gray-200 dark:border-neutral-800 text-right">
               {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
             </div>
             {weekDays.map((day) => {
@@ -454,7 +454,7 @@ export default function SchedulerCalendar({
                   onDragLeave={() => setDragOverDate(null)}
                   onDrop={(e) => handleDrop(e, day, hour)}
                   className={cn(
-                    "border-r border-gray-100 dark:border-gray-800 p-1 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors",
+                    "border-r border-gray-100 dark:border-neutral-800 p-1 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors",
                     isDragOver && "bg-green-100 dark:bg-green-900/30"
                   )}
                 >
@@ -473,7 +473,7 @@ export default function SchedulerCalendar({
   // Day View
   const DayView = () => (
     <>
-      <div className="flex items-center justify-center py-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-center py-4 border-b border-gray-200 dark:border-neutral-800">
         <span className={cn(
           "text-2xl font-bold px-4 py-2 rounded-lg",
           isToday(currentDate) && "bg-blue-600 text-white"
@@ -489,8 +489,8 @@ export default function SchedulerCalendar({
           const isDragOver = dragOverDate === dateKey;
 
           return (
-            <div key={hour} className="flex border-b border-gray-100 dark:border-gray-800 min-h-[80px]">
-              <div className="w-20 py-2 px-3 text-sm text-gray-500 border-r border-gray-200 dark:border-gray-800 text-right shrink-0">
+            <div key={hour} className="flex border-b border-gray-100 dark:border-neutral-800 min-h-[80px]">
+              <div className="w-20 py-2 px-3 text-sm text-gray-500 border-r border-gray-200 dark:border-neutral-800 text-right shrink-0">
                 {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
               </div>
               <div
@@ -519,16 +519,16 @@ export default function SchedulerCalendar({
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-950 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
       {/* Calendar Header */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           {getHeaderTitle()}
         </h2>
         
         <div className="flex items-center gap-4">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-lg p-1">
             {(["Month", "Week", "Day"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
@@ -536,7 +536,7 @@ export default function SchedulerCalendar({
                 className={cn(
                   "px-3 py-1 text-xs font-medium rounded-md transition-colors",
                   viewMode === mode
-                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 )}
               >
@@ -547,17 +547,17 @@ export default function SchedulerCalendar({
           
           {/* Navigation */}
           <div className="flex items-center gap-1">
-            <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <button onClick={() => navigate(-1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
               <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
-            <button onClick={() => navigate(1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <button onClick={() => navigate(1)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
               <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
           
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
           >
             Today
           </button>

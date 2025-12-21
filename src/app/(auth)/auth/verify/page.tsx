@@ -154,7 +154,7 @@ function VerifyContent() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-11 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-full px-5 border border-gray-300 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-700 focus-visible:border-gray-400 dark:focus-visible:border-gray-500"
+              className="w-full h-11 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-full px-5 border border-gray-300 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-700 focus-visible:border-gray-400 dark:focus-visible:border-gray-500"
               required
             />
             <Button
@@ -171,7 +171,7 @@ function VerifyContent() {
             <Link href="/sign-in">
               <Button
                 variant="ghost"
-                className="w-full h-11 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                className="w-full h-11 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full"
               >
                 Back to Sign In
               </Button>

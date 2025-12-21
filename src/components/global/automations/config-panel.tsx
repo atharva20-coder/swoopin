@@ -158,7 +158,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
               onChange={(e) => setNewKeyword(e.target.value)}
               onKeyDown={handleKeywordKeyDown}
               placeholder="Enter keyword and press Enter..."
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               type="button"
@@ -216,7 +216,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           onBlur={(e) => handleAutoSave("message", e.target.value)}
           placeholder="Enter your message..."
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
         />
       </div>
       <button
@@ -242,7 +242,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           onBlur={(e) => handleAutoSave("commentReply", e.target.value)}
           placeholder="Enter your reply..."
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
         />
       </div>
       <button
@@ -279,7 +279,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           onBlur={(e) => handleAutoSave("prompt", e.target.value)}
           placeholder="Describe how you communicate, your brand voice, and what you want AI to help with..."
           rows={5}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
         />
       </div>
 
@@ -287,8 +287,8 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       <div className="space-y-2">
         <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Example prompts:</p>
         <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">&quot;I&apos;m a friendly fitness coach. Help users with workout tips and motivation. Keep it upbeat!&quot;</p>
-          <p className="p-2 bg-gray-50 dark:bg-gray-800 rounded">&quot;I run a bakery. Answer questions about our menu, hours (9am-6pm), and take cake orders.&quot;</p>
+          <p className="p-2 bg-gray-50 dark:bg-neutral-800 rounded">&quot;I&apos;m a friendly fitness coach. Help users with workout tips and motivation. Keep it upbeat!&quot;</p>
+          <p className="p-2 bg-gray-50 dark:bg-neutral-800 rounded">&quot;I run a bakery. Answer questions about our menu, hours (9am-6pm), and take cake orders.&quot;</p>
         </div>
       </div>
 
@@ -326,9 +326,9 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             </p>
             <div className="flex gap-2 overflow-x-auto pb-2">
               {template?.elements?.map((element: any, index: number) => (
-                <div key={index} className="min-w-[150px] bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <div key={index} className="min-w-[150px] bg-white dark:bg-neutral-800 p-2 rounded border border-gray-200 dark:border-neutral-700 flex-shrink-0">
                   {element.imageUrl && (
-                    <div className="w-full h-16 bg-gray-100 dark:bg-gray-700 rounded mb-2 overflow-hidden relative">
+                    <div className="w-full h-16 bg-gray-100 dark:bg-neutral-700 rounded mb-2 overflow-hidden relative">
                       <Image src={element.imageUrl} alt={element.title || ""} fill className="object-cover" />
                     </div>
                   )}
@@ -382,7 +382,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             placeholder="Enter message text (appears above buttons)..."
             rows={3}
             maxLength={640}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
           />
           <p className="text-xs text-gray-400 mt-1">{(formData.text || "").length}/640 characters</p>
         </div>
@@ -406,7 +406,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
           <div className="space-y-3">
             {buttons.map((button: any, index: number) => (
-              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+              <div key={index} className="p-3 border border-gray-200 dark:border-neutral-700 rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">Button {index + 1}</span>
                   <button
@@ -422,7 +422,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                 <select
                   value={button.type}
                   onChange={(e) => updateButton(index, "type", e.target.value)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 >
                   <option value="web_url">URL Button</option>
                   <option value="postback">Postback Button</option>
@@ -435,7 +435,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                   onChange={(e) => updateButton(index, "title", e.target.value)}
                   placeholder="Button text (max 20 chars)"
                   maxLength={20}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 />
 
                 {/* URL or Payload */}
@@ -445,7 +445,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     value={button.url || ""}
                     onChange={(e) => updateButton(index, "url", e.target.value)}
                     placeholder="https://example.com"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 ) : (
                   <input
@@ -453,7 +453,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     value={button.payload || ""}
                     onChange={(e) => updateButton(index, "payload", e.target.value)}
                     placeholder="Postback payload"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 )}
               </div>
@@ -535,7 +535,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
           <div className="space-y-3">
             {iceBreakers.map((ib: any, index: number) => (
-              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+              <div key={index} className="p-3 border border-gray-200 dark:border-neutral-700 rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">Question {index + 1}</span>
                   <button
@@ -553,7 +553,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                   value={ib.question}
                   onChange={(e) => updateIceBreaker(index, "question", e.target.value)}
                   placeholder="e.g., What are your business hours?"
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 />
 
                 {/* Payload */}
@@ -562,7 +562,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                   value={ib.payload}
                   onChange={(e) => updateIceBreaker(index, "payload", e.target.value)}
                   placeholder="Payload (e.g., HOURS_INQUIRY)"
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 />
               </div>
             ))}
@@ -647,7 +647,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
           <div className="space-y-3">
             {menuItems.map((item: any, index: number) => (
-              <div key={index} className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-2">
+              <div key={index} className="p-3 border border-gray-200 dark:border-neutral-700 rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-gray-500">Item {index + 1}</span>
                   <button
@@ -663,7 +663,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                 <select
                   value={item.type}
                   onChange={(e) => updateMenuItem(index, "type", e.target.value)}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 >
                   <option value="postback">Postback (Action)</option>
                   <option value="web_url">URL (Open Link)</option>
@@ -675,7 +675,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                   value={item.title}
                   onChange={(e) => updateMenuItem(index, "title", e.target.value)}
                   placeholder="Menu item title"
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                 />
 
                 {/* URL or Payload */}
@@ -685,7 +685,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     value={item.url || ""}
                     onChange={(e) => updateMenuItem(index, "url", e.target.value)}
                     placeholder="https://example.com"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 ) : (
                   <input
@@ -693,7 +693,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     value={item.payload || ""}
                     onChange={(e) => updateMenuItem(index, "payload", e.target.value)}
                     placeholder="Postback payload (e.g., MENU_HOURS)"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 )}
               </div>
@@ -814,7 +814,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           {/* Current products */}
           <div className="space-y-2 mb-3">
             {productIds.map((id: string, index: number) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-neutral-800 rounded">
                 <span className="flex-1 text-sm font-mono truncate text-gray-700 dark:text-gray-300">{id}</span>
                 <button
                   type="button"
@@ -836,7 +836,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                 onChange={(e) => setFormData({ ...formData, newProductId: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addProductId())}
                 placeholder="Enter product ID from catalog"
-                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
               />
               <button
                 type="button"
@@ -914,7 +914,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             onChange={(e) => setFormData({ ...formData, text: e.target.value })}
             placeholder="Enter message to display with quick replies..."
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
           />
         </div>
 
@@ -926,7 +926,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
           <div className="space-y-2">
             {quickReplies.map((qr: { content_type: string; title?: string; payload?: string }, index: number) => (
-              <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div key={index} className="p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
                 {qr.content_type === "user_phone_number" ? (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600 dark:text-gray-400">📱 Request Phone Number</span>
@@ -947,7 +947,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                         onChange={(e) => updateQuickReply(index, "title", e.target.value.substring(0, 20))}
                         placeholder="Button title (max 20 chars)"
                         maxLength={20}
-                        className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="flex-1 px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
                       />
                       <span className="text-xs text-gray-400">{(qr.title || "").length}/20</span>
                       <button
@@ -963,7 +963,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                       value={qr.payload || ""}
                       onChange={(e) => updateQuickReply(index, "payload", e.target.value)}
                       placeholder="Payload (optional, sent to webhook)"
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
                     />
                   </div>
                 )}
@@ -1032,7 +1032,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
               {attachedPosts.map((post: any) => (
                 <div
                   key={post.postid}
-                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
+                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-neutral-800"
                 >
                   <Image
                     fill
@@ -1060,7 +1060,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
               {allPosts.map((post: InstagramPostProps) => (
                 <div
                   key={post.id}
-                  className="relative aspect-square rounded-lg cursor-pointer overflow-hidden bg-gray-100 dark:bg-gray-800 group hover:ring-2 hover:ring-blue-500 transition-all"
+                  className="relative aspect-square rounded-lg cursor-pointer overflow-hidden bg-gray-100 dark:bg-neutral-800 group hover:ring-2 hover:ring-blue-500 transition-all"
                   onClick={() => onSelectPost({
                     postid: post.id,
                     media: post.media_url,
@@ -1111,7 +1111,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             </Button>
           </div>
         ) : (
-          <div className="p-4 text-center bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="p-4 text-center bg-gray-50 dark:bg-neutral-800 rounded-lg">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               No Instagram posts found
             </p>
@@ -1146,7 +1146,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             onChange={(e) => setFormData({ ...formData, delay: parseInt(e.target.value) })}
             placeholder="Enter delay in seconds"
             min={0}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
           />
         </div>
       )}
@@ -1161,7 +1161,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             value={formData.tagName || ""}
             onChange={(e) => setFormData({ ...formData, tagName: e.target.value })}
             placeholder="Enter tag name"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
           />
         </div>
       )}
@@ -1219,12 +1219,12 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
   return (
     <div
       className={cn(
-        "w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col",
+        "w-80 bg-white dark:bg-neutral-900 border-l border-gray-200 dark:border-neutral-800 flex flex-col",
         className
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {selectedNode ? "Configure Node" : "Configuration"}
         </h2>
@@ -1297,7 +1297,7 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Automation Name
         </h3>
-        <div className="relative p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="relative p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
           {edit ? (
             <div className="flex items-center gap-2">
               <input
@@ -1311,7 +1311,7 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
                     handleSaveName();
                   }
                 }}
-                className="flex-1 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 text-lg font-semibold bg-white dark:bg-neutral-900 text-gray-900 dark:text-white border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
               {isPending && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
@@ -1323,7 +1323,7 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
               </p>
               <button
                 onClick={enableEdit}
-                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-opacity"
+                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded transition-opacity"
               >
                 <Edit2 className="w-4 h-4 text-gray-500 dark:text-gray-400" />
               </button>
@@ -1337,7 +1337,7 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Status
         </h3>
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700">
           <div className="flex items-center gap-2">
             <div className={cn(
               "w-2 h-2 rounded-full",
@@ -1375,7 +1375,7 @@ const AutomationControls = ({ automationId, automationData }: { automationId: st
       )}
 
       {/* Delete Button */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="pt-4 border-t border-gray-200 dark:border-neutral-800">
         <Button
           variant="destructive"
           className="w-full"

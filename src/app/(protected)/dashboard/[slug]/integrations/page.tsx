@@ -49,7 +49,7 @@ export default function IntegrationsPage() {
   return (
     <div className="flex h-[calc(100vh-4rem)] p-4 gap-4">
       {/* Left Card - Grid with Icons */}
-      <div className="hidden lg:flex w-[320px] shrink-0 bg-gray-100 dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden flex-col relative">
+      <div className="hidden lg:flex w-[320px] shrink-0 bg-gray-100 dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-neutral-700/50 overflow-hidden flex-col relative">
         {/* Grid Background Pattern */}
         <div 
           className="absolute inset-0 grid-pattern"
@@ -96,13 +96,13 @@ export default function IntegrationsPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="relative p-5 border-t border-gray-200 dark:border-gray-700/50 bg-gray-100/95 dark:bg-[#1a1a1a]/95 backdrop-blur-sm">
+        <div className="relative p-5 border-t border-gray-200 dark:border-neutral-700/50 bg-gray-100/95 dark:bg-[#1a1a1a]/95 backdrop-blur-sm">
           <h2 className="text-base font-bold text-gray-900 dark:text-white mb-1">Add integrations</h2>
           <p className="text-gray-500 dark:text-gray-400 text-xs mb-3">
             Connect your favorite tools to supercharge your workflow.
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs h-8 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            <Button variant="outline" size="sm" className="text-xs h-8 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-neutral-700">
               I&apos;ll do this later
             </Button>
             <Button size="sm" className="gap-1 text-xs h-8 bg-blue-600 hover:bg-blue-700">
@@ -113,7 +113,7 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Right Card - Integrations List */}
-      <div className="flex-1 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-200 dark:border-gray-700/50 flex flex-col overflow-hidden">
+      <div className="flex-1 bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-200 dark:border-neutral-700/50 flex flex-col overflow-hidden">
         {/* Breadcrumbs + Filter Tabs */}
         <div className="p-6 pb-4 shrink-0">
           {/* Simple Breadcrumbs */}
@@ -126,7 +126,7 @@ export default function IntegrationsPage() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-neutral-800">
             <div className="flex gap-1 overflow-x-auto">
               {CATEGORIES.map(cat => (
                 <button
@@ -135,8 +135,8 @@ export default function IntegrationsPage() {
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition",
                     activeCategory === cat.value
-                      ? "bg-gray-900 dark:bg-gray-700 text-white"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-gray-900 dark:bg-neutral-700 text-white"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800"
                   )}
                 >
                   {cat.label}

@@ -15,16 +15,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreditCard, Settings, HelpCircle, Moon, Sun, LogOut, User, ChevronRight } from "lucide-react";
+import { CreditCard, Settings, HelpCircle, Moon, Sun, LogOut, User, ChevronRight, Shield } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type Props = {
   slug: string;
+  isAdmin?: boolean;
 };
 
-const Sidebar = ({ slug }: Props) => {
+const Sidebar = ({ slug, isAdmin = false }: Props) => {
   const { page } = usePaths();
   const { data: session } = useSession();
   const user = session?.user;
@@ -49,7 +50,7 @@ const Sidebar = ({ slug }: Props) => {
   };
 
   return (
-    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[80px]' : 'w-[280px]'} bg-[#F6F5F8] dark:bg-[#1C1C1C] flex-col hidden transition-all duration-300 border-r border-gray-200 dark:border-gray-800`}>
+    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[80px]' : 'w-[280px]'} bg-[#F6F5F8] dark:bg-neutral-900 flex-col hidden transition-all duration-300 border-r border-gray-200 dark:border-neutral-800`}>
       <div className={`p-6 space-y-6 ${isCollapsed ? 'items-center px-3' : ''}`}>
         {/* Logo */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full relative`}>
@@ -66,7 +67,7 @@ const Sidebar = ({ slug }: Props) => {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-8 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:scale-105 transition-transform z-50"
+            className="absolute -right-8 bg-white dark:bg-neutral-800 rounded-lg shadow-md hover:scale-105 transition-transform z-50"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             <Image
@@ -78,22 +79,22 @@ const Sidebar = ({ slug }: Props) => {
             />
           </Button>
         </div>
-        <div className="border-b border-gray-200 dark:border-gray-700 w-full"></div>
+        <div className="border-b border-gray-200 dark:border-neutral-700 w-full"></div>
 
         {/* Navigation */}
         <nav className="space-y-1">
-          <Items page={page} slug={slug} isCollapsed={isCollapsed} />
+          <Items page={page} slug={slug} isCollapsed={isCollapsed} isAdmin={isAdmin} />
         </nav>
       </div>
 
       {/* Footer Actions */}
-      <div className={`mt-auto p-4 ${isCollapsed ? 'items-center px-3' : 'space-y-3'} border-t border-gray-100 dark:border-gray-800 flex flex-col`}>        
+      <div className={`mt-auto p-4 ${isCollapsed ? 'items-center px-3' : 'space-y-3'} border-t border-gray-100 dark:border-neutral-800 flex flex-col`}>        
         {isCollapsed ? (
           <>
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
               onClick={toggleTheme}
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -101,7 +102,7 @@ const Sidebar = ({ slug }: Props) => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
               onClick={() => router.push(`/dashboard/${slug}/settings`)}
             >
               <Settings className="w-5 h-5" />
@@ -109,7 +110,7 @@ const Sidebar = ({ slug }: Props) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="focus:outline-none mt-2">
-                  <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-gray-700 cursor-pointer hover:ring-purple-500 transition-all">
+                  <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-neutral-700 cursor-pointer hover:ring-purple-500 transition-all">
                     <AvatarImage src={user?.image || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-medium">
                       {user?.name?.[0] || 'U'}
@@ -129,11 +130,11 @@ const Sidebar = ({ slug }: Props) => {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/${isAdmin ? 'admin/settings' : 'settings'}`)}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings/profile`)}>
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
@@ -152,14 +153,14 @@ const Sidebar = ({ slug }: Props) => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 justify-start gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="flex-1 justify-start gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
                 onClick={toggleTheme}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 <span className="text-sm">{theme === 'dark' ? 'Light' : 'Dark'}</span>
               </Button>
               <a href="https://www.instagram.com/sandipjoshi990/" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800">
                   <HelpCircle className="w-4 h-4" />
                 </Button>
               </a>
@@ -173,7 +174,7 @@ const Sidebar = ({ slug }: Props) => {
             {/* User Profile Card */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full mt-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all group focus:outline-none">
+                <button className="w-full mt-3 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all group focus:outline-none">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 ring-2 ring-purple-500/20 group-hover:ring-purple-500/50 transition-all">
                       <AvatarImage src={user?.image || undefined} />
@@ -194,11 +195,11 @@ const Sidebar = ({ slug }: Props) => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side="top" className="w-56">
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/${isAdmin ? 'admin/settings' : 'settings'}`)}>
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings/profile`)}>
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>

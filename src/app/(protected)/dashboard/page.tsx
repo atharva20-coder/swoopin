@@ -10,6 +10,11 @@ const Page = async (props: Props) => {
   if (user.status === 200 || user.status === 201) {
     // Use name field and remove spaces for URL slug
     const slug = user.data?.name?.replace(/\s+/g, '') || 'user';
+    
+    // Redirect admins to admin dashboard with their slug
+    if (user.data?.isAdmin) {
+      return redirect(`/dashboard/${slug}/admin`);
+    }
     return redirect(`dashboard/${slug}`);
   }
 

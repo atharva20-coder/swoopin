@@ -34,9 +34,9 @@ const DrawerButton = ({ id }: Props) => {
         <p className="text-sm font-medium text-green-600 dark:text-green-400">Carousel template created</p>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {template.elements.map((element: any, index: number) => (
-            <div key={index} className="min-w-[200px] bg-white dark:bg-gray-800 p-3 rounded-md border border-gray-200 dark:border-gray-700 flex-shrink-0 shadow-sm">
+            <div key={index} className="min-w-[200px] bg-white dark:bg-neutral-800 p-3 rounded-md border border-gray-200 dark:border-neutral-700 flex-shrink-0 shadow-sm">
               {element.imageUrl && (
-                <div className="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded mb-2 overflow-hidden relative">
+                <div className="w-full h-24 bg-gray-100 dark:bg-neutral-700 rounded mb-2 overflow-hidden relative">
                   <Image 
                     src={element.imageUrl} 
                     alt={element.title || "Carousel element"}
@@ -50,7 +50,7 @@ const DrawerButton = ({ id }: Props) => {
               {element.buttons?.length > 0 && (
                 <div className="mt-2 flex flex-col gap-1">
                   {element.buttons.map((button: any, btnIndex: number) => (
-                    <div key={btnIndex} className="text-xs bg-gray-100 dark:bg-gray-700 p-1 rounded truncate flex items-center">
+                    <div key={btnIndex} className="text-xs bg-gray-100 dark:bg-neutral-700 p-1 rounded truncate flex items-center">
                       <span className={`w-2 h-2 rounded-full mr-1 ${button.type === 'WEB_URL' ? 'bg-blue-500' : 'bg-green-500'}`}></span>
                       <span className="text-gray-700 dark:text-gray-300">{button.title}</span>
                     </div>
@@ -69,7 +69,7 @@ const DrawerButton = ({ id }: Props) => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-24 p-3 rounded-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-md z-40"
+        className="fixed bottom-8 right-24 p-3 rounded-full bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors shadow-md z-40"
       >
         <Image
           src="/icons/drawer.svg"
@@ -85,7 +85,7 @@ const DrawerButton = ({ id }: Props) => {
           <h2 className="text-xl font-semibold text-black dark:text-white">Message Templates</h2>
           
           <div className="space-y-4">
-            <div className="p-4 border dark:border-gray-700 rounded-lg transition-colors">
+            <div className="p-4 border dark:border-neutral-700 rounded-lg transition-colors">
               <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleSection('generic')}>
                 <h3 className="font-medium text-black dark:text-white">Carousel Template</h3>
                 {expandedSections['generic'] ? <ChevronUp size={20} className="text-black dark:text-white" /> : <ChevronDown size={20} className="text-black dark:text-white" />}
@@ -94,7 +94,7 @@ const DrawerButton = ({ id }: Props) => {
                 <div className="mt-3">
                   <p className="text-sm text-black dark:text-gray-300 mb-3">Create interactive carousel messages with multiple elements</p>
                   {!isPro ? (
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md text-sm text-gray-600 dark:text-gray-400">
+                    <div className="p-3 bg-gray-50 dark:bg-neutral-800 rounded-md text-sm text-gray-600 dark:text-gray-400">
                       Upgrade to PRO to use this feature
                     </div>
                   ) : hasCarouselTemplate || optimisticTemplate ? (
@@ -111,7 +111,7 @@ const DrawerButton = ({ id }: Props) => {
               )}
             </div>
 
-            <div className="p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+            <div className="p-4 border dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer transition-colors">
               <div className="flex justify-between items-center" onClick={() => toggleSection('button')}>
                 <h3 className="font-medium text-black dark:text-white">Button Template</h3>
                 {expandedSections['button'] ? <ChevronUp size={20} className="text-black dark:text-white" /> : <ChevronDown size={20} className="text-black dark:text-white" />}

@@ -31,7 +31,7 @@ export default function AuthState() {
 
   if (isPending) {
     return (
-      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-neutral-700 animate-pulse" />
     );
   }
 

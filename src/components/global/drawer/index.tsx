@@ -29,7 +29,7 @@ const Drawer = ({ isOpen, onClose, children }: Props) => {
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors z-50"
+          className="absolute right-4 top-4 p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors z-50"
         >
           <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </button>

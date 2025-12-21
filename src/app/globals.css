@@ -172,38 +172,59 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    /* Base colors - using neutral (no blue tint) */
+    --background: 0 0% 9%; /* neutral-950: #0a0a0a */
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    
+    /* Card/container backgrounds */
+    --card: 0 0% 9%; /* neutral-900: #171717 */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    
+    /* Popover */
+    --popover: 0 0% 9%;
     --popover-foreground: 0 0% 98%;
+    
+    /* Primary */
     --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+    --primary-foreground: 0 0% 9%;
+    
+    /* Secondary */
+    --secondary: 0 0% 15%; /* neutral-800: #262626 */
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    
+    /* Muted */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%; /* neutral-400 */
+    
+    /* Accent */
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 98%;
+    
+    /* Destructive */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    
+    /* Borders & inputs */
+    --border: 0 0% 15%; /* neutral-800 */
+    --input: 0 0% 15%;
+    --ring: 0 0% 83.9%;
+    
+    /* Charts */
+    --chart-1: 271 91% 65%; /* purple-500 */
+    --chart-2: 142 71% 45%; /* green-500 */
+    --chart-3: 25 95% 53%; /* orange-500 */
+    --chart-4: 217 91% 60%; /* blue-500 */
+    --chart-5: 340 75% 55%; /* pink-500 */
+    
+    /* Sidebar */
+    --sidebar-background: 0 0% 6%; /* darker than main bg */
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 271 91% 65%; /* purple-500 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 271 91% 65%;
   }
 }
 

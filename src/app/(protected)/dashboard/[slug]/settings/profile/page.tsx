@@ -74,7 +74,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Photo */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Profile Photo</h3>
         <div className="flex items-center gap-6">
           <div className="relative">
@@ -85,7 +85,7 @@ export default function ProfilePage() {
                 user?.name?.[0] || "U"
               )}
             </div>
-            <button className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-gray-800 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+            <button className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-neutral-800 rounded-full border border-gray-200 dark:border-neutral-700 flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-neutral-700">
               <Camera className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
@@ -101,7 +101,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Personal Information */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
         <div className="space-y-4">
           <div>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
               type="email"
               value={formData.email}
               disabled
-              className="bg-gray-50 dark:bg-gray-800"
+              className="bg-gray-50 dark:bg-neutral-800"
             />
             <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
           </div>

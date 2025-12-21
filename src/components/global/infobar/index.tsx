@@ -12,6 +12,7 @@ import { ChevronRight, Instagram, Facebook, Twitter, Linkedin, Youtube, MessageC
 
 type Props = {
   slug: string;
+  isAdmin?: boolean;
 };
 
 const PLATFORM_CONFIG: Record<Platform, { name: string; color: string; bgGradient: string; icon: React.ElementType }> = {
@@ -25,7 +26,7 @@ const PLATFORM_CONFIG: Record<Platform, { name: string; color: string; bgGradien
   gmail: { name: 'Gmail', color: '#EA4335', bgGradient: 'from-[#EA4335] to-[#FBBC05]', icon: Mail },
 };
 
-const InfoBar = ({ slug }: Props) => {
+const InfoBar = ({ slug, isAdmin = false }: Props) => {
   const { page } = usePaths();
   const currentPage = PAGE_BREAD_CRUMBS.includes(page) || page == slug;
 
@@ -57,7 +58,8 @@ const InfoBar = ({ slug }: Props) => {
         
         {/* Right Side - Platform Switcher & Notifications */}
         <div className="flex items-center gap-3">
-          {/* Platform Switcher */}
+          {/* Platform Switcher - Hidden for admin */}
+          {!isAdmin && (
           <div 
             className="relative"
             onMouseEnter={() => setIsHovered(true)}
@@ -66,7 +68,7 @@ const InfoBar = ({ slug }: Props) => {
             {/* Collapsed - Pill showing active platform */}
             <div className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-full cursor-pointer transition-all duration-300",
-              "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+              "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700",
               "hover:shadow-md",
               isHovered && "opacity-0 pointer-events-none"
             )}>
@@ -88,14 +90,14 @@ const InfoBar = ({ slug }: Props) => {
                   return (
                     <div 
                       key={p}
-                      className="w-4 h-4 rounded-full border border-white dark:border-gray-800 flex items-center justify-center"
+                      className="w-4 h-4 rounded-full border border-white dark:border-neutral-800 flex items-center justify-center"
                       style={{ backgroundColor: PLATFORM_CONFIG[p].color }}
                     >
                       <Icon className="w-2.5 h-2.5 text-white" />
                     </div>
                   );
                 })}
-                <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600 border border-white dark:border-gray-800 flex items-center justify-center text-[8px] font-bold text-gray-600 dark:text-gray-300">
+                <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-600 border border-white dark:border-neutral-800 flex items-center justify-center text-[8px] font-bold text-gray-600 dark:text-gray-300">
                   +{8 - connectedPlatforms.length}
                 </div>
               </div>
@@ -104,7 +106,7 @@ const InfoBar = ({ slug }: Props) => {
             {/* Expanded - All platforms */}
             <div className={cn(
               "absolute right-0 top-0 flex items-center gap-1.5 p-1.5 rounded-full transition-all duration-300",
-              "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg",
+              "bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-lg",
               isHovered ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
             )}>
               {allPlatforms.map((platform) => {
@@ -141,6 +143,7 @@ const InfoBar = ({ slug }: Props) => {
               })}
             </div>
           </div>
+          )}
 
           {/* Notifications */}
           <Notifications slug={slug} />

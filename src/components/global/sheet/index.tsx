@@ -19,7 +19,7 @@ const Sheet = ({ children, trigger, className, side }: Props) => {
       <SheetTrigger className={className}>{trigger}</SheetTrigger>
       <SheetContent
         side={side}
-        className="p-0 bg-white dark:bg-gray-900 border-white dark:border-gray-700"
+        className="p-0 bg-white dark:bg-neutral-900 border-white dark:border-neutral-700"
       >
         {children}
       </SheetContent>

@@ -33,7 +33,7 @@ const AutomationSummaryCard = () => {
 
   if (isLoading) {
     return (
-      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-gray-800 dark:bg-gray-900">
+      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent dark:border-blue-400 rounded-full animate-spin"></div>
         </div>
@@ -95,17 +95,17 @@ const AutomationSummaryCard = () => {
   const formattedDate = new Date(createdAt).toLocaleDateString();
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-gray-800 dark:bg-gray-900">
+    <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex flex-col gap-4">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Automation & Posts</h2>
         <div className="flex items-center justify-between">
           <Tabs defaultValue="automation" className="w-[300px]">
-            <TabsList className="dark:bg-gray-800">
+            <TabsList className="dark:bg-neutral-800">
               <TabsTrigger value="automation" className="dark:text-gray-300 dark:data-[state=active]:text-white">Automation</TabsTrigger>
               <TabsTrigger value="posts" className="dark:text-gray-300 dark:data-[state=active]:text-white">Posts</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button variant="outline" size="sm" className="gap-2 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+          <Button variant="outline" size="sm" className="gap-2 dark:border-neutral-700 dark:text-gray-300 dark:hover:bg-neutral-800">
             <Filter className="h-4 w-4" />
             Filter
           </Button>
@@ -122,7 +122,7 @@ const AutomationSummaryCard = () => {
             <h3 className="text-lg font-semibold dark:text-gray-100">{title}</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
           </div>
-          <Badge variant={getBadgeVariant(status)} className="ml-auto dark:border-gray-700">
+          <Badge variant={getBadgeVariant(status)} className="ml-auto dark:border-neutral-700">
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         </div>
@@ -134,7 +134,7 @@ const AutomationSummaryCard = () => {
           <span className="text-gray-400 dark:text-gray-500 mx-1">•</span>
           <span className="text-sm text-gray-600 dark:text-gray-400">{formattedDate}</span>
         </div>
-        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
           <div>
             <p className="text-2xl font-bold dark:text-gray-100">{metrics.accountsEngaged}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">Account Engaged</p>

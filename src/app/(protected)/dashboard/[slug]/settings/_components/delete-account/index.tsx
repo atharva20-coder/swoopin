@@ -62,7 +62,7 @@ const DeleteAccount = (props: Props) => {
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-6 sm:p-8 border-2 border-red-200 dark:border-red-800 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 sm:p-8 border-2 border-red-200 dark:border-red-800 shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-6">
           <div className="space-y-2">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Delete Account</h2>

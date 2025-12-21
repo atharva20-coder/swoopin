@@ -38,7 +38,7 @@ export const Keywords = ({ id }: Props) => {
   const hasKeywords = keywords.length > 0;
 
   return (
-    <div className="bg-[#F6F7F9] dark:bg-gray-900 flex flex-col gap-y-3 p-3 rounded-xl">
+    <div className="bg-[#F6F7F9] dark:bg-neutral-900 flex flex-col gap-y-3 p-3 rounded-xl">
       <div className="flex flex-wrap justify-start gap-2 items-center">
         {hasKeywords &&
           keywords.map(
@@ -54,7 +54,7 @@ export const Keywords = ({ id }: Props) => {
               )
           )}
         {latestVariable && latestVariable.status === "pending" && (
-          <div className="cursor-progress relative bg-[#F6F7F9] dark:bg-gray-900 flex items-center gap-x-2 text-[#59677D] dark:text-gray-300 py-1 px-4 rounded-full">
+          <div className="cursor-progress relative bg-[#F6F7F9] dark:bg-neutral-900 flex items-center gap-x-2 text-[#59677D] dark:text-gray-300 py-1 px-4 rounded-full">
             <div className="absolute inset-0 bg-[#80C2FF] dark:bg-blue-600 opacity-30 rounded-full" />
             <p>{latestVariable.variables.keyword}</p>
             <span className="text-[#3352CC] dark:text-blue-400 rounded-full">
@@ -68,7 +68,7 @@ export const Keywords = ({ id }: Props) => {
             width: `${Math.max(Math.min(Math.max(keyword.length || 15, 15), 50), 15)}ch`,
           }}
           value={keyword}
-          className="p-2 bg-gray-100/50 dark:bg-gray-700/50 ring-0 border-none outline-none rounded-full dark:text-gray-200 dark:placeholder-gray-400"
+          className="p-2 bg-gray-100/50 dark:bg-neutral-700/50 ring-0 border-none outline-none rounded-full dark:text-gray-200 dark:placeholder-gray-400"
           onChange={onValueChange}
           onKeyUp={onKeyPress}
           required

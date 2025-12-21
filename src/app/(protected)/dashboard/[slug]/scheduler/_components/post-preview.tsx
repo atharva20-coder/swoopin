@@ -214,7 +214,7 @@ export default function PostPreviewModal({
   const InstagramPostPreview = () => (
     <div className="bg-white dark:bg-black h-full flex flex-col">
       {/* Instagram Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-800">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0.5">
             <div className="w-full h-full rounded-full bg-white dark:bg-black flex items-center justify-center">
@@ -236,7 +236,7 @@ export default function PostPreviewModal({
       </div>
       
       {/* Media Area */}
-      <div className="aspect-square bg-gray-50 dark:bg-gray-900 relative flex-shrink-0">
+      <div className="aspect-square bg-gray-50 dark:bg-neutral-900 relative flex-shrink-0">
         {mediaUrls.length > 0 ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -277,7 +277,7 @@ export default function PostPreviewModal({
       </div>
 
       {/* Thumbnails */}
-      <div className="flex gap-1 p-2 bg-gray-50 dark:bg-gray-900 overflow-x-auto">
+      <div className="flex gap-1 p-2 bg-gray-50 dark:bg-neutral-900 overflow-x-auto">
         {mediaUrls.map((url, i) => (
           <button key={i} onClick={() => setCurrentSlide(i)} className={cn("w-10 h-10 rounded shrink-0 overflow-hidden", i === currentSlide && "ring-2 ring-blue-500")}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -290,7 +290,7 @@ export default function PostPreviewModal({
       </div>
 
       {showMediaInput && (
-        <div className="p-2 bg-gray-100 dark:bg-gray-800">
+        <div className="p-2 bg-gray-100 dark:bg-neutral-800">
           <div className="flex gap-1">
             <input type="url" value={newMediaUrl} onChange={(e) => setNewMediaUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMediaUrl()} placeholder="Paste URL..." className="flex-1 px-2 py-1 text-xs rounded border" autoFocus />
             <Button size="sm" className="h-7 text-xs" onClick={addMediaUrl}>Add</Button>
@@ -324,7 +324,7 @@ export default function PostPreviewModal({
         </div>
 
         {/* Tags & Collabs */}
-        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-100 dark:border-neutral-800">
           <AtSign className="w-3 h-3 text-gray-400" />
           {taggedUsers.map((u, i) => (
             <button key={i} onClick={() => setTaggedUsers(taggedUsers.filter((_, idx) => idx !== i))} className="text-[10px] text-blue-600 bg-blue-50 px-1 rounded">@{u}</button>
@@ -573,14 +573,14 @@ export default function PostPreviewModal({
               {/* Screen Content */}
               <div className="w-full h-full pt-12 flex flex-col">
                 {/* Post Type Tabs */}
-                <div className="flex bg-gray-100 dark:bg-gray-800 mx-2 rounded-lg p-0.5">
+                <div className="flex bg-gray-100 dark:bg-neutral-800 mx-2 rounded-lg p-0.5">
                   {POST_TYPES.map((type) => (
                     <button
                       key={type.value}
                       onClick={() => setPostType(type.value)}
                       className={cn(
                         "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-medium transition-all",
-                        postType === type.value ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+                        postType === type.value ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
                       )}
                     >
                       <type.icon className="w-3 h-3" />
@@ -606,8 +606,8 @@ export default function PostPreviewModal({
         </div>
 
         {/* Side Panel - Schedule & Actions */}
-        <div className="w-72 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="w-72 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="p-4 border-b border-gray-100 dark:border-neutral-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">Schedule Post</h3>
           </div>
 
@@ -621,7 +621,7 @@ export default function PostPreviewModal({
                 type="date"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -634,7 +634,7 @@ export default function PostPreviewModal({
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -646,7 +646,7 @@ export default function PostPreviewModal({
               <select
                 value={selectedAutomation}
                 onChange={(e) => setSelectedAutomation(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white"
               >
                 <option value="">None</option>
                 {automations.map((a) => (
@@ -657,7 +657,7 @@ export default function PostPreviewModal({
           </div>
 
           {/* Actions */}
-          <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
+          <div className="p-4 border-t border-gray-100 dark:border-neutral-800 space-y-2">
             <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleSchedule}>
               <Calendar className="w-4 h-4 mr-2" />
               Schedule
@@ -681,7 +681,7 @@ export default function PostPreviewModal({
           </div>
 
           {/* Close */}
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 transition-colors">
+          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-gray-200 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>

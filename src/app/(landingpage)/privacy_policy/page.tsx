@@ -5,12 +5,12 @@ import LandingNav from "@/components/global/landing-nav";
 
 export default function TOCPage() {
   return (
-    <main className="min-h-screen bg-background dark:bg-gray-900">
+    <main className="min-h-screen bg-background dark:bg-neutral-900">
       <LandingNav />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-[72px]">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
-          <div className="w-full lg:w-[250px] lg:sticky lg:top-[92px] lg:h-[calc(100vh-92px)] bg-[#f9fafb] dark:bg-gray-800 rounded-lg p-6">
+          <div className="w-full lg:w-[250px] lg:sticky lg:top-[92px] lg:h-[calc(100vh-92px)] bg-[#f9fafb] dark:bg-neutral-800 rounded-lg p-6">
             <nav className="space-y-2">
               <Link href="#terms" className="block text-sm text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] transition-colors underline">
                 Terms of Service

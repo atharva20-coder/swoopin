@@ -17,7 +17,7 @@ const PaymentCard = ({ current, label, landing }: Props) => {
     <div
       className={cn(
         label !== current
-          ? "dark:bg-gray-900 bg-white border-2 dark:border-gray-800 border-gray-100"
+          ? "dark:bg-neutral-900 bg-white border-2 dark:border-neutral-800 border-gray-100"
           : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
         "p-[2px] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
       )}
@@ -25,7 +25,7 @@ const PaymentCard = ({ current, label, landing }: Props) => {
       <div
         className={cn(
           landing && "bg-gradient-to-br from-white dark:from-gray-900 dark:to-gray-800 to-gray-50",
-          "flex flex-col rounded-2xl p-8 dark:bg-gray-900 bg-white h-full"
+          "flex flex-col rounded-2xl p-8 dark:bg-neutral-900 bg-white h-full"
         )}
       >
         {landing ? (

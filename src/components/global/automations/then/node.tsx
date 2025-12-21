@@ -19,7 +19,7 @@ const ThenNode = ({ id }: Props) => {
   return !data?.data?.listener ? (
     <></>
   ) : (
-    <div className="w-full lg:w-10/12 relative xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-gray-900 gap-y-3">
+    <div className="w-full lg:w-10/12 relative xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-neutral-900 gap-y-3">
       <div className="absolute h-20 left-1/2 bottom-full flex flex-col items-center z-50">
         <span className="h-[9px] w-[9px] bg-black dark:bg-white rounded-full" />
         <Separator
@@ -32,7 +32,7 @@ const ThenNode = ({ id }: Props) => {
         <Warning />
         <strong className="text-black dark:text-white">Then...</strong>
       </div>
-      <div className="bg-[#ededef] hover:bg-[#dfdfdf] dark:bg-gray-800 dark:hover:bg-gray-800 p-3 rounded-xl flex flex-col gap-y-2">
+      <div className="bg-[#ededef] hover:bg-[#dfdfdf] dark:bg-neutral-800 dark:hover:bg-neutral-800 p-3 rounded-xl flex flex-col gap-y-2">
         <div className="flex gap-x-2 items-center">
           {data.data.listener.listener === "MESSAGE" ? (
             <PlaneBlue />
@@ -74,7 +74,7 @@ const ThenNode = ({ id }: Props) => {
             {data.data.carouselTemplates[0]?.elements.map((element: any, index: number) => (
               <div key={index} className="bg-white dark:bg-black p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 {element.imageUrl && (
-                  <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg mb-3 overflow-hidden relative">
+                  <div className="w-full h-48 bg-gray-100 dark:bg-neutral-800 rounded-lg mb-3 overflow-hidden relative">
                     <Image
                       src={element.imageUrl}
                       alt={element.title || "Template element"}

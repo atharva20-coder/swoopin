@@ -17,7 +17,7 @@ const LandingNav = () => {
   };
 
   return (
-    <nav className={`${inter.className} fixed top-0 left-0 right-0 z-50 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-b border-white/20 dark:border-gray-800/20 shadow-sm`}>
+    <nav className={`${inter.className} fixed top-0 left-0 right-0 z-50 bg-white/30 dark:bg-neutral-900/30 backdrop-blur-xl border-b border-white/20 dark:border-neutral-800/20 shadow-sm`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-[72px] md:h-[80px] lg:h-[72px]">
           {/* Logo and Navigation Links */}
@@ -37,7 +37,7 @@ const LandingNav = () => {
                   <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">PRODUCT</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-8">
                     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="/social/instagram" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/social/instagram" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -47,7 +47,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
                       </Link>
-                      <Link href="/social/facebook" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/social/facebook" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
                       </Link>
-                      <Link href="/newsletter" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/newsletter" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
                       </Link>
-                      <Link href="/messenger" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/messenger" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
                       </Link>
-                      <Link href="/sheets" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/sheets" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -95,15 +95,15 @@ const LandingNav = () => {
                   <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">SOLUTIONS</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-8">
                     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Enterprise</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Large scale solutions for enterprise</p>
                       </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Startups</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Flexible solutions for growing businesses</p>
                       </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Agencies</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Specialized solutions for marketing agencies</p>
                       </Link>
@@ -115,11 +115,11 @@ const LandingNav = () => {
                   <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">AGENCIES</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-8">
                     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Partner Program</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Join our partner network</p>
                       </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Agency Directory</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Find certified agency partners</p>
                       </Link>
@@ -139,15 +139,15 @@ const LandingNav = () => {
                   <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">RESOURCES</NavigationMenuTrigger>
                   <NavigationMenuContent className="p-8">
                     <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">How to guide</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Learn how automations work in Auctorn</p>
                       </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Blogs</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">For growing businesses and increasing follower count</p>
                       </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Meet Developer</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Get in touch with the developer</p>
                       </Link>
@@ -162,7 +162,7 @@ const LandingNav = () => {
           <div className="flex items-center gap-4 ml-auto">
             <button
               onClick={toggleMenu}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
               aria-expanded={isMenuOpen}
               aria-label="Toggle menu"
             >
@@ -191,7 +191,7 @@ const LandingNav = () => {
             </button>
             <button
               onClick={toggleTheme}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
@@ -250,7 +250,7 @@ const LandingNav = () => {
             </Link>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
+              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? (
@@ -288,7 +288,7 @@ const LandingNav = () => {
 
         {/* Mobile Menu */}
         <div
-          className={`md:hidden absolute left-0 right-0 top-[72px] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg transform transition-all duration-300 ease-in-out origin-top ${isMenuOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}
+          className={`md:hidden absolute left-0 right-0 top-[72px] bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 shadow-lg transform transition-all duration-300 ease-in-out origin-top ${isMenuOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}
         >
           <div className="h-[calc(100vh-72px)] overflow-y-auto px-4 pt-2 pb-8 space-y-4 flex flex-col">
             <div className="flex-1">
@@ -299,7 +299,7 @@ const LandingNav = () => {
                   </AccordionTrigger>
                   <AccordionContent className="px-3">
                     <div className="space-y-4">
-                      <Link href="/social/instagram" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/social/instagram" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
                       </Link>
-                      <Link href="/social/facebook" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/social/facebook" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -319,7 +319,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
                       </Link>
-                      <Link href="/newsletter" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/newsletter" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -329,7 +329,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
                       </Link>
-                      <Link href="/messenger" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/messenger" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -339,7 +339,7 @@ const LandingNav = () => {
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
                       </Link>
-                      <Link href="/sheets" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors duration-200">
+                      <Link href="/sheets" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
                         <div className="flex items-center gap-3 mb-2">
                           <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
                           <div className="flex items-center gap-2">
@@ -397,7 +397,7 @@ const LandingNav = () => {
                 </AccordionItem>
               </Accordion>
             </div>
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="pt-4 border-t border-gray-200 dark:border-neutral-800">
               <Link href="/dashboard" className="group relative block text-sm font-medium text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-gray-900 dark:border-white hover:border-[#4F46E5] dark:hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">

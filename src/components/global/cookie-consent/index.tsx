@@ -28,7 +28,7 @@ const CookieConsent = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg"
+          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 shadow-lg"
         >
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">

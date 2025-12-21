@@ -103,7 +103,7 @@ const AutomationList = (props: Props) => {
           <div
             key={automation.id}
             className={cn(
-              "group relative bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-300",
+              "group relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden transition-all duration-300",
               automation.id !== 'no-results' && "hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800"
             )}
           >
@@ -114,7 +114,7 @@ const AutomationList = (props: Props) => {
                 className="block p-5"
               >
                 {loadingId === automation.id && (
-                  <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10">
+                  <div className="absolute inset-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex items-center justify-center z-10">
                     <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
@@ -127,7 +127,7 @@ const AutomationList = (props: Props) => {
                         "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                         automation.listener?.listener === "SMARTAI" 
                           ? "bg-gradient-to-br from-indigo-500 to-purple-600" 
-                          : "bg-gray-100 dark:bg-gray-800"
+                          : "bg-gray-100 dark:bg-neutral-800"
                       )}>
                         {automation.listener?.listener === "SMARTAI" ? (
                           <Sparkles className="w-5 h-5 text-white" />
@@ -173,7 +173,7 @@ const AutomationList = (props: Props) => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 mt-3">
-                        <span className="text-xs text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-full px-3 py-1">
+                        <span className="text-xs text-gray-400 border border-dashed border-gray-300 dark:border-neutral-700 rounded-full px-3 py-1">
                           No keywords set
                         </span>
                       </div>
@@ -187,7 +187,7 @@ const AutomationList = (props: Props) => {
                       "px-3 py-1 rounded-full text-xs font-medium",
                       automation.active 
                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" 
-                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        : "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400"
                     )}>
                       {automation.active ? "Active" : "Inactive"}
                     </span>
@@ -207,7 +207,7 @@ const AutomationList = (props: Props) => {
                         Smart AI
                       </span>
                     ) : (
-                      <span className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-lg">
+                      <span className="px-3 py-1.5 bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-lg">
                         Standard
                       </span>
                     )}
@@ -219,7 +219,7 @@ const AutomationList = (props: Props) => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
                         <Zap className="w-5 h-5 text-gray-400" />
                       </div>
                       <div>
@@ -238,7 +238,7 @@ const AutomationList = (props: Props) => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between mt-4 p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Showing <span className="font-medium">{startIndex + 1}-{Math.min(endIndex, totalItems)}</span> of <span className="font-medium">{totalItems}</span>
           </p>

@@ -125,7 +125,7 @@ export default function SignInPage() {
               <Button
                 variant="ghost"
                 onClick={() => setShowVerificationNeeded(false)}
-                className="w-full h-11 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                className="w-full h-11 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full"
               >
                 Back to Sign In
               </Button>
@@ -166,14 +166,14 @@ export default function SignInPage() {
           </div>
 
           {/* Form Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-700">
             {/* Google Sign In */}
             <Button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-11 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full font-medium"
+              className="w-full h-11 bg-transparent hover:bg-gray-50 dark:hover:bg-neutral-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full font-medium"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path
@@ -211,7 +211,7 @@ export default function SignInPage() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-11 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 rounded-full px-5 border border-gray-200 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-600"
+                  className="w-full h-11 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white placeholder:text-gray-400 rounded-full px-5 border border-gray-200 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-600"
                   required
                 />
                 <Button
@@ -239,7 +239,7 @@ export default function SignInPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 rounded-full px-5 border border-gray-200 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-600"
+                  className="w-full h-11 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white placeholder:text-gray-400 rounded-full px-5 border border-gray-200 dark:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-600"
                   required
                   autoFocus
                 />

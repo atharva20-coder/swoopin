@@ -41,7 +41,7 @@ const Trigger = ({ id }: Props) => {
   // If triggers exist, display the active trigger configuration
   if (data?.data && data?.data?.trigger.length > 0) {
     return (
-      <div className="flex flex-col gap-y-6 items-center dark:bg-gray-900">
+      <div className="flex flex-col gap-y-6 items-center dark:bg-neutral-900">
         {/* Display the first trigger type */}
         <ActiveTrigger
           type={data.data.trigger[0].type as "DM" | "COMMENT" | "KEYWORDS"}
@@ -52,10 +52,10 @@ const Trigger = ({ id }: Props) => {
         {data?.data?.trigger.length > 1 && (
           <>
             <div className="relative w-6/12 my-4">
-              <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900">
+              <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 dark:text-gray-400 bg-white dark:bg-neutral-900">
                 or
               </p>
-              <Separator className="border-gray-200 dark:border-gray-900" />
+              <Separator className="border-gray-200 dark:border-neutral-900" />
             </div>
             <ActiveTrigger
               type={data.data.trigger[1].type as "DM" | "COMMENT" | "KEYWORDS"}
@@ -66,10 +66,10 @@ const Trigger = ({ id }: Props) => {
 
         {/* Display keywords section with separator */}
         <div className="relative w-6/12 my-4">
-          <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800">
+          <p className="absolute transform px-2 -translate-y-1/2 top-1/2 -translate-x-1/2 left-1/2 text-gray-500 dark:text-gray-400 bg-white dark:bg-neutral-800">
             with key words
           </p>
-          <Separator className="border-gray-200 dark:border-gray-900" />
+          <Separator className="border-gray-200 dark:border-neutral-900" />
         </div>
 
         {/* Display keywords trigger */}
@@ -88,7 +88,7 @@ const Trigger = ({ id }: Props) => {
   // If no triggers exist, display the trigger selection interface
   return (
     <TriggerButton label="Add Trigger">
-      <div className="flex flex-col gap-y-3 dark:bg-gray-900">
+      <div className="flex flex-col gap-y-3 dark:bg-neutral-900">
         {/* Map through available trigger types */}
         {AUTOMATION_TRIGGERS.map((trigger) => (
           <div
@@ -97,7 +97,7 @@ const Trigger = ({ id }: Props) => {
             className={cn(
               "p-4 rounded-xl flex cursor-pointer flex-col gap-y-2 transition-all duration-200 border",
               !types?.find((t) => t === trigger.type)
-                ? "border-black dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white"
+                ? "border-black dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-neutral-800 dark:text-white"
                 : "border-green-500 border-2 dark:text-white"
             )}
           >

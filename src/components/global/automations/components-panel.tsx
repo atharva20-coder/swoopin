@@ -198,7 +198,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
       key={item.id}
       draggable
       onDragStart={(e) => onDragStart(e, nodeType, item.type, item.label, item.description)}
-      className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-grab hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all active:cursor-grabbing"
+      className="p-3 bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 cursor-grab hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 transition-all active:cursor-grabbing"
     >
       <div className="flex items-center gap-2 mb-1">
         <div className={colorClass}>{item.icon}</div>
@@ -215,11 +215,11 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   return (
     <div
       className={cn(
-        "w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto flex flex-col",
+        "w-64 bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col",
         className
       )}
     >
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           Components
         </h2>

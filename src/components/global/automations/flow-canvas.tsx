@@ -219,7 +219,7 @@ const FlowCanvasInner = ({
         connectionMode={ConnectionMode.Loose}
         fitView
         fitViewOptions={{ padding: 0.2 }}
-        className="bg-white dark:bg-gray-950"
+        className="bg-white dark:bg-neutral-950"
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: true,
@@ -231,9 +231,9 @@ const FlowCanvasInner = ({
           gap={20}
           size={2}
           color="#d1d5db"
-          className="dark:[&>svg>pattern>circle]:fill-gray-600"
+          className="dark:[&>svg>pattern>circle]:fill-neutral-500"
         />
-        <Controls className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg" />
+        <Controls className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg" />
       </ReactFlow>
     </div>
   );

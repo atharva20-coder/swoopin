@@ -49,7 +49,7 @@ const ConnectedAccounts = () => {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-20 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          <div key={i} className="h-20 rounded-xl bg-gray-100 dark:bg-neutral-800 animate-pulse" />
         ))}
       </div>
     )
@@ -75,7 +75,7 @@ const ConnectedAccounts = () => {
           {connectedPlatforms.map((platform) => (
             <div 
               key={platform.id}
-              className="relative p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-shadow"
+              className="relative p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${platform.gradient} flex items-center justify-center`}>
@@ -110,7 +110,7 @@ const ConnectedAccounts = () => {
           <Link
             key={platform.id}
             href={`/dashboard/${params.slug}/integrations`}
-            className="group flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all"
+            className="group flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all"
           >
             <div 
               className="w-10 h-10 rounded-lg flex items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity"

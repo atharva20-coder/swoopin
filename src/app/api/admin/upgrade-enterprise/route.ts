@@ -8,11 +8,11 @@ import { auth } from "@/lib/auth";
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
 // List of admin email addresses who can upgrade users
-// Add your email and any team member emails here
-const ADMIN_EMAILS = [
-  "atharva@swoopin.in",
-  // Add more admin emails as needed
-];
+// Set in .env file: ADMIN_EMAILS=admin1@example.com,admin2@example.com
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter((email) => email.length > 0);
 
 /**
  * POST /api/admin/upgrade-enterprise

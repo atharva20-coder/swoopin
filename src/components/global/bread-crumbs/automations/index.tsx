@@ -17,7 +17,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
   const { latestVariable } = useMutationDataState(["update-automation"]);
 
   return (
-    <div className="relative w-full px-6 py-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md flex items-center gap-x-4 backdrop-filter backdrop-blur-sm">
+    <div className="relative w-full px-6 py-4 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-md flex items-center gap-x-4 backdrop-filter backdrop-blur-sm">
       <div className="flex items-center gap-x-3 min-w-0">
         <p className="text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">Automations</p>
         <ChevronRight className="flex-shrink-0 w-4 h-4" color="#6B7280" />
@@ -36,7 +36,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
           {!edit && (
             <button
               onClick={enableEdit}
-              className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+              className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors group"
             >
               <PencilIcon size={14} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
             </button>
@@ -51,7 +51,7 @@ const AutomationsBreadCrumb = ({ id }: Props) => {
             All changes auto-saved
           </p>
         </div>
-        <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
+        <div className="h-6 w-px bg-gray-200 dark:bg-neutral-700" />
         <ActivateAutomationButton id={id} />
       </div>
     </div>

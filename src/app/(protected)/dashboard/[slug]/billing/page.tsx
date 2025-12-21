@@ -57,23 +57,20 @@ const PLANS = {
   ENTERPRISE: {
     name: "Enterprise",
     icon: Rocket,
-    description: "For agencies & power users",
+    description: "Custom plan for your needs",
     monthlyPrice: 0,
     annualPrice: 0,
     color: "from-purple-500 to-pink-600",
     popular: false,
     isContactPlan: true,
     features: [
-      { text: "Unlimited DMs & Comments", included: true },
-      { text: "Unlimited Automations", included: true },
-      { text: "Unlimited Scheduling", included: true },
-      { text: "Unlimited AI responses", included: true },
-      { text: "Unlimited analytics history", included: true },
-      { text: "Unlimited Carousel templates", included: true },
-      { text: "API access", included: true },
-      { text: "Multi-account management", included: true },
-      { text: "Custom AI training", included: true },
-      { text: "Dedicated support", included: true },
+      { text: "Custom DM & Comment limits", included: true },
+      { text: "Custom Automation limits", included: true },
+      { text: "Custom Scheduling limits", included: true },
+      { text: "Custom AI response limits", included: true },
+      { text: "API access available", included: true },
+      { text: "Priority dedicated support", included: true },
+      { text: "Negotiated pricing", included: true },
     ],
   },
 };
@@ -111,6 +108,17 @@ export default function BillingPage() {
   const [isLoadingUsage, setIsLoadingUsage] = useState(true);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<Date | null>(null);
+  
+  // Enterprise enquiry state
+  const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
+  const [enterpriseForm, setEnterpriseForm] = useState({
+    company: "",
+    teamSize: "",
+    useCase: "",
+    expectedVolume: "",
+  });
+  const [isSubmittingEnquiry, setIsSubmittingEnquiry] = useState(false);
+  const [hasExistingEnquiry, setHasExistingEnquiry] = useState(false);
   
   // Usage stats from API
   const [usage, setUsage] = useState({
@@ -227,6 +235,35 @@ export default function BillingPage() {
     return Math.min((used / limit) * 100, 100);
   };
 
+  const handleEnterpriseSubmit = async () => {
+    setIsSubmittingEnquiry(true);
+    try {
+      const response = await fetch("/api/admin/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(enterpriseForm),
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success("Enterprise request submitted! We'll review and get back to you soon.");
+        setShowEnterpriseModal(false);
+        setHasExistingEnquiry(true);
+        setEnterpriseForm({ company: "", teamSize: "", useCase: "", expectedVolume: "" });
+      } else if (data.existing) {
+        toast.info("You already have a pending enterprise enquiry.");
+        setHasExistingEnquiry(true);
+        setShowEnterpriseModal(false);
+      } else {
+        toast.error(data.error || "Failed to submit request");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsSubmittingEnquiry(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
         {/* Header */}
@@ -264,7 +301,7 @@ export default function BillingPage() {
           </div>
         )}
         {currentPlan === "FREE" && (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-neutral-800">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
@@ -278,7 +315,7 @@ export default function BillingPage() {
                   <span className="text-gray-600 dark:text-gray-400">DMs & Comments</span>
                   <span className="font-medium text-gray-900 dark:text-white">{usage.dmsUsed}/{usage.dmsLimit}</span>
                 </div>
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div 
                     className={cn(
                       "h-full rounded-full transition-all",
@@ -293,7 +330,7 @@ export default function BillingPage() {
                   <span className="text-gray-600 dark:text-gray-400">Automations</span>
                   <span className="font-medium text-gray-900 dark:text-white">{usage.automations}/{usage.automationsLimit}</span>
                 </div>
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div 
                     className={cn(
                       "h-full rounded-full transition-all",
@@ -308,7 +345,7 @@ export default function BillingPage() {
                   <span className="text-gray-600 dark:text-gray-400">Scheduled Posts</span>
                   <span className="font-medium text-gray-900 dark:text-white">{usage.scheduledPosts}/{usage.scheduledPostsLimit}</span>
                 </div>
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-purple-500 rounded-full transition-all"
                     style={{ width: `${usagePercentage(usage.scheduledPosts, usage.scheduledPostsLimit)}%` }}
@@ -327,7 +364,7 @@ export default function BillingPage() {
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-800 inline-flex items-center">
+          <div className="bg-white dark:bg-neutral-900 p-1 rounded-xl border border-gray-200 dark:border-neutral-800 inline-flex items-center">
             <button
               onClick={() => setBillingCycle("monthly")}
               className={cn(
@@ -368,11 +405,11 @@ export default function BillingPage() {
               <div
                 key={planKey}
                 className={cn(
-                  "relative bg-white dark:bg-gray-900 rounded-2xl border-2 transition-all hover:shadow-lg",
+                  "relative bg-white dark:bg-neutral-900 rounded-2xl border-2 transition-all hover:shadow-lg",
                   isCurrentPlan
                     ? "border-blue-500 dark:border-blue-400 shadow-lg"
-                    : "border-gray-200 dark:border-gray-800",
-                  plan.popular && "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-950"
+                    : "border-gray-200 dark:border-neutral-800",
+                  plan.popular && "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-neutral-950"
                 )}
               >
                 {plan.popular && (
@@ -436,25 +473,19 @@ export default function BillingPage() {
                   {/* CTA Button - Different for Enterprise */}
                   {(plan as any).isContactPlan ? (
                     <div className="space-y-3 mb-6">
-                      <a
-                        href={`mailto:atharva@swoopin.in?subject=${encodeURIComponent('Enterprise Plan Inquiry')}&body=${encodeURIComponent(`Hi Swoopin Team,\n\nI'm interested in the Enterprise plan for my business.\n\n--- Please fill in your details ---\nName: \nCompany: \nTeam Size: \nUse Case: \nExpected Monthly Volume (DMs/Comments): \n\nLooking forward to hearing from you!\n\nBest regards`)}`}
-                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                      <Button
+                        onClick={() => setShowEnterpriseModal(true)}
+                        disabled={hasExistingEnquiry}
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:opacity-90 text-white font-semibold"
                       >
-                        <Mail className="w-4 h-4" />
-                        Contact via Email
-                      </a>
-                      <a
-                        href="https://instagram.com/swoopin.in"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 text-white font-semibold rounded-lg transition-opacity"
-                      >
-                        <Instagram className="w-4 h-4" />
-                        DM on Instagram
-                      </a>
-                      <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                        Send &quot;ENTERPRISE&quot; to start the conversation
-                      </p>
+                        <Rocket className="w-4 h-4 mr-2" />
+                        {hasExistingEnquiry ? "Request Pending" : "Request Enterprise"}
+                      </Button>
+                      {hasExistingEnquiry && (
+                        <p className="text-xs text-center text-green-600 dark:text-green-400">
+                          ✓ Your enterprise request is being reviewed
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <Button
@@ -463,7 +494,7 @@ export default function BillingPage() {
                       className={cn(
                         "w-full mb-6",
                         isCurrentPlan
-                          ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
+                          ? "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
                           : planKey === "PRO"
                           ? "bg-blue-600 hover:bg-blue-700 text-white"
                           : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
@@ -511,7 +542,7 @@ export default function BillingPage() {
         </div>
 
         {/* Payment Methods */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800 text-center">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-neutral-800 text-center">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Accepted Payment Methods
           </h3>
@@ -532,16 +563,16 @@ export default function BillingPage() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-neutral-800">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
             Frequently Asked Questions
           </h3>
           <div className="max-w-2xl mx-auto space-y-3">
             {FAQ.map((item, i) => (
-              <div key={i} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+              <div key={i} className="border border-gray-200 dark:border-neutral-700 rounded-xl overflow-hidden">
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   <span className="font-medium text-gray-900 dark:text-white">{item.q}</span>
                   {expandedFaq === i ? (
@@ -576,7 +607,7 @@ export default function BillingPage() {
         {/* Cancel Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Cancel Subscription?
             </h3>
@@ -598,6 +629,88 @@ export default function BillingPage() {
                 disabled={isLoading !== null}
               >
                 {isLoading ? "Cancelling..." : "Confirm Cancel"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise Request Modal */}
+      {showEnterpriseModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Request Enterprise Plan
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Tell us about your needs and we'll create a custom plan for you.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
+                <input
+                  type="text"
+                  value={enterpriseForm.company}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, company: e.target.value })}
+                  placeholder="Your company"
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Team Size</label>
+                <select
+                  value={enterpriseForm.teamSize}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, teamSize: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select team size</option>
+                  <option value="1-5">1-5 members</option>
+                  <option value="6-20">6-20 members</option>
+                  <option value="21-50">21-50 members</option>
+                  <option value="50+">50+ members</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Use Case</label>
+                <textarea
+                  value={enterpriseForm.useCase}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, useCase: e.target.value })}
+                  placeholder="Tell us how you plan to use Swoopin"
+                  rows={3}
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Expected Monthly Volume</label>
+                <select
+                  value={enterpriseForm.expectedVolume}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, expectedVolume: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select expected volume</option>
+                  <option value="1000-5000">1,000 - 5,000 DMs/month</option>
+                  <option value="5000-10000">5,000 - 10,000 DMs/month</option>
+                  <option value="10000-50000">10,000 - 50,000 DMs/month</option>
+                  <option value="50000+">50,000+ DMs/month</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowEnterpriseModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={handleEnterpriseSubmit}
+                disabled={isSubmittingEnquiry}
+              >
+                {isSubmittingEnquiry ? "Submitting..." : "Submit Request"}
               </Button>
             </div>
           </div>

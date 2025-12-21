@@ -8,24 +8,25 @@ datasource db {
 }
 
 model User {
-  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email             String             @unique
-  createdAt         DateTime           @default(now())
-  openAiKey         String?            @unique
-  emailVerified     Boolean            @default(false)
-  image             String?
-  name              String?
-  updatedAt         DateTime           @default(now()) @updatedAt
-  accounts          Account[]
-  analytics         Analytics[]
-  automations       Automation[]
-  carouselTemplates CarouselTemplate[]
-  contentDrafts     ContentDraft[]
-  integrations      Integrations[]
-  notification      Notification[]
-  scheduledPosts    ScheduledPost[]
-  sessions          Session[]
-  subscription      Subscription?
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String              @unique
+  createdAt           DateTime            @default(now())
+  openAiKey           String?             @unique
+  emailVerified       Boolean             @default(false)
+  image               String?
+  name                String?
+  updatedAt           DateTime            @default(now()) @updatedAt
+  accounts            Account[]
+  analytics           Analytics[]
+  automations         Automation[]
+  carouselTemplates   CarouselTemplate[]
+  contentDrafts       ContentDraft[]
+  integrations        Integrations[]
+  notification        Notification[]
+  scheduledPosts      ScheduledPost[]
+  sessions            Session[]
+  subscription        Subscription?
+  enterpriseEnquiries EnterpriseEnquiry[]
 
   @@map("user")
 }
@@ -344,4 +345,39 @@ enum ScheduleStatus {
   POSTED
   FAILED
   CANCELLED
+}
+
+enum ENQUIRY_STATUS {
+  PENDING
+  CONTACTED
+  NEGOTIATING
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+model EnterpriseEnquiry {
+  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String         @db.Uuid
+  email                  String
+  name                   String?
+  company                String?
+  teamSize               String?
+  useCase                String?
+  expectedVolume         String?
+  status                 ENQUIRY_STATUS @default(PENDING)
+  notes                  String?
+  // Custom limits for this enterprise user
+  customDmsLimit         Int?
+  customAutomationsLimit Int?
+  customScheduledLimit   Int?
+  customAiLimit          Int?
+  // Deal info
+  dealAmount             Float?
+  dealClosed             Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  User                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
 }

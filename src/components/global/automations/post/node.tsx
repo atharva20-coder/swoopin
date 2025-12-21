@@ -15,7 +15,7 @@ const PostNode = ({ id }: Props) => {
   return (
     data?.data &&
     data.data.posts.length > 0 && (
-      <div className="w-10/12 lg:w-8/12 relative xl:w-4/12 p-6 rounded-2xl flex flex-col bg-white dark:bg-gray-800 gap-y-4 shadow-lg dark:shadow-gray-900/30 transition-all duration-300 hover:shadow-xl dark:hover:shadow-gray-900/40">
+      <div className="w-10/12 lg:w-8/12 relative xl:w-4/12 p-6 rounded-2xl flex flex-col bg-white dark:bg-neutral-800 gap-y-4 shadow-lg dark:shadow-gray-900/30 transition-all duration-300 hover:shadow-xl dark:hover:shadow-gray-900/40">
         <div className="absolute h-20 left-1/2 bottom-full flex flex-col items-center z-50">
           <span className="h-2.5 w-2.5 bg-primary dark:bg-primary rounded-full shadow-md" />
           <Separator
@@ -28,7 +28,7 @@ const PostNode = ({ id }: Props) => {
           <Warning className="text-amber-500 dark:text-amber-400" />
           <p className="font-semibold text-lg text-gray-900 dark:text-gray-100">If they comment on...</p>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl flex flex-col gap-y-3 backdrop-blur-sm">
+        <div className="bg-gray-50 dark:bg-neutral-700/50 p-4 rounded-xl flex flex-col gap-y-3 backdrop-blur-sm">
           <div className="flex gap-x-3 items-center">
             <InstagramBlue className="w-5 h-5" />
             <p className="text-gray-700 dark:text-gray-200 font-medium">These posts</p>
