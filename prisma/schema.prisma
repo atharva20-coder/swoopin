@@ -27,6 +27,10 @@ model User {
   sessions            Session[]
   subscription        Subscription?
   enterpriseEnquiries EnterpriseEnquiry[]
+  // Onboarding relations
+  userProfile         UserProfile?
+  organization        Organization?
+  onboardingState     OnboardingState?
 
   @@map("user")
 }
@@ -391,4 +395,130 @@ model EnterpriseEnquiry {
 
   @@index([userId])
   @@index([status])
+}
+
+// ============================================
+// ONBOARDING MODELS
+// ============================================
+
+enum ProfileType {
+  CREATOR
+  INFLUENCER
+  AGENCY
+  BRAND
+  COACH
+  EDUCATOR
+  ECOMMERCE
+  EXPLORING
+}
+
+enum FollowerRange {
+  UNDER_1K
+  FROM_1K_TO_10K
+  FROM_10K_TO_50K
+  FROM_50K_TO_100K
+  OVER_100K
+}
+
+enum OrgType {
+  BRAND
+  AGENCY
+}
+
+enum TeamSize {
+  SIZE_1_5
+  SIZE_6_10
+  SIZE_11_25
+  SIZE_25_PLUS
+}
+
+enum OfferingType {
+  PHYSICAL_PRODUCTS
+  DIGITAL_PRODUCTS
+  SERVICES
+  SUBSCRIPTIONS
+}
+
+// User onboarding profile (extends User)
+model UserProfile {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String        @unique @db.Uuid
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Screen 0: Identity
+  displayName       String?
+  phoneNumber       String?
+  bio               String?
+  pronouns          String?
+  age               Int?
+  
+  // Screen 1: User Type
+  profileType       ProfileType   @default(EXPLORING)
+  
+  // Screen 2: Content categories (stored as JSON array)
+  contentCategories String[]
+  
+  // Screen 3: Platforms
+  platforms         String[]
+  
+  // Creator/Influencer specific
+  primaryPlatform   String?
+  followerRange     FollowerRange?
+  
+  // Coach/Educator specific
+  sellsCoaching     Boolean       @default(false)
+  sellsCourses      Boolean       @default(false)
+  sellsWorkshops    Boolean       @default(false)
+  sellsMemberships  Boolean       @default(false)
+  bookingLink       String?
+  
+  // Goals
+  automationGoals   String[]
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("user_profile")
+}
+
+// Organization (for Brand/Agency)
+model Organization {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String        @unique @db.Uuid
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  orgType          OrgType
+  name             String
+  logoUrl          String?
+  website          String?
+  
+  // Agency specific
+  teamSize         TeamSize?
+  industryFocus    String[]
+  clientHandles    String[]
+  
+  // Brand specific
+  offeringType     OfferingType?
+  monthlyDmVolume  String?
+  isSupportFocused Boolean       @default(false)
+  
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("organization")
+}
+
+// Onboarding state tracking
+model OnboardingState {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @unique @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  currentStep Int       @default(0)
+  isCompleted Boolean   @default(false)
+  
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@map("onboarding_state")
 }
