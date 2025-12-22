@@ -25,8 +25,11 @@ export const generateGeminiResponse = async (
 ): Promise<string | null> => {
   try {
     if (!geminiApiKey) {
+      console.error("Gemini: GEMINI_API_KEY is not configured");
       throw new Error("GEMINI_API_KEY is not configured");
     }
+
+    console.log("Gemini: API key configured, length:", geminiApiKey.length);
 
     // Build the full prompt with system context and chat history
     let fullPrompt = `${systemPrompt}\n\n`;
@@ -43,14 +46,18 @@ export const generateGeminiResponse = async (
 
     fullPrompt += `User's current message: ${userMessage}\n\nYour response:`;
 
+    console.log("Gemini: Calling model", GEMINI_MODEL, "with prompt length:", fullPrompt.length);
+
     const response = await gemini.models.generateContent({
       model: GEMINI_MODEL,
       contents: fullPrompt,
     });
 
+    console.log("Gemini: Response received, text:", response.text ? response.text.substring(0, 50) + "..." : "NULL");
+
     return response.text || null;
   } catch (error) {
-    console.error("Error generating Gemini response:", error);
+    console.error("Gemini: Error generating response:", error);
     return null;
   }
 };

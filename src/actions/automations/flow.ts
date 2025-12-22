@@ -109,9 +109,13 @@ export const saveAutomationFlowBatch = async (
   await onCurrentUser();
   
   try {
-    // Use a transaction to ensure atomicity
+    // Use a transaction with extended timeout for slow connections
     await client.$transaction(async (tx) => {
       // 1. Save flow nodes and edges
+      console.log(`[SAVE] Saving ${payload.nodes.length} nodes, ${payload.edges.length} edges`);
+      console.log(`[SAVE] Node types:`, payload.nodes.map(n => `${n.label}(${n.type}:${n.subType})`));
+      console.log(`[SAVE] Node configs:`, payload.nodes.map(n => ({ label: n.label, config: n.config })));
+      
       await tx.flowEdge.deleteMany({ where: { automationId } });
       await tx.flowNode.deleteMany({ where: { automationId } });
       
@@ -144,33 +148,27 @@ export const saveAutomationFlowBatch = async (
         });
       }
 
-      // 2. Sync triggers - remove old, add new
+      // 2. Sync triggers - remove old, add new (use createMany for efficiency)
       await tx.trigger.deleteMany({ where: { automationId } });
-      for (const triggerType of payload.triggers) {
-        await tx.trigger.create({
-          data: {
+      if (payload.triggers.length > 0) {
+        await tx.trigger.createMany({
+          data: payload.triggers.map((triggerType) => ({
             automationId,
             type: triggerType as "DM" | "COMMENT",
-          },
+          })),
         });
       }
 
-      // 3. Sync keywords - check for existing and add new ones
-      const existingKeywords = await tx.keyword.findMany({
-        where: { automationId },
-        select: { word: true },
-      });
-      const existingWords = new Set(existingKeywords.map(k => k.word?.toLowerCase()));
-      
-      for (const keyword of payload.keywords) {
-        if (keyword && !existingWords.has(keyword.toLowerCase())) {
-          await tx.keyword.create({
-            data: {
-              automationId,
-              word: keyword,
-            },
-          });
-        }
+      // 3. Sync keywords - delete and recreate for simplicity
+      await tx.keyword.deleteMany({ where: { automationId } });
+      const uniqueKeywords = Array.from(new Set(payload.keywords.filter(k => k && k.trim())));
+      if (uniqueKeywords.length > 0) {
+        await tx.keyword.createMany({
+          data: uniqueKeywords.map((keyword) => ({
+            automationId,
+            word: keyword,
+          })),
+        });
       }
 
       // 4. Upsert listener if provided
@@ -199,6 +197,9 @@ export const saveAutomationFlowBatch = async (
           });
         }
       }
+    }, {
+      maxWait: 10000, // 10 seconds to acquire connection
+      timeout: 30000, // 30 seconds for transaction to complete
     });
 
     return { status: 200, data: "Flow saved successfully" };
@@ -212,10 +213,14 @@ export const saveAutomationFlowBatch = async (
 export const getFlowData = async (automationId: string) => {
   await onCurrentUser();
   try {
+    console.log(`[LOAD] Loading flow for automation: ${automationId}`);
+    
     const nodes = await client.flowNode.findMany({
       where: { automationId },
       orderBy: { createdAt: "asc" },
     });
+
+    console.log(`[LOAD] Found ${nodes.length} nodes from DB:`, nodes.map(n => `${n.label}(${n.type}:${n.subType})`));
 
     const edges = await client.flowEdge.findMany({
       where: { automationId },

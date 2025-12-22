@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { sendEmailAction } from "@/actions/send-email.action";
 
 // List of admin email addresses
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -22,7 +23,7 @@ async function isAdmin(): Promise<boolean> {
 /**
  * POST /api/admin/enterprise-payment
  * Generate a Stripe payment link with custom amount for enterprise user
- * Uses inline price_data so no product needs to be pre-created in Stripe
+ * Stores payment info in DB and sends email via nodemailer
  */
 export async function POST(req: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { enquiryId, amount, currency = "INR", description } = body;
+    const { enquiryId, amount, currency = "INR", description, sendEmail = true } = body;
 
     if (!enquiryId || !amount) {
       return NextResponse.json(
@@ -50,8 +51,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Enquiry not found" }, { status: 404 });
     }
 
+    // Set expiry to 48 hours from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 48);
+
     // Create Stripe Checkout Session with inline price_data
-    // This allows custom pricing without pre-creating products
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
               name: "Swoopin Enterprise Plan",
               description: description || `Custom enterprise plan for ${enquiry.company || enquiry.name || enquiry.email}`,
             },
-            unit_amount: Math.round(amount * 100), // Convert to smallest currency unit (paise for INR)
+            unit_amount: Math.round(amount * 100), // Convert to paise
             recurring: {
               interval: "month",
             },
@@ -71,8 +75,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_HOST_URL}/dashboard/{CHECKOUT_SESSION_ID}/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_HOST_URL}/dashboard/{CHECKOUT_SESSION_ID}/billing?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_HOST_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_HOST_URL}/billing?canceled=true`,
       customer_email: enquiry.email,
       metadata: {
         enquiryId: enquiry.id,
@@ -96,19 +100,41 @@ export async function POST(req: NextRequest) {
     await client.enterpriseEnquiry.update({
       where: { id: enquiryId },
       data: {
-        notes: `${enquiry.notes || ""}\n[${new Date().toISOString()}] Payment link generated: ${session.url}`.trim(),
+        stripeSessionId: session.id,
+        paymentLinkUrl: session.url,
+        paymentLinkExpiresAt: expiresAt,
+        paymentStatus: "PENDING",
       },
     });
+
+    // Send email if requested
+    if (sendEmail && session.url) {
+      const formattedAmount = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(amount);
+
+      await sendEmailAction({
+        to: enquiry.email,
+        subject: "Your Enterprise Plan Payment Link",
+        meta: {
+          description: `Your custom Enterprise plan is ready! Amount: ${formattedAmount}/month. Click below to complete payment. This link expires in 48 hours.`,
+          link: session.url,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
       paymentUrl: session.url,
       sessionId: session.id,
+      expiresAt: expiresAt.toISOString(),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating enterprise payment:", error);
     return NextResponse.json(
-      { error: "Failed to create payment link" },
+      { error: error?.message || "Failed to create payment link" },
       { status: 500 }
     );
   }

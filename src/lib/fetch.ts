@@ -862,24 +862,30 @@ export const generateTokens = async (code: string) => {
 };
 
 /**
- * Check if a user follows the Instagram account
- * Uses the Instagram Graph API to check follower status
+ * Check if a user follows the Instagram Business/Creator account
+ * Uses Instagram User Profile API with is_user_follow_business field
+ * Available in Graph API v12.0+
+ * 
+ * Permissions required: instagram_basic, instagram_manage_messages
+ * 
+ * Note: Instagram sorts messages from followers to Primary folder,
+ * non-followers to Requests folder. This can be used as alternative detection.
  */
 export const checkIfFollower = async (
   pageId: string,
-  userId: string,
+  userIgsid: string, // Instagram-scoped ID of the user
   token: string
 ): Promise<boolean> => {
   try {
-    // Get the user's profile to check if they follow
-    // Note: Instagram Graph API doesn't have a direct "is_follower" endpoint
-    // We use the conversation/messaging context to infer relationship
-    // Or check via the followers edge if available
+    console.log(`checkIfFollower: Checking if user ${userIgsid} follows page ${pageId}`);
+    
+    // Use Instagram User Profile API to get follower status
+    // This requires the user to have messaged the business account first
     const response = await axios.get(
-      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${pageId}`,
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userIgsid}`,
       {
         params: {
-          fields: "followers_count,follows_count",
+          fields: "name,profile_pic,is_user_follow_business,is_business_follow_user,follower_count",
         },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -887,17 +893,25 @@ export const checkIfFollower = async (
       }
     );
 
-    // For now, we'll use a heuristic: if we can send DMs, they likely follow
-    // A more accurate approach would require the user to grant additional permissions
-    // TODO: Implement proper follower check when Instagram API supports it
-
+    console.log(`checkIfFollower: Response:`, response.data);
     
-    // Return true by default as we can't directly check follower status
-    // The automation will proceed, and if the user doesn't follow, DMs may fail
-    return true;
+    // is_user_follow_business is a boolean field indicating if user follows the business
+    const isFollower = response.data?.is_user_follow_business === true;
+    console.log(`checkIfFollower: User ${userIgsid} is follower: ${isFollower}`);
+    
+    return isFollower;
   } catch (error) {
     console.error("Error checking follower status:", error);
-    return false;
+    
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error?.message || error.message;
+      console.error("Instagram API error:", errorMessage);
+    }
+    
+    // Default to TRUE on error so flow continues
+    // This is more lenient - users get content even if API fails
+    console.log("checkIfFollower: Defaulting to TRUE (API error, allowing flow to continue)");
+    return true;
   }
 };
 

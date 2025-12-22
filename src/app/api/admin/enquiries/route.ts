@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { company, teamSize, useCase, expectedVolume } = body;
+    const { phone, userType, company, teamSize, useCase, expectedVolume } = body;
 
     // Find user
     const user = await client.user.findUnique({
@@ -104,6 +104,8 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         email: session.user.email,
         name: session.user.name,
+        phone,
+        userType,
         company,
         teamSize,
         useCase,

@@ -19,6 +19,48 @@ async function isAdmin(): Promise<boolean> {
 }
 
 /**
+ * GET /api/admin/enquiries/[id]
+ * Get a single enterprise enquiry by ID
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    if (!(await isAdmin())) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const enquiry = await client.enterpriseEnquiry.findUnique({
+      where: { id: params.id },
+      include: {
+        User: {
+          select: {
+            subscription: {
+              select: {
+                plan: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!enquiry) {
+      return NextResponse.json({ error: "Enquiry not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      enquiry,
+    });
+  } catch (error) {
+    console.error("Error fetching enquiry:", error);
+    return NextResponse.json({ error: "Failed to fetch enquiry" }, { status: 500 });
+  }
+}
+
+/**
  * PATCH /api/admin/enquiries/[id]
  * Update an enterprise enquiry
  */

@@ -112,6 +112,8 @@ export default function BillingPage() {
   // Enterprise enquiry state
   const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
   const [enterpriseForm, setEnterpriseForm] = useState({
+    phone: "",
+    userType: "",
     company: "",
     teamSize: "",
     useCase: "",
@@ -249,7 +251,7 @@ export default function BillingPage() {
         toast.success("Enterprise request submitted! We'll review and get back to you soon.");
         setShowEnterpriseModal(false);
         setHasExistingEnquiry(true);
-        setEnterpriseForm({ company: "", teamSize: "", useCase: "", expectedVolume: "" });
+        setEnterpriseForm({ phone: "", userType: "", company: "", teamSize: "", useCase: "", expectedVolume: "" });
       } else if (data.existing) {
         toast.info("You already have a pending enterprise enquiry.");
         setHasExistingEnquiry(true);
@@ -300,67 +302,85 @@ export default function BillingPage() {
             </div>
           </div>
         )}
-        {currentPlan === "FREE" && (
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-neutral-800">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Your Usage This Month
-              </h3>
-              <span className="text-sm text-gray-500">Resets monthly</span>
-            </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600 dark:text-gray-400">DMs & Comments</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{usage.dmsUsed}/{usage.dmsLimit}</span>
-                </div>
-                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      usagePercentage(usage.dmsUsed, usage.dmsLimit) > 80 ? "bg-red-500" : "bg-blue-500"
-                    )}
-                    style={{ width: `${usagePercentage(usage.dmsUsed, usage.dmsLimit)}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600 dark:text-gray-400">Automations</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{usage.automations}/{usage.automationsLimit}</span>
-                </div>
-                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      usagePercentage(usage.automations, usage.automationsLimit) > 80 ? "bg-red-500" : "bg-green-500"
-                    )}
-                    style={{ width: `${usagePercentage(usage.automations, usage.automationsLimit)}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600 dark:text-gray-400">Scheduled Posts</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{usage.scheduledPosts}/{usage.scheduledPostsLimit}</span>
-                </div>
-                <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-purple-500 rounded-full transition-all"
-                    style={{ width: `${usagePercentage(usage.scheduledPosts, usage.scheduledPostsLimit)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            {usagePercentage(usage.dmsUsed, usage.dmsLimit) > 80 && (
-              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span className="text-sm">You&apos;re running low on DMs. Upgrade to Pro for unlimited messages!</span>
-              </div>
-            )}
+        {/* Usage Stats - Show for all plans */}
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mb-8 border border-gray-200 dark:border-neutral-800">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Your Usage This Month
+            </h3>
+            <span className="text-sm text-gray-500">Resets monthly</span>
           </div>
-        )}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600 dark:text-gray-400">DMs & Comments</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {usage.dmsLimit === -1 ? `${usage.dmsUsed} / Unlimited` : `${usage.dmsUsed}/${usage.dmsLimit}`}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    usage.dmsLimit === -1 
+                      ? "bg-green-500" 
+                      : usagePercentage(usage.dmsUsed, usage.dmsLimit) > 80 ? "bg-red-500" : "bg-blue-500"
+                  )}
+                  style={{ width: usage.dmsLimit === -1 ? '20%' : `${usagePercentage(usage.dmsUsed, usage.dmsLimit)}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600 dark:text-gray-400">Automations</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {usage.automationsLimit === -1 ? `${usage.automations} / Unlimited` : `${usage.automations}/${usage.automationsLimit}`}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    usage.automationsLimit === -1 
+                      ? "bg-green-500" 
+                      : usagePercentage(usage.automations, usage.automationsLimit) > 80 ? "bg-red-500" : "bg-green-500"
+                  )}
+                  style={{ width: usage.automationsLimit === -1 ? '20%' : `${usagePercentage(usage.automations, usage.automationsLimit)}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600 dark:text-gray-400">Scheduled Posts</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {usage.scheduledPostsLimit === -1 ? `${usage.scheduledPosts} / Unlimited` : `${usage.scheduledPosts}/${usage.scheduledPostsLimit}`}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    usage.scheduledPostsLimit === -1 ? "bg-green-500" : "bg-purple-500"
+                  )}
+                  style={{ width: usage.scheduledPostsLimit === -1 ? '20%' : `${usagePercentage(usage.scheduledPosts, usage.scheduledPostsLimit)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          {currentPlan === "FREE" && usage.dmsLimit !== -1 && usagePercentage(usage.dmsUsed, usage.dmsLimit) > 80 && (
+            <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span className="text-sm">You&apos;re running low on DMs. Upgrade to Pro for more!</span>
+            </div>
+          )}
+          {currentPlan !== "FREE" && (
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-green-800 dark:text-green-200">
+              <Check className="w-4 h-4 shrink-0" />
+              <span className="text-sm">You&apos;re on {currentPlan} plan with enhanced limits!</span>
+            </div>
+          )}
+        </div>
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-8">
@@ -647,6 +667,31 @@ export default function BillingPage() {
             </p>
             
             <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                <input
+                  type="tel"
+                  value={enterpriseForm.phone}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, phone: e.target.value })}
+                  placeholder="+91 98765 43210"
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">I am a...</label>
+                <select
+                  value={enterpriseForm.userType}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, userType: e.target.value })}
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select type</option>
+                  <option value="influencer">Influencer</option>
+                  <option value="creator">Creator</option>
+                  <option value="agency">Agency</option>
+                  <option value="brand">Brand</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Company Name</label>
                 <input

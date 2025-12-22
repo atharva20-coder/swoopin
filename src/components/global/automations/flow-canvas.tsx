@@ -127,27 +127,34 @@ const FlowCanvasInner = ({
     [reactFlowInstance, setNodes]
   );
 
-  // Track if we've initialized from props
-  const hasInitializedNodes = useRef(false);
-  const hasInitializedEdges = useRef(false);
-  const lastNodeDataRef = useRef<string>("");
+  // Track last synced data to detect when parent updates
+  const lastSyncedNodeIds = useRef<string>("");
+  const lastSyncedNodeData = useRef<string>("");
+  const lastSyncedEdgeIds = useRef<string>("");
+  const isSyncingFromParent = useRef(false);
 
-  // Update nodes on initial load
+  // Sync nodes from parent when they change (DB load or config update)
   React.useEffect(() => {
-    if (!hasInitializedNodes.current && initialNodes.length > 0) {
-      setNodes(initialNodes);
-      hasInitializedNodes.current = true;
-      lastNodeDataRef.current = JSON.stringify(initialNodes.map(n => n.data));
-    }
-  }, [initialNodes, setNodes]);
-
-  // Sync node config updates from parent (only when data changes, not position)
-  React.useEffect(() => {
-    if (!hasInitializedNodes.current || initialNodes.length === 0) return;
+    if (initialNodes.length === 0) return;
     
-    const newDataJson = JSON.stringify(initialNodes.map(n => n.data));
-    if (newDataJson !== lastNodeDataRef.current) {
-      lastNodeDataRef.current = newDataJson;
+    // Create signatures to detect changes
+    const nodeIdsSignature = initialNodes.map(n => n.id).sort().join(",");
+    const nodeDataSignature = JSON.stringify(initialNodes.map(n => ({ id: n.id, data: n.data })));
+    
+    // Sync if node IDs change (new nodes from DB)
+    if (nodeIdsSignature !== lastSyncedNodeIds.current) {
+      console.log("[FlowCanvas] Syncing nodes from parent (new nodes):", initialNodes.length);
+      isSyncingFromParent.current = true;
+      setNodes(initialNodes);
+      lastSyncedNodeIds.current = nodeIdsSignature;
+      lastSyncedNodeData.current = nodeDataSignature;
+      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
+    }
+    // Sync if node data/config changes (config update from parent)
+    else if (nodeDataSignature !== lastSyncedNodeData.current) {
+      console.log("[FlowCanvas] Syncing node data from parent (config update)");
+      isSyncingFromParent.current = true;
+      // Update data only, preserve canvas positions
       setNodes(prevNodes => 
         prevNodes.map(node => {
           const updatedNode = initialNodes.find(n => n.id === node.id);
@@ -157,26 +164,35 @@ const FlowCanvasInner = ({
           return node;
         })
       );
+      lastSyncedNodeData.current = nodeDataSignature;
+      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
     }
   }, [initialNodes, setNodes]);
 
-  // Update edges only on initial load
+  // Sync edges from parent when they change
   React.useEffect(() => {
-    if (!hasInitializedEdges.current && initialEdges.length > 0) {
+    if (initialEdges.length === 0) return;
+    
+    const edgeIdsSignature = initialEdges.map(e => e.id).sort().join(",");
+    
+    if (edgeIdsSignature !== lastSyncedEdgeIds.current) {
+      console.log("[FlowCanvas] Syncing edges from parent:", initialEdges.length);
+      isSyncingFromParent.current = true;
       setEdges(initialEdges);
-      hasInitializedEdges.current = true;
+      lastSyncedEdgeIds.current = edgeIdsSignature;
+      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
     }
   }, [initialEdges, setEdges]);
 
-  // Notify parent of changes
+  // Notify parent of changes - skip if we're syncing from parent
   React.useEffect(() => {
-    if (onNodesChangeProp) {
+    if (onNodesChangeProp && !isSyncingFromParent.current) {
       onNodesChangeProp(nodes);
     }
   }, [nodes, onNodesChangeProp]);
 
   React.useEffect(() => {
-    if (onEdgesChangeProp) {
+    if (onEdgesChangeProp && !isSyncingFromParent.current) {
       onEdgesChangeProp(edges);
     }
   }, [edges, onEdgesChangeProp]);

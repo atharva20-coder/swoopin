@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { email, customerId } = body;
+    const { email, customerId, enquiryId, subscriptionDays = 30 } = body;
 
     if (!email) {
       return NextResponse.json(
@@ -75,6 +75,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Calculate subscription end date
+    const subscriptionEndDate = new Date();
+    subscriptionEndDate.setDate(subscriptionEndDate.getDate() + subscriptionDays);
+
     // Update or create subscription
     if (user.subscription) {
       await client.subscription.update({
@@ -83,7 +87,7 @@ export async function POST(req: NextRequest) {
           plan: "ENTERPRISE",
           customerId: customerId || user.subscription.customerId,
           cancelAtPeriodEnd: false,
-          currentPeriodEnd: null, // Enterprise is usually custom managed
+          currentPeriodEnd: subscriptionEndDate,
         },
       });
     } else {
@@ -92,6 +96,19 @@ export async function POST(req: NextRequest) {
           userId: user.id,
           plan: "ENTERPRISE",
           customerId: customerId || null,
+          currentPeriodEnd: subscriptionEndDate,
+        },
+      });
+    }
+
+    // Update enquiry with subscription info if enquiryId provided
+    if (enquiryId) {
+      await client.enterpriseEnquiry.update({
+        where: { id: enquiryId },
+        data: {
+          subscriptionEndDate: subscriptionEndDate,
+          isActive: true,
+          status: "CLOSED_WON",
         },
       });
     }
@@ -100,19 +117,20 @@ export async function POST(req: NextRequest) {
     await client.notification.create({
       data: {
         userId: user.id,
-        content: "🎉 Congratulations! You've been upgraded to the Enterprise plan!",
+        content: `🎉 Congratulations! You've been upgraded to the Enterprise plan! Valid until ${subscriptionEndDate.toLocaleDateString()}.`,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: `Successfully upgraded ${email} to Enterprise plan`,
+      message: `Successfully upgraded ${email} to Enterprise plan for ${subscriptionDays} days`,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         plan: "ENTERPRISE",
       },
+      subscriptionEndDate: subscriptionEndDate.toISOString(),
     });
   } catch (error) {
     console.error("Error upgrading user to enterprise:", error);

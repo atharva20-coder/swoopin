@@ -1,0 +1,33 @@
+name: Check Enterprise Subscriptions
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-subscriptions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Expired Enterprise Subscriptions
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.APP_URL }}/api/cron/check-enterprise-subscriptions")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Successfully checked enterprise subscriptions"
+          else
+            echo "❌ Failed to check enterprise subscriptions"
+            exit 1
+          fi
