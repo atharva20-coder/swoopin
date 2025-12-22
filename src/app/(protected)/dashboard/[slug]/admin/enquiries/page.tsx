@@ -55,6 +55,7 @@ export default function AdminEnquiriesPage() {
 
   useEffect(() => {
     checkAdminAndFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAdminAndFetch = async () => {

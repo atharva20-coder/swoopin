@@ -663,7 +663,7 @@ export default function BillingPage() {
               Request Enterprise Plan
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Tell us about your needs and we'll create a custom plan for you.
+              Tell us about your needs and we&apos;ll create a custom plan for you.
             </p>
             
             <div className="space-y-4">

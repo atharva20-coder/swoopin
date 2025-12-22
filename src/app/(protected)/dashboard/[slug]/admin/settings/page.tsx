@@ -229,7 +229,7 @@ export default function AdminSettingsPage() {
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mb-4">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
                 💡 Offers are managed in Stripe. Create coupon codes in your Stripe Dashboard 
-                and they'll automatically work with checkout.
+                and they&apos;ll automatically work with checkout.
               </p>
             </div>
 

@@ -166,7 +166,7 @@ export default function SecurityTab() {
           Active Sessions
         </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-          Manage devices where you're currently logged in.
+          Manage devices where you&apos;re currently logged in.
         </p>
 
         <div className="bg-gray-50 dark:bg-neutral-900/50 rounded-xl border border-gray-100 dark:border-neutral-800 p-4">

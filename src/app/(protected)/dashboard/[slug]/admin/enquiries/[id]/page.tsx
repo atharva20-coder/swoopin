@@ -90,6 +90,7 @@ export default function EnquiryDetailPage() {
 
   useEffect(() => {
     checkAdminAndFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enquiryId]);
 
   const checkAdminAndFetch = async () => {
