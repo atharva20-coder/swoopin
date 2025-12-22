@@ -95,66 +95,41 @@ const evaluateCondition = async (
   try {
     switch (node.subType) {
       case "IS_FOLLOWER": {
-        // Check if the sender follows the page using Instagram User Profile API
-        console.log(`IS_FOLLOWER: Checking if ${senderId} follows ${pageId}`);
         const isFollower = await checkIfFollower(pageId, senderId, token);
-        console.log(`IS_FOLLOWER: Result = ${isFollower}`);
         return isFollower;
       }
 
       case "HAS_TAG": {
-        // Check if the media or message contains specified hashtags
         const requiredTags = node.config?.hashtags || node.config?.keywords || [];
-        console.log(`HAS_TAG: Looking for tags:`, requiredTags);
-        
-        if (requiredTags.length === 0) {
-          console.log(`HAS_TAG: No tags configured, returning true`);
-          return true;
-        }
+        if (requiredTags.length === 0) return true;
 
         let foundTags: string[] = [];
         
-        // If we have a media ID, get hashtags from the post
         if (mediaId) {
           const mediaTags = await getMediaHashtags(mediaId, token);
           foundTags = [...foundTags, ...mediaTags.map(t => t.toLowerCase())];
-          console.log(`HAS_TAG: Found media tags:`, mediaTags);
         }
         
-        // Also check message text for hashtags
         if (messageText) {
           const messageHashtags = messageText.match(/#(\w+)/g) || [];
           foundTags = [...foundTags, ...messageHashtags.map(t => t.toLowerCase().replace('#', ''))];
-          console.log(`HAS_TAG: Found message tags:`, messageHashtags);
         }
 
-        console.log(`HAS_TAG: All found tags:`, foundTags);
-
-        // Check if any required tag is found
-        const hasMatch = requiredTags.some((tag: string) => 
+        return requiredTags.some((tag: string) => 
           foundTags.includes(tag.toLowerCase().replace('#', ''))
         );
-
-        console.log(`HAS_TAG: Match found = ${hasMatch}`);
-        return hasMatch;
       }
 
-      case "DELAY": {
-        // Delay is handled as an action, not a condition
-        // Return true to continue execution
+      case "DELAY":
         return true;
-      }
 
       case "YES":
-        // YES node always returns true (path selection)
         return true;
 
       case "NO":
-        // NO node always returns false (path selection)
         return false;
 
       default:
-        console.log(`Unknown condition type: ${node.subType}, defaulting to true`);
         return true;
     }
   } catch (error) {
@@ -173,23 +148,13 @@ const executeActionNode = async (
   try {
     switch (node.subType) {
       case "MESSAGE": {
-        // Use AI response if available, fallback to configured message
-        console.log(`[MESSAGE] Context aiResponse: ${context.aiResponse ? 'present' : 'not present'}`);
-        console.log(`[MESSAGE] Node config:`, node.config);
-        
         const messageText = context.aiResponse || node.config?.message || "";
-        console.log(`[MESSAGE] Final message text: "${messageText?.substring(0, 50)}..."`);
-        
         if (!messageText) return { success: false, message: "No message configured" };
         
-        // Clear AI response after use (one-time use)
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
         
-        console.log(`[MESSAGE] Sending DM to ${senderId}...`);
         const result = await sendDM(pageId, senderId, messageText, token);
-        console.log(`[MESSAGE] DM result:`, result);
-        
         if (result.status === 200) {
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
@@ -201,11 +166,9 @@ const executeActionNode = async (
       case "REPLY_COMMENT": {
         if (!commentId) return { success: false, message: "No comment to reply to" };
         
-        // Use AI response if available, fallback to configured reply
         const replyText = context.aiResponse || node.config?.commentReply || "";
         if (!replyText) return { success: false, message: "No reply text configured" };
         
-        // Clear AI response after use (one-time use)
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
         
@@ -219,70 +182,48 @@ const executeActionNode = async (
 
       case "SMARTAI": {
         if (context.userSubscription !== "PRO" && context.userSubscription !== "ENTERPRISE") {
-          console.log("Smart AI requires PRO/ENTERPRISE subscription, user has:", context.userSubscription);
           return { success: false, message: "Smart AI requires PRO or ENTERPRISE subscription" };
         }
 
-        // Import rate limiter and Gemini dynamically to avoid circular deps
         const { checkRateLimit } = await import("@/lib/rate-limiter");
         const { generatePersonifiedResponse } = await import("@/lib/gemini");
         const { getChatHistory, createChatHistory } = await import("@/actions/webhook/queries");
 
-        // Check AI rate limit (5 requests per minute per user)
         const rateLimitResult = await checkRateLimit(`ai:${senderId}`, "AI");
         if (!rateLimitResult.success) {
-          console.log(`Rate limited AI request for sender: ${senderId}`);
           return { success: false, message: "AI rate limited" };
         }
 
         const prompt = node.config?.message || node.config?.prompt || "";
         if (!prompt) {
-          console.log("SmartAI: No prompt configured");
           return { success: false, message: "No prompt configured" };
         }
 
-        console.log("SmartAI: Generating response with prompt:", prompt.substring(0, 50) + "...");
-        console.log("SmartAI: User message:", context.messageText);
+        // Show typing indicator
+        try { await sendSenderAction(pageId, senderId, "mark_seen", token); } catch (e) {}
+        try { await sendSenderAction(pageId, senderId, "typing_on", token); } catch (e) {}
 
-        // === SENDER ACTIONS: Improve conversational UX ===
-        // 1. Mark message as seen immediately
-        try {
-          await sendSenderAction(pageId, senderId, "mark_seen", token);
-        } catch (e) { console.log("Failed to mark_seen:", e); }
-        
-        // 2. Show typing indicator while generating AI response
-        try {
-          await sendSenderAction(pageId, senderId, "typing_on", token);
-        } catch (e) { console.log("Failed to typing_on:", e); }
-
-        // Fetch chat history for context
+        // Fetch chat history
         let chatHistory: { role: "user" | "model"; text: string }[] = [];
         try {
           const historyResult = await getChatHistory(senderId, pageId);
           if (historyResult.history && historyResult.history.length > 0) {
-            // Convert to Gemini format and limit to last 10 messages
             chatHistory = historyResult.history.slice(-10).map((msg) => ({
               role: msg.role === "user" ? "user" as const : "model" as const,
               text: msg.content,
             }));
           }
-        } catch (error) {
-          console.log("Could not fetch chat history, proceeding without it:", error);
-        }
+        } catch (error) {}
 
-        // Generate response using Gemini with personified prompt
-        console.log("SmartAI: Calling Gemini API...");
+        // Generate response using Gemini
         let generatedResponse = await generatePersonifiedResponse(
           prompt,
           context.messageText || "",
           chatHistory
         );
 
-        console.log("SmartAI: Gemini response:", generatedResponse ? generatedResponse.substring(0, 100) + "..." : "NULL");
-
         if (!generatedResponse) {
-          // Fallback to OpenAI if Gemini fails
-          console.log("SmartAI: Gemini failed, falling back to OpenAI");
+          // Fallback to OpenAI
           const openaiClient = context.userOpenAiKey
             ? new OpenAI({ apiKey: context.userOpenAiKey })
             : openai;
@@ -291,42 +232,29 @@ const executeActionNode = async (
             const completion = await openaiClient.chat.completions.create({
               model: "gpt-4o-mini",
               messages: [
-                {
-                  role: "system",
-                  content: `${prompt}: Keep responses under 2 sentences`,
-                },
-                {
-                  role: "user",
-                  content: context.messageText || "",
-                },
+                { role: "system", content: `${prompt}: Keep responses under 2 sentences` },
+                { role: "user", content: context.messageText || "" },
               ],
             });
-
             generatedResponse = completion.choices[0]?.message?.content || null;
-            console.log("SmartAI: OpenAI fallback response:", generatedResponse ? generatedResponse.substring(0, 100) + "..." : "NULL");
           } catch (openaiError) {
             console.error("SmartAI: OpenAI fallback failed:", openaiError);
           }
         }
 
-        // Turn off typing
         try { await sendSenderAction(pageId, senderId, "typing_off", token); } catch (e) {}
 
         if (!generatedResponse) {
-          console.log("SmartAI: No response generated from any AI provider");
           return { success: false, message: "No AI response generated" };
         }
 
-        // Store response in context for downstream nodes (MESSAGE, REPLY_COMMENT)
-        // The downstream node (Send DM or Reply Comment) will use this to send
         context.aiResponse = generatedResponse;
-        console.log("SmartAI: Stored AI response in context for downstream nodes (Send DM / Reply Comment)");
 
-        // Store messages in chat history for future context
+        // Store chat history
         try {
           await createChatHistory(automationId, senderId, pageId, context.messageText || "");
           await createChatHistory(automationId, pageId, senderId, generatedResponse);
-        } catch (e) { console.log("Failed to store chat history:", e); }
+        } catch (e) {}
 
         return { success: true, message: "AI response generated - ready for Send DM or Reply Comment" };
       }
@@ -536,15 +464,10 @@ export const executeFlow = async (
       where: { automationId },
     });
 
-    console.log("=== FLOW EXECUTION DEBUG ===");
-    console.log(`Loaded ${nodes.length} nodes, ${edges.length} edges`);
-
-    // If no flow nodes, fall back to legacy execution
     if (nodes.length === 0) {
       return { success: false, message: "No flow nodes found - using legacy execution" };
     }
 
-    // Convert to execution format
     const flowNodes: FlowNode[] = nodes.map((n: { nodeId: string; type: string; subType: string; label: string; config: unknown }) => ({
       nodeId: n.nodeId,
       type: n.type,
@@ -553,41 +476,25 @@ export const executeFlow = async (
       config: (n.config as Record<string, unknown>) || {},
     }));
 
-    console.log("Flow nodes:");
-    flowNodes.forEach(n => console.log(`  - ${n.nodeId}: ${n.type}:${n.subType} (${n.label})`));
-    
-    console.log("Flow edges:");
-    edges.forEach(e => console.log(`  - ${e.sourceNodeId} -> ${e.targetNodeId}`));
-
-    // Check if message matches keywords
     if (context.messageText && !checkKeywordMatch(context.messageText, flowNodes)) {
       return { success: false, message: "Message does not match keywords" };
     }
 
-    // Find trigger node matching the trigger type
     const triggerNode = flowNodes.find(
       (n) => n.type === "trigger" && n.subType === context.triggerType
     );
 
     if (!triggerNode) {
-      console.log(`Available triggers:`, flowNodes.filter(n => n.type === "trigger").map(n => n.subType));
       return { success: false, message: `No ${context.triggerType} trigger found in flow` };
     }
 
-    console.log(`Starting from trigger: ${triggerNode.label} (${triggerNode.nodeId})`);
-
-    // Build adjacency list
     const adjacencyList = buildAdjacencyList(edges);
-    
-    // Create node lookup map
     const nodeMap = new Map<string, FlowNode>();
     flowNodes.forEach(node => nodeMap.set(node.nodeId, node));
 
-    // Results tracking
     const results: { node: string; success: boolean; message: string }[] = [];
     const visited = new Set<string>();
 
-    // DFS execution with branching support
     const executeNode = async (nodeId: string): Promise<void> => {
       if (visited.has(nodeId)) return;
       visited.add(nodeId);
@@ -595,11 +502,8 @@ export const executeFlow = async (
       const node = nodeMap.get(nodeId);
       if (!node) return;
 
-      console.log(`Processing: ${node.type}:${node.subType} (${node.label})`);
-
-      // Skip trigger nodes (they're just entry points)
+      // Skip trigger nodes
       if (node.type === "trigger") {
-        // Continue to children
         const children = adjacencyList.get(nodeId) || [];
         for (const childId of children) {
           await executeNode(childId);
@@ -607,27 +511,20 @@ export const executeFlow = async (
         return;
       }
 
-      // Handle condition nodes with branching
+      // Handle condition nodes
       if (node.type === "condition") {
-        // Get children of this condition
         const children = adjacencyList.get(nodeId) || [];
-        console.log(`[CONDITION] ${node.label} (${node.subType}) has ${children.length} children`);
         
-        // Special handling for YES/NO nodes - they're pass-through to their children
+        // YES/NO nodes are pass-through
         if (node.subType === "YES" || node.subType === "NO") {
-          console.log(`[CONDITION] ${node.subType} branch - executing ${children.length} children`);
           for (const childId of children) {
             await executeNode(childId);
           }
           return;
         }
 
-        // For actual conditions (IS_FOLLOWER, HAS_TAG, etc.)
-        console.log(`[CONDITION] Evaluating: ${node.subType}`);
         const conditionResult = await evaluateCondition(node, context);
-        console.log(`[CONDITION] ${node.label} result: ${conditionResult ? 'TRUE' : 'FALSE'}`);
 
-        // Categorize children
         let yesBranch: string | null = null;
         let noBranch: string | null = null;
         const directChildren: string[] = [];
@@ -643,29 +540,17 @@ export const executeFlow = async (
           }
         }
 
-        console.log(`[CONDITION] Branches: YES=${yesBranch ? 'found' : 'none'}, NO=${noBranch ? 'found' : 'none'}, direct=${directChildren.length}`);
-
-        // Execute based on condition result
         if (conditionResult) {
-          // TRUE: Execute YES branch if exists, otherwise execute direct children
           if (yesBranch) {
-            console.log(`[CONDITION] TRUE -> Taking YES branch`);
             await executeNode(yesBranch);
           } else if (directChildren.length > 0) {
-            console.log(`[CONDITION] TRUE -> Executing ${directChildren.length} direct children`);
             for (const childId of directChildren) {
               await executeNode(childId);
             }
-          } else {
-            console.log(`[CONDITION] TRUE -> No YES branch or direct children to execute`);
           }
         } else {
-          // FALSE: Execute NO branch if exists, otherwise skip
           if (noBranch) {
-            console.log(`[CONDITION] FALSE -> Taking NO branch`);
             await executeNode(noBranch);
-          } else {
-            console.log(`[CONDITION] FALSE -> No NO branch, skipping flow`);
           }
         }
 
@@ -681,13 +566,6 @@ export const executeFlow = async (
           message: result.message,
         });
 
-        if (result.success) {
-          console.log(`✓ Executed: ${node.label}`);
-        } else {
-          console.log(`✗ Failed: ${node.label} - ${result.message}`);
-        }
-
-        // Continue to children
         const children = adjacencyList.get(nodeId) || [];
         for (const childId of children) {
           await executeNode(childId);

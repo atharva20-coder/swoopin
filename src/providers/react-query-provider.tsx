@@ -9,8 +9,22 @@ export default function ReactQueryProvider({ children }: { children: React.React
       new QueryClient({
         defaultOptions: {
           queries: {
-            gcTime: 1000 * 60 * 60 * 24, // 24 hours
-            staleTime: 1000 * 60 * 60 * 24, // 24 hours
+            // Cache data for 24 hours
+            gcTime: 1000 * 60 * 60 * 24,
+            // Consider data fresh for 5 minutes (then show stale while refetching)
+            staleTime: 1000 * 60 * 5,
+            // Don't refetch on window focus (reduces API calls)
+            refetchOnWindowFocus: false,
+            // Don't refetch automatically on mount if data exists
+            refetchOnMount: false,
+            // Retry failed requests twice
+            retry: 2,
+            // Don't refetch on reconnect
+            refetchOnReconnect: false,
+          },
+          mutations: {
+            // Retry mutations once
+            retry: 1,
           },
         },
       })

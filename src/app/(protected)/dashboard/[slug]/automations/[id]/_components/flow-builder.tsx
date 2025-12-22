@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveAutomationFlowBatch, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
+import { saveFlowToCache, loadFlowFromCache, clearFlowCache } from "@/lib/flow-cache";
 
 type Props = {
   automationId: string;
@@ -49,7 +50,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
   const hasInitialized = React.useRef(false);
 
-  // Load flow - try FlowNode/FlowEdge tables first, then fall back to legacy data
+  // Load flow - try localStorage cache first, then FlowNode/FlowEdge tables
   useEffect(() => {
     const loadFlow = async () => {
       if (hasInitialized.current) return;
@@ -57,8 +58,17 @@ const FlowManager = ({ automationId, slug }: Props) => {
       
       hasInitialized.current = true;
       
+      // 1. Try localStorage cache first (instant load)
+      const cached = loadFlowFromCache(automationId);
+      if (cached && cached.nodes.length > 0) {
+        setNodes(cached.nodes as Node<FlowNodeData>[]);
+        setEdges(cached.edges as Edge[]);
+        setIsLoading(false);
+        // Continue to sync from DB in background
+      }
+      
+      // 2. Try to load from FlowNode/FlowEdge tables
       try {
-        // Try to load from FlowNode/FlowEdge tables with timeout handling
         const result = await Promise.race([
           getFlowData(automationId),
           new Promise<null>((_, reject) => 
@@ -67,18 +77,24 @@ const FlowManager = ({ automationId, slug }: Props) => {
         ]);
         
         if (result && result.status === 200 && result.data && result.data.nodes.length > 0) {
-          console.log("Loaded flow from FlowNode/FlowEdge tables:", result.data.nodes.length, "nodes");
           setNodes(result.data.nodes as Node<FlowNodeData>[]);
           setEdges(result.data.edges);
+          // Update cache with fresh data
+          saveFlowToCache(automationId, result.data.nodes, result.data.edges);
           setIsLoading(false);
           return;
         }
       } catch (error) {
-        console.log("FlowNode/FlowEdge loading failed, using legacy data:", error);
+        // If we already loaded from cache, we're fine
+        if (cached && cached.nodes.length > 0) {
+          return;
+        }
       }
       
-      // Fall back to generating from legacy data
-      generateLegacyFlow();
+      // 3. Fall back to generating from legacy data
+      if (!cached || cached.nodes.length === 0) {
+        generateLegacyFlow();
+      }
     };
     
     loadFlow();
@@ -400,6 +416,8 @@ const FlowManager = ({ automationId, slug }: Props) => {
       });
 
       if (result.status === 200) {
+        // Update localStorage cache with saved data
+        saveFlowToCache(automationId, nodes, edges);
         toast.success("Flow saved successfully!");
         refetch();
       } else {

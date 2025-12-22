@@ -112,10 +112,6 @@ export const saveAutomationFlowBatch = async (
     // Use a transaction with extended timeout for slow connections
     await client.$transaction(async (tx) => {
       // 1. Save flow nodes and edges
-      console.log(`[SAVE] Saving ${payload.nodes.length} nodes, ${payload.edges.length} edges`);
-      console.log(`[SAVE] Node types:`, payload.nodes.map(n => `${n.label}(${n.type}:${n.subType})`));
-      console.log(`[SAVE] Node configs:`, payload.nodes.map(n => ({ label: n.label, config: n.config })));
-      
       await tx.flowEdge.deleteMany({ where: { automationId } });
       await tx.flowNode.deleteMany({ where: { automationId } });
       
@@ -213,14 +209,10 @@ export const saveAutomationFlowBatch = async (
 export const getFlowData = async (automationId: string) => {
   await onCurrentUser();
   try {
-    console.log(`[LOAD] Loading flow for automation: ${automationId}`);
-    
     const nodes = await client.flowNode.findMany({
       where: { automationId },
       orderBy: { createdAt: "asc" },
     });
-
-    console.log(`[LOAD] Found ${nodes.length} nodes from DB:`, nodes.map(n => `${n.label}(${n.type}:${n.subType})`));
 
     const edges = await client.flowEdge.findMany({
       where: { automationId },

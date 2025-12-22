@@ -873,14 +873,10 @@ export const generateTokens = async (code: string) => {
  */
 export const checkIfFollower = async (
   pageId: string,
-  userIgsid: string, // Instagram-scoped ID of the user
+  userIgsid: string,
   token: string
 ): Promise<boolean> => {
   try {
-    console.log(`checkIfFollower: Checking if user ${userIgsid} follows page ${pageId}`);
-    
-    // Use Instagram User Profile API to get follower status
-    // This requires the user to have messaged the business account first
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userIgsid}`,
       {
@@ -893,24 +889,10 @@ export const checkIfFollower = async (
       }
     );
 
-    console.log(`checkIfFollower: Response:`, response.data);
-    
-    // is_user_follow_business is a boolean field indicating if user follows the business
-    const isFollower = response.data?.is_user_follow_business === true;
-    console.log(`checkIfFollower: User ${userIgsid} is follower: ${isFollower}`);
-    
-    return isFollower;
+    return response.data?.is_user_follow_business === true;
   } catch (error) {
     console.error("Error checking follower status:", error);
-    
-    if (axios.isAxiosError(error)) {
-      const errorMessage = error.response?.data?.error?.message || error.message;
-      console.error("Instagram API error:", errorMessage);
-    }
-    
     // Default to TRUE on error so flow continues
-    // This is more lenient - users get content even if API fails
-    console.log("checkIfFollower: Defaulting to TRUE (API error, allowing flow to continue)");
     return true;
   }
 };

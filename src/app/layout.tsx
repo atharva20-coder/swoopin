@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/contexts/theme-context';
 import { Toaster } from "sonner";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import ReduxProvider from "@/providers/redux-provider";
+import ServiceWorkerProvider from "@/providers/service-worker-provider";
 import CookieConsent from '@/components/global/cookie-consent';
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
@@ -61,7 +62,9 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ReduxProvider>
             <ThemeProvider>
-              {children}
+              <ServiceWorkerProvider>
+                {children}
+              </ServiceWorkerProvider>
               <Toaster />
               <CookieConsent />
             </ThemeProvider>
