@@ -16,21 +16,20 @@ model User {
   image               String?
   name                String?
   updatedAt           DateTime            @default(now()) @updatedAt
-  accounts            Account[]
   analytics           Analytics[]
   automations         Automation[]
   carouselTemplates   CarouselTemplate[]
   contentDrafts       ContentDraft[]
+  enterpriseEnquiries EnterpriseEnquiry[]
   integrations        Integrations[]
   notification        Notification[]
   scheduledPosts      ScheduledPost[]
-  sessions            Session[]
   subscription        Subscription?
-  enterpriseEnquiries EnterpriseEnquiry[]
-  // Onboarding relations
-  userProfile         UserProfile?
-  organization        Organization?
+  accounts            Account[]
   onboardingState     OnboardingState?
+  organization        Organization?
+  sessions            Session[]
+  userProfile         UserProfile?
 
   @@map("user")
 }
@@ -85,15 +84,15 @@ model Verification {
 }
 
 model Subscription {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId             String?           @unique @db.Uuid
-  createdAt          DateTime          @default(now())
-  plan               SUBSCRIPTION_PLAN @default(FREE)
-  updatedAt          DateTime          @default(now())
-  customerId         String?           @unique
-  cancelAtPeriodEnd  Boolean           @default(false)
-  currentPeriodEnd   DateTime?
-  User               User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String?           @unique @db.Uuid
+  createdAt         DateTime          @default(now())
+  plan              SUBSCRIPTION_PLAN @default(FREE)
+  updatedAt         DateTime          @default(now())
+  customerId        String?           @unique
+  cancelAtPeriodEnd Boolean           @default(false)
+  currentPeriodEnd  DateTime?
+  User              User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Integrations {
@@ -305,6 +304,98 @@ model ContentDraft {
   User      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model EnterpriseEnquiry {
+  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String         @db.Uuid
+  email                  String
+  name                   String?
+  company                String?
+  teamSize               String?
+  useCase                String?
+  expectedVolume         String?
+  status                 ENQUIRY_STATUS @default(PENDING)
+  notes                  String?
+  customDmsLimit         Int?
+  customAutomationsLimit Int?
+  customScheduledLimit   Int?
+  customAiLimit          Int?
+  dealAmount             Float?
+  dealClosed             Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  paymentLinkExpiresAt   DateTime?
+  paymentLinkUrl         String?
+  paymentStatus          String?        @default("PENDING")
+  phone                  String?
+  stripeSessionId        String?
+  transactionId          String?
+  userType               String?
+  isActive               Boolean        @default(false)
+  subscriptionEndDate    DateTime?
+  User                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model UserProfile {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String         @unique @db.Uuid
+  displayName       String?
+  phoneNumber       String?
+  profileType       ProfileType    @default(EXPLORING)
+  contentCategories String[]
+  platforms         String[]
+  primaryPlatform   String?
+  followerRange     FollowerRange?
+  sellsCoaching     Boolean        @default(false)
+  sellsCourses      Boolean        @default(false)
+  sellsWorkshops    Boolean        @default(false)
+  sellsMemberships  Boolean        @default(false)
+  bookingLink       String?
+  automationGoals   String[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  bio               String?
+  age               Int?
+  pronouns          String?
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profile")
+}
+
+model Organization {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String        @unique @db.Uuid
+  orgType          OrgType
+  name             String
+  logoUrl          String?
+  website          String?
+  teamSize         TeamSize?
+  industryFocus    String[]
+  clientHandles    String[]
+  offeringType     OfferingType?
+  monthlyDmVolume  String?
+  isSupportFocused Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("organization")
+}
+
+model OnboardingState {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @unique @db.Uuid
+  currentStep Int       @default(0)
+  isCompleted Boolean   @default(false)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_state")
+}
+
 enum SUBSCRIPTION_PLAN {
   PRO
   FREE
@@ -359,48 +450,6 @@ enum ENQUIRY_STATUS {
   CLOSED_LOST
 }
 
-model EnterpriseEnquiry {
-  id                     String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId                 String         @db.Uuid
-  email                  String
-  name                   String?
-  phone                  String?
-  userType               String?        // influencer, creator, agency, brand, other
-  company                String?
-  teamSize               String?
-  useCase                String?
-  expectedVolume         String?
-  status                 ENQUIRY_STATUS @default(PENDING)
-  notes                  String?
-  // Custom limits for this enterprise user
-  customDmsLimit         Int?
-  customAutomationsLimit Int?
-  customScheduledLimit   Int?
-  customAiLimit          Int?
-  // Deal info
-  dealAmount             Float?
-  dealClosed             Boolean        @default(false)
-  // Payment tracking
-  stripeSessionId        String?
-  paymentStatus          String?        @default("PENDING") // PENDING, PAID, EXPIRED
-  transactionId          String?
-  paymentLinkUrl         String?
-  paymentLinkExpiresAt   DateTime?
-  // Subscription tracking
-  subscriptionEndDate    DateTime?
-  isActive               Boolean        @default(false)
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
-  User                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-}
-
-// ============================================
-// ONBOARDING MODELS
-// ============================================
-
 enum ProfileType {
   CREATOR
   INFLUENCER
@@ -437,88 +486,4 @@ enum OfferingType {
   DIGITAL_PRODUCTS
   SERVICES
   SUBSCRIPTIONS
-}
-
-// User onboarding profile (extends User)
-model UserProfile {
-  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String        @unique @db.Uuid
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Screen 0: Identity
-  displayName       String?
-  phoneNumber       String?
-  bio               String?
-  pronouns          String?
-  age               Int?
-  
-  // Screen 1: User Type
-  profileType       ProfileType   @default(EXPLORING)
-  
-  // Screen 2: Content categories (stored as JSON array)
-  contentCategories String[]
-  
-  // Screen 3: Platforms
-  platforms         String[]
-  
-  // Creator/Influencer specific
-  primaryPlatform   String?
-  followerRange     FollowerRange?
-  
-  // Coach/Educator specific
-  sellsCoaching     Boolean       @default(false)
-  sellsCourses      Boolean       @default(false)
-  sellsWorkshops    Boolean       @default(false)
-  sellsMemberships  Boolean       @default(false)
-  bookingLink       String?
-  
-  // Goals
-  automationGoals   String[]
-  
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  @@map("user_profile")
-}
-
-// Organization (for Brand/Agency)
-model Organization {
-  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String        @unique @db.Uuid
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  orgType          OrgType
-  name             String
-  logoUrl          String?
-  website          String?
-  
-  // Agency specific
-  teamSize         TeamSize?
-  industryFocus    String[]
-  clientHandles    String[]
-  
-  // Brand specific
-  offeringType     OfferingType?
-  monthlyDmVolume  String?
-  isSupportFocused Boolean       @default(false)
-  
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  @@map("organization")
-}
-
-// Onboarding state tracking
-model OnboardingState {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String    @unique @db.Uuid
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  currentStep Int       @default(0)
-  isCompleted Boolean   @default(false)
-  
-  startedAt   DateTime  @default(now())
-  completedAt DateTime?
-
-  @@map("onboarding_state")
 }

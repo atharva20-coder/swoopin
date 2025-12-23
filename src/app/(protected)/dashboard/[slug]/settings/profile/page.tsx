@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Camera, Save, Loader2, User, Phone, Globe, Building, Users, Target, Sparkles, Pencil, X, Check } from "lucide-react";
+import { ArrowLeft, Camera, Save, Loader2, User, Globe, Building, Users, Target, Sparkles, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -43,6 +44,18 @@ const PRONOUNS_OPTIONS = [
   { value: "prefer_not", label: "Prefer not to say" },
 ];
 
+// Automation goal labels
+const AUTOMATION_GOAL_LABELS: Record<string, string> = {
+  auto_dm: "Auto-reply to DMs",
+  comment_replies: "Comment keyword replies",
+  lead_capture: "Lead capture",
+  booking: "Appointment booking",
+  support: "Customer support",
+  sales: "Sales automation",
+  giveaways: "Giveaways",
+  broadcasts: "Broadcast messages",
+};
+
 type ProfileData = {
   displayName: string;
   phoneNumber: string;
@@ -55,6 +68,11 @@ type ProfileData = {
   primaryPlatform: string;
   followerRange: string;
   automationGoals: string[];
+  sellsCoaching: boolean;
+  sellsCourses: boolean;
+  sellsWorkshops: boolean;
+  sellsMemberships: boolean;
+  bookingLink: string;
 };
 
 type OrgData = {
@@ -70,6 +88,8 @@ export default function ProfilePage() {
   const user = session?.user;
   const params = useParams();
   const slug = params.slug as string;
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,7 +152,7 @@ export default function ProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          currentStep: 999, // Don't change step
+          currentStep: 999,
           isCompleted: true,
           profile: {
             ...profile,
@@ -146,18 +166,17 @@ export default function ProfilePage() {
       });
       
       if (res.ok) {
+        // Invalidate caches to refresh data on settings page
+        await queryClient.invalidateQueries({ queryKey: ["onboarding-profile"] });
+        await queryClient.invalidateQueries({ queryKey: ["instagram-profile"] });
+        
         toast.success("Profile updated successfully!");
-        // Update local profile state
-        setProfile(prev => prev ? {
-          ...prev,
-          displayName: formData.displayName,
-          phoneNumber: formData.phoneNumber,
-          bio: formData.bio,
-          pronouns: formData.pronouns,
-          age: formData.age ? parseInt(formData.age, 10) : null,
-        } : null);
+        
+        // Navigate back to settings page
+        router.push(`/dashboard/${slug}/settings`);
       } else {
-        throw new Error("Failed to save");
+        const data = await res.json();
+        throw new Error(data.message || "Failed to save");
       }
     } catch (error) {
       toast.error("Failed to update profile");
@@ -176,9 +195,12 @@ export default function ProfilePage() {
   }
 
   const profileType = profile?.profileType ? PROFILE_TYPE_LABELS[profile.profileType] : null;
+  const isAgencyOrBrand = profile?.profileType === "AGENCY" || profile?.profileType === "BRAND";
+  const isCreatorOrInfluencer = profile?.profileType === "CREATOR" || profile?.profileType === "INFLUENCER";
+  const isCoachOrEducator = profile?.profileType === "COACH" || profile?.profileType === "EDUCATOR";
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
+    <div className="w-full py-8 px-6 lg:px-12">
       {/* Header */}
       <div className="mb-8">
         <Link 
@@ -310,64 +332,106 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Organization Info (if applicable) */}
-      {organization && (
+      {/* Profile Type */}
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <UserCircle className="w-5 h-5" />
+          Profile Type
+        </h3>
+        {profileType ? (
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{profileType.icon}</span>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">{profileType.label}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Your account type determines available features</p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">Not specified - <Link href="/onboarding" className="text-purple-500 hover:underline">Complete onboarding</Link></p>
+        )}
+      </div>
+
+      {/* Organization Info (for Agency/Brand) */}
+      {isAgencyOrBrand && (
         <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Building className="w-5 h-5" />
-            {organization.orgType === "AGENCY" ? "Agency Information" : "Brand Information"}
+            {profile?.profileType === "AGENCY" ? "Agency Information" : "Brand Information"}
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-gray-500 dark:text-gray-400 text-sm">Name</Label>
-              <p className="text-gray-900 dark:text-white font-medium">{organization.name}</p>
-            </div>
-            {organization.website && (
+          {organization ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-500 dark:text-gray-400 text-sm">Name</Label>
+                <p className="text-gray-900 dark:text-white font-medium">{organization.name || "-"}</p>
+              </div>
               <div>
                 <Label className="text-gray-500 dark:text-gray-400 text-sm">Website</Label>
-                <p className="text-blue-600 dark:text-blue-400">{organization.website}</p>
+                <p className="text-blue-600 dark:text-blue-400">{organization.website || "-"}</p>
               </div>
-            )}
-            {organization.teamSize && (
               <div>
                 <Label className="text-gray-500 dark:text-gray-400 text-sm">Team Size</Label>
-                <p className="text-gray-900 dark:text-white">{organization.teamSize.replace("SIZE_", "").replace("_", "-")}</p>
+                <p className="text-gray-900 dark:text-white">{organization.teamSize?.replace("SIZE_", "").replace("_", "-") || "-"}</p>
               </div>
-            )}
-            {organization.clientHandles && organization.clientHandles.length > 0 && (
-              <div className="col-span-2">
-                <Label className="text-gray-500 dark:text-gray-400 text-sm">Major Clients</Label>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {organization.clientHandles.map((handle, i) => (
-                    <span key={i} className="px-2 py-1 bg-gray-100 dark:bg-neutral-800 rounded text-sm">
-                      {handle}
-                    </span>
-                  ))}
+              {organization.clientHandles && organization.clientHandles.length > 0 && (
+                <div className="col-span-2">
+                  <Label className="text-gray-500 dark:text-gray-400 text-sm">Major Clients</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {organization.clientHandles.map((handle, i) => (
+                      <span key={i} className="px-2 py-1 bg-gray-100 dark:bg-neutral-800 rounded text-sm text-gray-700 dark:text-gray-300">
+                        {handle}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">No organization details provided</p>
+          )}
         </div>
       )}
 
-      {/* Audience Info (for creators/influencers) */}
-      {profile && (profile.profileType === "CREATOR" || profile.profileType === "INFLUENCER") && (
+      {/* Audience Info (for Creators/Influencers) */}
+      {isCreatorOrInfluencer && (
         <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Users className="w-5 h-5" />
             Audience
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            {profile.primaryPlatform && (
-              <div>
-                <Label className="text-gray-500 dark:text-gray-400 text-sm">Primary Platform</Label>
-                <p className="text-gray-900 dark:text-white font-medium capitalize">{profile.primaryPlatform}</p>
-              </div>
+            <div>
+              <Label className="text-gray-500 dark:text-gray-400 text-sm">Primary Platform</Label>
+              <p className="text-gray-900 dark:text-white font-medium capitalize">{profile?.primaryPlatform || "-"}</p>
+            </div>
+            <div>
+              <Label className="text-gray-500 dark:text-gray-400 text-sm">Followers</Label>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {profile?.followerRange ? (FOLLOWER_RANGE_LABELS[profile.followerRange] || profile.followerRange) : "-"}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Monetization (for Coaches/Educators) */}
+      {isCoachOrEducator && (
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Monetization
+          </h3>
+          <div className="space-y-2">
+            {profile?.sellsCoaching && <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mr-2">1-on-1 Coaching</span>}
+            {profile?.sellsCourses && <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mr-2">Online Courses</span>}
+            {profile?.sellsWorkshops && <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mr-2">Workshops</span>}
+            {profile?.sellsMemberships && <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm mr-2">Memberships</span>}
+            {!profile?.sellsCoaching && !profile?.sellsCourses && !profile?.sellsWorkshops && !profile?.sellsMemberships && (
+              <p className="text-gray-500 dark:text-gray-400">No monetization methods specified</p>
             )}
-            {profile.followerRange && (
-              <div>
-                <Label className="text-gray-500 dark:text-gray-400 text-sm">Followers</Label>
-                <p className="text-gray-900 dark:text-white font-medium">{FOLLOWER_RANGE_LABELS[profile.followerRange] || profile.followerRange}</p>
+            {profile?.bookingLink && (
+              <div className="mt-3">
+                <Label className="text-gray-500 dark:text-gray-400 text-sm">Booking Link</Label>
+                <p className="text-blue-600 dark:text-blue-400">{profile.bookingLink}</p>
               </div>
             )}
           </div>
@@ -375,12 +439,12 @@ export default function ProfilePage() {
       )}
 
       {/* Content Categories */}
-      {profile?.contentCategories && profile.contentCategories.length > 0 && (
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Content Focus
-          </h3>
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          Content Focus
+        </h3>
+        {profile?.contentCategories && profile.contentCategories.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {profile.contentCategories.map((cat, i) => (
               <span key={i} className="px-3 py-1.5 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-full text-sm text-blue-700 dark:text-blue-300">
@@ -388,16 +452,18 @@ export default function ProfilePage() {
               </span>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">No content categories specified</p>
+        )}
+      </div>
 
       {/* Platforms */}
-      {profile?.platforms && profile.platforms.length > 0 && (
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Globe className="w-5 h-5" />
-            Connected Platforms
-          </h3>
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Globe className="w-5 h-5" />
+          Platforms
+        </h3>
+        {profile?.platforms && profile.platforms.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {profile.platforms.map((platform, i) => (
               <span key={i} className="px-3 py-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full text-sm text-gray-700 dark:text-gray-300 capitalize">
@@ -405,33 +471,37 @@ export default function ProfilePage() {
               </span>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">No platforms specified</p>
+        )}
+      </div>
 
       {/* Automation Goals */}
-      {profile?.automationGoals && profile.automationGoals.length > 0 && (
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            Automation Goals
-          </h3>
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6 mb-6">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Target className="w-5 h-5" />
+          Automation Goals
+        </h3>
+        {profile?.automationGoals && profile.automationGoals.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {profile.automationGoals.map((goal, i) => (
-              <span key={i} className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-sm text-green-700 dark:text-green-300 capitalize">
-                {goal.replace(/_/g, " ")}
+              <span key={i} className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-sm text-green-700 dark:text-green-300">
+                {AUTOMATION_GOAL_LABELS[goal] || goal.replace(/_/g, " ")}
               </span>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">No automation goals specified</p>
+        )}
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-between items-center">
         <Link 
           href="/onboarding" 
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
         >
-          Edit Onboarding Preferences
+          ← Re-take Onboarding
         </Link>
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? (

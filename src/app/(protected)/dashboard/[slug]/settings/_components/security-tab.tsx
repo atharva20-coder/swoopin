@@ -57,119 +57,118 @@ export default function SecurityTab() {
   };
 
   const handleToggle2FA = async () => {
-    // Placeholder logic
     setTwoFactorEnabled(!twoFactorEnabled);
     toast.success(twoFactorEnabled ? "2FA disabled" : "2FA enabled");
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-gray-200 dark:border-neutral-800 p-8 space-y-8">
+    <div className="space-y-4">
       {/* Password Section */}
-      <div className="flex items-start justify-between pb-8 border-b border-gray-200 dark:border-neutral-800">
-        <div className="max-w-md w-full">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Key className="w-5 h-5 text-indigo-500" />
-            Password
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">
-            Update your password regularly to keep your account secure.
-          </p>
-          
-          {isChangingPassword ? (
-            <div className="space-y-4 mt-4 bg-gray-50 dark:bg-neutral-900/50 p-4 rounded-xl border border-gray-100 dark:border-neutral-800">
-              <div>
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="currentPassword"
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="newPassword">New Password</Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="newPassword"
-                    type={showNewPassword ? "text" : "password"}
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Key className="w-4 h-4 text-indigo-500" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Password</h3>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Update your password regularly to keep your account secure.
+        </p>
+        
+        {isChangingPassword ? (
+          <div className="space-y-4 bg-gray-50 dark:bg-neutral-800 p-4 rounded-xl border border-gray-100 dark:border-neutral-700">
+            <div>
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative mt-1">
                 <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="mt-1"
+                  id="currentPassword"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                 />
-              </div>
-              <div className="flex gap-3 justify-end pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setIsChangingPassword(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleChangePassword} disabled={isLoading}>
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
-                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-          ) : (
-            <Button variant="outline" onClick={() => setIsChangingPassword(true)}>
-              Change Password
-            </Button>
-          )}
-        </div>
+            <div>
+              <Label htmlFor="newPassword">New Password</Label>
+              <div className="relative mt-1">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setIsChangingPassword(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleChangePassword} disabled={isLoading}>
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Password"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsChangingPassword(true)}>
+            Change Password
+          </Button>
+        )}
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="flex items-start justify-between pb-8 border-b border-gray-200 dark:border-neutral-800">
-        <div className="max-w-md">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-indigo-500" />
-            Two-Factor Authentication
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">
-            Add an extra layer of security to your account.
-          </p>
-          {twoFactorEnabled && (
-            <div className="mb-4 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-300 text-sm">
-              <Check className="w-4 h-4" /> 2FA is enabled
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Smartphone className="w-4 h-4 text-indigo-500" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Two-Factor Authentication</h3>
             </div>
-          )}
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Add an extra layer of security to your account.
+            </p>
+            {twoFactorEnabled && (
+              <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-green-700 dark:text-green-300 text-xs">
+                <Check className="w-3 h-3" /> 2FA is enabled
+              </div>
+            )}
+          </div>
+          <Switch checked={twoFactorEnabled} onCheckedChange={handleToggle2FA} />
         </div>
-        <Switch checked={twoFactorEnabled} onCheckedChange={handleToggle2FA} />
       </div>
 
       {/* Active Sessions */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-1">
-          <Shield className="w-5 h-5 text-indigo-500" />
-          Active Sessions
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Shield className="w-4 h-4 text-indigo-500" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Active Sessions</h3>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Manage devices where you&apos;re currently logged in.
         </p>
 
-        <div className="bg-gray-50 dark:bg-neutral-900/50 rounded-xl border border-gray-100 dark:border-neutral-800 p-4">
+        <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700 p-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 dark:text-white text-sm">Current Device</p>
@@ -181,7 +180,7 @@ export default function SecurityTab() {
           </div>
         </div>
         
-        <Button variant="ghost" className="mt-4 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
+        <Button variant="ghost" size="sm" className="mt-3 h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
           Sign out all other devices
         </Button>
       </div>

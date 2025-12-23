@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Mail, MessageSquare, BarChart } from "lucide-react";
+import { Bell, Mail, MessageSquare, BarChart, Megaphone } from "lucide-react";
 
 export default function NotificationsTab() {
   const [notifications, setNotifications] = useState({
@@ -11,67 +11,73 @@ export default function NotificationsTab() {
     marketing: false,
   });
 
+  const notificationOptions = [
+    {
+      id: "email",
+      title: "Email Notifications",
+      description: "Receive important updates about your account",
+      icon: Mail,
+      color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+    },
+    {
+      id: "dmAlerts",
+      title: "DM Alerts",
+      description: "Get notified when automations send DMs",
+      icon: MessageSquare,
+      color: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",
+    },
+    {
+      id: "weeklyReport",
+      title: "Weekly Reports",
+      description: "Receive weekly performance summaries",
+      icon: BarChart,
+      color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400",
+    },
+    {
+      id: "marketing",
+      title: "Product Updates",
+      description: "Get notified about new features and updates",
+      icon: Megaphone,
+      color: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
+    },
+  ];
+
   return (
-    <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-gray-200 dark:border-neutral-800 p-8 space-y-8">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Bell className="w-5 h-5 text-indigo-500" />
-          Notification Preferences
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6">
-          Choose how you want to be notified.
-        </p>
-
-        <div className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-2xl border border-gray-100 dark:border-neutral-800">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">Email Notifications</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Receive important updates about your account</p>
-              </div>
-            </div>
-            <Switch 
-              checked={notifications.email}
-              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, email: checked }))}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-2xl border border-gray-100 dark:border-neutral-800">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-purple-400">
-                <MessageSquare className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">DM Alerts</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Get notified when automations send DMs</p>
-              </div>
-            </div>
-            <Switch 
-              checked={notifications.dmAlerts}
-              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, dmAlerts: checked }))}
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-2xl border border-gray-100 dark:border-neutral-800">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                <BarChart className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">Weekly Reports</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Receive weekly performance summaries</p>
-              </div>
-            </div>
-            <Switch 
-              checked={notifications.weeklyReport}
-              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, weeklyReport: checked }))}
-            />
-          </div>
+    <div className="space-y-4">
+      {/* Header Card */}
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Bell className="w-4 h-4 text-indigo-500" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Notification Preferences</h3>
         </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Choose how you want to be notified about important updates.
+        </p>
       </div>
+
+      {/* Notification Options */}
+      {notificationOptions.map((option) => {
+        const Icon = option.icon;
+        return (
+          <div key={option.id} className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${option.color}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">{option.title}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{option.description}</p>
+                </div>
+              </div>
+              <Switch 
+                checked={notifications[option.id as keyof typeof notifications]}
+                onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, [option.id]: checked }))}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -79,46 +79,60 @@ export async function POST(req: NextRequest) {
 
     // Upsert user profile
     if (profile) {
+      console.log("Saving profile:", JSON.stringify(profile, null, 2));
+      
+      // Handle followerRange - convert empty string to null
+      const followerRange = profile.followerRange && profile.followerRange !== "" 
+        ? profile.followerRange 
+        : null;
+      
+      // Handle age - ensure it's a number or null
+      const age = profile.age 
+        ? (typeof profile.age === 'string' ? parseInt(profile.age) : profile.age)
+        : null;
+
       await client.userProfile.upsert({
         where: { userId },
         create: {
           userId,
-          displayName: profile.displayName,
-          phoneNumber: profile.phoneNumber,
-          bio: profile.bio,
-          pronouns: profile.pronouns,
-          age: profile.age ? parseInt(profile.age) : null,
+          displayName: profile.displayName || null,
+          phoneNumber: profile.phoneNumber || null,
+          bio: profile.bio || null,
+          pronouns: profile.pronouns || null,
+          age,
           profileType: profile.profileType || "EXPLORING",
           contentCategories: profile.contentCategories || [],
           platforms: profile.platforms || [],
-          primaryPlatform: profile.primaryPlatform,
-          followerRange: profile.followerRange || null,
+          primaryPlatform: profile.primaryPlatform || null,
+          followerRange,
           sellsCoaching: profile.sellsCoaching || false,
           sellsCourses: profile.sellsCourses || false,
           sellsWorkshops: profile.sellsWorkshops || false,
           sellsMemberships: profile.sellsMemberships || false,
-          bookingLink: profile.bookingLink,
+          bookingLink: profile.bookingLink || null,
           automationGoals: profile.automationGoals || [],
         },
         update: {
-          displayName: profile.displayName,
-          phoneNumber: profile.phoneNumber,
-          bio: profile.bio,
-          pronouns: profile.pronouns,
-          age: profile.age ? parseInt(profile.age) : null,
+          displayName: profile.displayName || null,
+          phoneNumber: profile.phoneNumber || null,
+          bio: profile.bio || null,
+          pronouns: profile.pronouns || null,
+          age,
           profileType: profile.profileType || "EXPLORING",
           contentCategories: profile.contentCategories || [],
           platforms: profile.platforms || [],
-          primaryPlatform: profile.primaryPlatform,
-          followerRange: profile.followerRange || null,
+          primaryPlatform: profile.primaryPlatform || null,
+          followerRange,
           sellsCoaching: profile.sellsCoaching || false,
           sellsCourses: profile.sellsCourses || false,
           sellsWorkshops: profile.sellsWorkshops || false,
           sellsMemberships: profile.sellsMemberships || false,
-          bookingLink: profile.bookingLink,
+          bookingLink: profile.bookingLink || null,
           automationGoals: profile.automationGoals || [],
         },
       });
+
+      console.log("Profile saved successfully");
 
       // Also update the User name if displayName provided
       if (profile.displayName) {

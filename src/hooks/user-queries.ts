@@ -46,3 +46,18 @@ export const useQueryInstagramProfile = () => {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };
+
+export const useQueryOnboardingProfile = () => {
+  return useQuery({
+    queryKey: ["onboarding-profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/onboarding");
+      const data = await res.json();
+      if (data.status === 200 && data.data) {
+        return data.data;
+      }
+      return null;
+    },
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+  });
+};
