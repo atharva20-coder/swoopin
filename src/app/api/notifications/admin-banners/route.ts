@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/notifications/admin-banners
  * Get recent admin notifications for the current user (last 7 days)
@@ -53,6 +55,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching admin banners:", error);
-    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch notifications" },
+      { status: 500 }
+    );
   }
 }
