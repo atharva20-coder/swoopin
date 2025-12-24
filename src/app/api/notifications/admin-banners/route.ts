@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
+// Force dynamic rendering since this route uses headers for authentication
 export const dynamic = "force-dynamic";
 
 /**
@@ -55,9 +56,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching admin banners:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch notifications" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
   }
 }

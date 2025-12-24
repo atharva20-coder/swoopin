@@ -96,10 +96,10 @@ export default function ProfileHeader() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="flex gap-6 mb-4">
-          {/* Left Column - Centered Avatar */}
+        <div className="flex gap-4 mb-4">
+          {/* Left Column - Avatar */}
           <div className="flex-shrink-0 flex flex-col items-center justify-center">
-            <div className="w-32 h-32 rounded-full border-2 border-gray-200 dark:border-neutral-700 overflow-hidden bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full border-2 border-gray-200 dark:border-neutral-700 overflow-hidden bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
               {user?.image ? (
                 <Image
                   src={user.image}
@@ -117,7 +117,7 @@ export default function ProfileHeader() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-4xl font-bold text-gray-400">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-400">
                   {displayName[0] || "U"}
                 </span>
               )}
@@ -128,7 +128,7 @@ export default function ProfileHeader() {
           <div className="flex-1 min-w-0">
             {/* Username Row */}
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                 {username}
               </h1>
               {profile?.is_verified_user && (
@@ -153,7 +153,7 @@ export default function ProfileHeader() {
             </p>
 
             {/* Stats Tiles */}
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               <div className="bg-gray-50 dark:bg-neutral-900 rounded-lg px-3 py-1.5 text-center border border-gray-100 dark:border-neutral-800">
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">{profile?.follower_count ? formatCount(profile.follower_count) : "-"}</span>
                 <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">followers</span>
@@ -201,7 +201,7 @@ export default function ProfileHeader() {
             )}
 
             {/* Contact Info */}
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               {onboardingProfile?.phoneNumber && (
                 <span className="inline-flex items-center gap-1">
                   <Phone className="w-3 h-3" />
@@ -231,11 +231,11 @@ export default function ProfileHeader() {
             className="flex-1 bg-gray-100 dark:bg-neutral-800 border-0 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-900 dark:text-white font-medium h-8 text-xs"
             onClick={() => router.push(`/dashboard/${slug}/integrations`)}
           >
-            Manage Integrations
+            Integrations
           </Button>
           <Button 
             variant="destructive" 
-            className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0 h-8 px-2"
+            className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-0 h-8 px-3"
             onClick={handleSignOut}
           >
             <LogOut className="w-3.5 h-3.5" />

@@ -35,3 +35,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# meta app review
+docs/meta-app-review-guide.md
+
+# seed data
+prisma/seed.ts
