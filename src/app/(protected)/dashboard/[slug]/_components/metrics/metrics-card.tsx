@@ -3,7 +3,7 @@ import { useQueryAutomations } from '@/hooks/user-queries'
 import React, { useMemo } from 'react'
 
 const MetricsCard = () => {
-  const { data, isLoading } = useQueryAutomations({ refetchInterval: 5000 })
+  const { data, isLoading } = useQueryAutomations({ refetchInterval: 60000 })
   const currentMonth = new Date().getMonth()
   
   const metrics = useMemo(() => {

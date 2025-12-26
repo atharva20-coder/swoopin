@@ -1,18 +1,11 @@
 import { getAutomationInfo } from "@/actions/automations";
-import AutomationsBreadCrumb from "@/components/global/bread-crumbs/automations";
-
 import { PrefetchUserAutomation } from "@/react-query/prefetch";
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-
 import React from "react";
-import DeleteAutomationButton from "./_components/delete-automation-button";
-import FlowCanvas from "@/components/global/automations/flow-canvas";
-import ComponentsPanel from "@/components/global/automations/components-panel";
-import ConfigPanel from "@/components/global/automations/config-panel";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import FlowManager from "./_components/flow-builder";

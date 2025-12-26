@@ -14,7 +14,7 @@ type Automation = {
 }
 
 const PostPerformance = () => {
-  const { data: automationsData, isLoading } = useQueryAutomations({ refetchInterval: 10000 })
+  const { data: automationsData, isLoading } = useQueryAutomations({ refetchInterval: 60000 })
   const { data: instagramProfile } = useQueryInstagramProfile()
   const [selectedAutomation, setSelectedAutomation] = useState<Automation | null>(null)
   

@@ -2,21 +2,23 @@
 import React from 'react'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { useQueryInstagramProfile } from '@/hooks/user-queries'
+import { useInstagramInsights } from '@/hooks/use-instagram-insights'
 import { useParams } from 'next/navigation'
-import { Send, MessageCircle, TrendingUp, Zap, Users, Link2 } from 'lucide-react'
+import { Send, MessageCircle, TrendingUp, Zap, Users, Eye, MousePointer, UserPlus } from 'lucide-react'
 import { usePlatform } from '@/context/platform-context'
 
 type MetricCardProps = {
   label: string
   value: string | number
-  change: number
+  change?: number
   icon: React.ReactNode
   gradient: string
   isLoading?: boolean
+  sublabel?: string
 }
 
-const MetricCard = ({ label, value, change, icon, gradient, isLoading = false }: MetricCardProps) => {
-  const isPositive = change >= 0
+const MetricCard = ({ label, value, change, icon, gradient, isLoading = false, sublabel }: MetricCardProps) => {
+  const isPositive = (change ?? 0) >= 0
   
   if (isLoading) {
     return (
@@ -37,8 +39,11 @@ const MetricCard = ({ label, value, change, icon, gradient, isLoading = false }:
         <div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+          {sublabel && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">{sublabel}</p>
+          )}
         </div>
-        {change !== 0 && (
+        {change !== undefined && change !== 0 && (
           <span className={`text-xs font-medium px-2 py-1 rounded-full ${
             isPositive 
               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' 
@@ -62,68 +67,110 @@ const AnalyticsSummary = () => {
   const params = useParams()
   const { data: analytics, isLoading: isLoadingAnalytics } = useAnalytics(params.slug as string)
   const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile()
+  const { data: insights, isLoading: isLoadingInsights } = useInstagramInsights()
   const { activePlatform } = usePlatform()
   
-  const isLoading = isLoadingAnalytics || isLoadingProfile
+  const isLoading = isLoadingAnalytics || isLoadingProfile || isLoadingInsights
   const followerCount = instagramProfile?.status === 200 ? instagramProfile.data?.follower_count || 0 : 0
+  
+  // Instagram API Insights (real data from Meta)
+  const accountInsights = insights?.status === 200 ? insights.data?.account : null
   
   const processedMetrics = React.useMemo(() => {
     // If specific platform selected but not Instagram, show zeros (other platforms coming soon)
     if (activePlatform !== 'all' && activePlatform !== 'instagram') {
       return {
-        totalMessages: { value: '0', change: 0 },
-        totalResponses: { value: '0', change: 0 },
-        engagement: { value: '0%', change: 0 },
-        automations: { value: '0', change: 0 },
+        followers: { value: '0', change: 0 },
         reach: { value: '0', change: 0 },
-        conversions: { value: '0', change: 0 }
+        interactions: { value: '0', change: 0 },
+        profileViews: { value: '0', change: 0 },
+        websiteClicks: { value: '0', change: 0 },
+        accountsEngaged: { value: '0', change: 0 },
       }
     }
 
+    // Use real Instagram insights if available
+    if (accountInsights) {
+      const engagementRate = accountInsights.reach > 0 
+        ? ((accountInsights.totalInteractions / accountInsights.reach) * 100).toFixed(1)
+        : '0'
+      return {
+        followers: { value: formatValue(accountInsights.followerCount || followerCount), change: undefined },
+        reach: { value: formatValue(accountInsights.reach), change: undefined },
+        interactions: { value: formatValue(accountInsights.totalInteractions), change: undefined },
+        profileViews: { value: formatValue(accountInsights.profileViews), change: undefined },
+        websiteClicks: { value: formatValue(accountInsights.websiteClicks), change: undefined },
+        accountsEngaged: { value: formatValue(accountInsights.accountsEngaged), change: undefined },
+      }
+    }
+
+    // Fallback to internal analytics
     if (!analytics?.data) {
       return {
-        totalMessages: { value: '0', change: 0 },
-        totalResponses: { value: '0', change: 0 },
-        engagement: { value: '0%', change: 0 },
-        automations: { value: '0', change: 0 },
-        reach: { value: '0', change: 0 },
-        conversions: { value: '0', change: 0 }
+        followers: { value: formatValue(followerCount), change: undefined },
+        reach: { value: '0', change: undefined },
+        interactions: { value: '0', change: undefined },
+        profileViews: { value: '0', change: undefined },
+        websiteClicks: { value: '0', change: undefined },
+        accountsEngaged: { value: '0', change: undefined },
       }
     }
 
-    const chartData = analytics.data.chartData || []
-    const currentMonth = new Date().getMonth()
-    
-    const currentData = chartData.find(item => new Date(item.date).getMonth() === currentMonth) || { dmCount: 0, commentCount: 0, activity: 0 }
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1
-    const previousData = chartData.find(item => new Date(item.date).getMonth() === previousMonth) || { dmCount: 0, commentCount: 0, activity: 0 }
-
-    const calculateChange = (current: number, previous: number) => {
-      if (previous === 0) return current > 0 ? 100 : 0
-      return ((current - previous) / previous) * 100
-    }
-
-    const totalInteractions = currentData.dmCount + currentData.commentCount
-    const previousInteractions = previousData.dmCount + previousData.commentCount
-    const engagementRate = followerCount > 0 ? (totalInteractions / followerCount) * 100 : 0
+    const totalInteractions = (analytics.data.totalDms || 0) + (analytics.data.totalComments || 0)
 
     return {
-      totalMessages: { value: formatValue(analytics.data.totalDms || 0), change: calculateChange(currentData.dmCount, previousData.dmCount) },
-      totalResponses: { value: formatValue(analytics.data.totalComments || 0), change: calculateChange(currentData.commentCount, previousData.commentCount) },
-      engagement: { value: `${engagementRate.toFixed(1)}%`, change: 0 },
-      automations: { value: formatValue(0), change: 0 },
-      reach: { value: formatValue(totalInteractions), change: calculateChange(totalInteractions, previousInteractions) },
-      conversions: { value: formatValue(analytics.data.totalDms || 0), change: 0 }
+      followers: { value: formatValue(followerCount), change: undefined },
+      reach: { value: formatValue(totalInteractions), change: undefined },
+      interactions: { value: formatValue(totalInteractions), change: undefined },
+      profileViews: { value: '—', change: undefined },
+      websiteClicks: { value: '—', change: undefined },
+      accountsEngaged: { value: '—', change: undefined },
     }
-  }, [analytics?.data, followerCount, activePlatform])
+  }, [analytics?.data, followerCount, activePlatform, accountInsights])
   
   const metrics = [
-    { label: 'Messages Sent', ...processedMetrics.totalMessages, icon: <Send className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-blue-500 to-blue-600' },
-    { label: 'Responses', ...processedMetrics.totalResponses, icon: <MessageCircle className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-purple-500 to-purple-600' },
-    { label: 'Engagement', ...processedMetrics.engagement, icon: <TrendingUp className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600' },
-    { label: 'Active Automations', ...processedMetrics.automations, icon: <Zap className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-orange-500 to-orange-600' },
-    { label: 'Total Reach', ...processedMetrics.reach, icon: <Users className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-pink-500 to-pink-600' },
-    { label: 'Conversions', ...processedMetrics.conversions, icon: <Link2 className="w-5 h-5 text-white" />, gradient: 'bg-gradient-to-br from-indigo-500 to-indigo-600' }
+    { 
+      label: 'Followers', 
+      ...processedMetrics.followers, 
+      icon: <Users className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      sublabel: 'Total'
+    },
+    { 
+      label: 'Reach', 
+      ...processedMetrics.reach, 
+      icon: <UserPlus className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
+      sublabel: 'Last 28 days'
+    },
+    { 
+      label: 'Interactions', 
+      ...processedMetrics.interactions, 
+      icon: <Eye className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-pink-500 to-pink-600',
+      sublabel: 'Last 28 days'
+    },
+    { 
+      label: 'Profile Views', 
+      ...processedMetrics.profileViews, 
+      icon: <TrendingUp className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+      sublabel: 'Last 28 days'
+    },
+    { 
+      label: 'Website Clicks', 
+      ...processedMetrics.websiteClicks, 
+      icon: <MousePointer className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
+      sublabel: 'Last 28 days'
+    },
+    { 
+      label: 'Accounts Engaged', 
+      ...processedMetrics.accountsEngaged, 
+      icon: <Zap className="w-5 h-5 text-white" />, 
+      gradient: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      sublabel: 'Last 28 days'
+    }
   ]
   
   return (

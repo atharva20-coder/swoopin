@@ -20,10 +20,13 @@ type Props = {
 const Layout = async ({ children, params }: Props) => {
   const query = new QueryClient();
 
-  await PrefetchUserProfile(query);
-  await PrefetchUserAutomations(query);
-  await PrefetchUserNotifications(query);
-  await PrefetchUserAnalytics(query, params.slug);
+  // Run all prefetch queries in parallel for faster page load
+  await Promise.all([
+    PrefetchUserProfile(query),
+    PrefetchUserAutomations(query),
+    PrefetchUserNotifications(query),
+    PrefetchUserAnalytics(query, params.slug),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(query)}>

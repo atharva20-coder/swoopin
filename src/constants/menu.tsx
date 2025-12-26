@@ -6,7 +6,7 @@ import {
   Bell,
   CalendarDuoToneWhite,
 } from '@/icons'
-import { Users, BarChart3, Building2, CreditCard } from 'lucide-react'
+import { Users, BarChart3, Building2, CreditCard, MessageCircle } from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 
 export type FieldProps = {
@@ -24,6 +24,12 @@ export const SIDEBAR_MENU: SideBarProps[] = [
     id: uuid(),
     label: 'home',
     icon: <HomeDuoToneWhite />,
+  },
+  {
+    id: uuid(),
+    label: 'inbox',
+    icon: <MessageCircle className="w-5 h-5 text-gray-100" />,
+    name: 'Inbox',
   },
   {
     id: uuid(),

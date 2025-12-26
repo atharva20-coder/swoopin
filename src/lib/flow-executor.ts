@@ -148,12 +148,14 @@ const executeActionNode = async (
   try {
     switch (node.subType) {
       case "MESSAGE": {
+        console.log("MESSAGE node: context.aiResponse =", context.aiResponse ? context.aiResponse.substring(0, 30) + "..." : "none");
         const messageText = context.aiResponse || node.config?.message || "";
         if (!messageText) return { success: false, message: "No message configured" };
         
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
         
+        console.log("MESSAGE node: Sending DM with text:", messageText.substring(0, 50) + "...");
         const result = await sendDM(pageId, senderId, messageText, token);
         if (result.status === 200) {
           await trackResponses(automationId, "DM");
@@ -206,7 +208,7 @@ const executeActionNode = async (
         // Fetch chat history
         let chatHistory: { role: "user" | "model"; text: string }[] = [];
         try {
-          const historyResult = await getChatHistory(senderId, pageId);
+          const historyResult = await getChatHistory(pageId, senderId);
           if (historyResult.history && historyResult.history.length > 0) {
             chatHistory = historyResult.history.slice(-10).map((msg) => ({
               role: msg.role === "user" ? "user" as const : "model" as const,
@@ -248,15 +250,17 @@ const executeActionNode = async (
           return { success: false, message: "No AI response generated" };
         }
 
-        context.aiResponse = generatedResponse;
-
         // Store chat history
         try {
           await createChatHistory(automationId, senderId, pageId, context.messageText || "");
           await createChatHistory(automationId, pageId, senderId, generatedResponse);
         } catch (e) {}
 
-        return { success: true, message: "AI response generated - ready for Send DM or Reply Comment" };
+        // Store AI response for downstream nodes (MESSAGE or REPLY_COMMENT)
+        context.aiResponse = generatedResponse;
+        console.log("SmartAI: Generated response, passing to downstream node:", generatedResponse.substring(0, 50) + "...");
+        
+        return { success: true, message: "AI response generated - will be sent by downstream action" };
       }
 
       case "CAROUSEL": {

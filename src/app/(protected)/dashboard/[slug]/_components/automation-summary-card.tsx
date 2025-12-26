@@ -28,7 +28,7 @@ interface AutomationData {
 const AutomationSummaryCard = () => {
   const params = useParams();
   const { data, isLoading } = useQueryAutomations({
-    refetchInterval: 5000, // Refresh data every 5 seconds
+    refetchInterval: 60000, // Refresh data every 60 seconds
   });
 
   if (isLoading) {
