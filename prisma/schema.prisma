@@ -16,6 +16,7 @@ model User {
   image               String?
   name                String?
   updatedAt           DateTime            @default(now()) @updatedAt
+  adCampaigns         AdCampaign[]
   analytics           Analytics[]
   automations         Automation[]
   brandPartnerships   BrandPartnership[]
@@ -599,4 +600,42 @@ model Product {
   @@unique([catalogId, externalId])
   @@index([catalogId])
   @@index([status])
+}
+
+enum CampaignObjective {
+  BRAND_AWARENESS
+  REACH
+  TRAFFIC
+  ENGAGEMENT
+  CONVERSIONS
+  POST_ENGAGEMENT
+}
+
+enum CampaignStatus {
+  ACTIVE
+  PAUSED
+  DELETED
+  ARCHIVED
+}
+
+model AdCampaign {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String             @db.Uuid
+  campaignId  String             // Meta campaign ID
+  adAccountId String             // Meta ad account ID
+  name        String
+  objective   CampaignObjective
+  status      CampaignStatus     @default(PAUSED)
+  budget      Decimal            @db.Decimal(10, 2)
+  currency    String             @default("USD")
+  startDate   DateTime?
+  endDate     DateTime?
+  insights    Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  User        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([campaignId])
 }
