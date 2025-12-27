@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import axios from 'axios';
 import {
   getCampaigns,
@@ -10,7 +10,9 @@ import {
 } from '@/lib/instagram/ads';
 
 vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
+
+const mockedAxiosGet = axios.get as Mock;
+const mockedAxiosPost = axios.post as Mock;
 
 describe('Ads API Wrapper', () => {
   const mockToken = 'test-access-token';
@@ -27,7 +29,7 @@ describe('Ads API Wrapper', () => {
         { id: '2', name: 'Campaign 2', status: 'PAUSED', objective: 'REACH' },
       ];
 
-      mockedAxios.get.mockResolvedValueOnce({
+      mockedAxiosGet.mockResolvedValueOnce({
         data: { data: mockCampaigns },
       });
 
@@ -35,14 +37,14 @@ describe('Ads API Wrapper', () => {
 
       expect(result.success).toBe(true);
       expect(result.campaigns).toEqual(mockCampaigns);
-      expect(mockedAxios.get).toHaveBeenCalledWith(
+      expect(mockedAxiosGet).toHaveBeenCalledWith(
         expect.stringContaining(`/act_${mockAdAccountId}/campaigns`),
         expect.any(Object)
       );
     });
 
     it('should return empty array on 400 error', async () => {
-      mockedAxios.get.mockRejectedValueOnce({
+      mockedAxiosGet.mockRejectedValueOnce({
         isAxiosError: true,
         response: { status: 400 },
       });
@@ -92,12 +94,12 @@ describe('Ads API Wrapper', () => {
 
   describe('updateCampaignStatus', () => {
     it('should update campaign status', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: { success: true } });
+      mockedAxiosPost.mockResolvedValueOnce({ data: { success: true } });
 
       const result = await updateCampaignStatus('campaign123', mockToken, 'PAUSED');
 
       expect(result.success).toBe(true);
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockedAxiosPost).toHaveBeenCalledWith(
         expect.stringContaining('/campaign123'),
         { status: 'PAUSED' },
         expect.any(Object)
@@ -117,7 +119,7 @@ describe('Ads API Wrapper', () => {
         ctr: '5.00',
       };
 
-      mockedAxios.get.mockResolvedValueOnce({
+      mockedAxiosGet.mockResolvedValueOnce({
         data: { data: [mockInsights] },
       });
 
@@ -129,7 +131,7 @@ describe('Ads API Wrapper', () => {
     });
 
     it('should handle missing insights', async () => {
-      mockedAxios.get.mockResolvedValueOnce({
+      mockedAxiosGet.mockResolvedValueOnce({
         data: { data: [] },
       });
 
@@ -147,7 +149,7 @@ describe('Ads API Wrapper', () => {
         { id: '456', name: 'Account 2', currency: 'EUR' },
       ];
 
-      mockedAxios.get.mockResolvedValueOnce({
+      mockedAxiosGet.mockResolvedValueOnce({
         data: { data: mockAccounts },
       });
 
