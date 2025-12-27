@@ -1,6 +1,7 @@
 "use server";
 
 import { client } from "@/lib/prisma";
+import { getOrSetCache, invalidateUserCache } from "@/lib/cache";
 
 // Find user by email (primary lookup for Better-Auth)
 export const findUserByEmail = async (email: string) => {
@@ -36,36 +37,43 @@ export const findUserByEmail = async (email: string) => {
 };
 
 // Legacy findUser - now uses id (UUID) instead of clerkId
+// Cached for 5 minutes
 export const findUser = async (userId: string) => {
-  return await client.user.findUnique({
-    where: {
-      id: userId,
-    },
-    include: {
-      notification: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          id: true,
-          isSeen: true,
-        },
+  return await getOrSetCache(
+    `user:${userId}:profile`,
+    async () => {
+      return await client.user.findUnique({
         where: {
-          isSeen: false,
+          id: userId,
         },
-      },
-      subscription: true,
-      integrations: {
-        select: {
-          id: true,
-          token: true,
-          expiresAt: true,
-          name: true,
-          instagramId: true,
+        include: {
+          notification: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            select: {
+              id: true,
+              isSeen: true,
+            },
+            where: {
+              isSeen: false,
+            },
+          },
+          subscription: true,
+          integrations: {
+            select: {
+              id: true,
+              token: true,
+              expiresAt: true,
+              name: true,
+              instagramId: true,
+            },
+          },
         },
-      },
+      });
     },
-  });
+    300 // 5 minutes TTL
+  );
 };
 
 export const createUser = async (

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
-import React from "react";
+import React, { useMemo, memo, useCallback } from "react";
 import { useQueryAutomations } from "@/hooks/user-queries";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -41,33 +41,36 @@ const AutomationSummaryCard = () => {
     );
   }
 
-  const transformedData = data?.data?.[0] ? {
-    platform: "Instagram",
-    title: data.data[0].name || "Instagram Automation",
-    description: data.data[0].listener?.prompt || "Automated responses for Instagram comments and DMs",
-    status: data.data[0].active ? "completed" : "pending",
-    accountCount: data.data[0].keywords?.length || 0,
-    createdAt: data.data[0].createdAt.toISOString(),
-    metrics: {
-      accountsEngaged: data.data[0].listener?.dmCount || 0,
-      totalLikes: data.data[0].listener?.commentCount || 0,
-      followersRange: "0-1K"
-    }
-  } : null;
+  // Memoize transformed data to prevent recalculation
+  const automationData: AutomationData = useMemo(() => {
+    const transformedData = data?.data?.[0] ? {
+      platform: "Instagram",
+      title: data.data[0].name || "Instagram Automation",
+      description: data.data[0].listener?.prompt || "Automated responses for Instagram comments and DMs",
+      status: data.data[0].active ? "completed" : "pending",
+      accountCount: data.data[0].keywords?.length || 0,
+      createdAt: data.data[0].createdAt.toISOString(),
+      metrics: {
+        accountsEngaged: data.data[0].listener?.dmCount || 0,
+        totalLikes: data.data[0].listener?.commentCount || 0,
+        followersRange: "0-1K"
+      }
+    } : null;
 
-  const automationData: AutomationData = transformedData || {
-    platform: "Instagram",
-    title: "Instagram Automation",
-    description: "Automated responses for Instagram comments and DMs",
-    status: "pending",
-    accountCount: 1,
-    createdAt: new Date().toISOString(),
-    metrics: {
-      accountsEngaged: 0,
-      totalLikes: 0,
-      followersRange: "0-1K"
-    }
-  };
+    return transformedData || {
+      platform: "Instagram",
+      title: "Instagram Automation",
+      description: "Automated responses for Instagram comments and DMs",
+      status: "pending",
+      accountCount: 1,
+      createdAt: new Date().toISOString(),
+      metrics: {
+        accountsEngaged: 0,
+        totalLikes: 0,
+        followersRange: "0-1K"
+      }
+    };
+  }, [data?.data]);
 
   const {
     platform,
@@ -79,7 +82,8 @@ const AutomationSummaryCard = () => {
     metrics
   } = automationData;
 
-  const getBadgeVariant = (status: string) => {
+  // Memoize badge variant function
+  const getBadgeVariant = useCallback((status: string) => {
     switch (status) {
       case "completed":
         return "success";
@@ -90,7 +94,7 @@ const AutomationSummaryCard = () => {
       default:
         return "outline";
     }
-  };
+  }, []);
 
   const formattedDate = new Date(createdAt).toLocaleDateString();
 
@@ -153,4 +157,4 @@ const AutomationSummaryCard = () => {
   );
 };
 
-export default AutomationSummaryCard;
+export default memo(AutomationSummaryCard);

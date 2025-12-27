@@ -36,6 +36,7 @@ type ScheduledPost = {
   taggedUsers?: string[];
   collaborators?: string[];
   altText?: string;
+  productTags?: { productId: string; x: number; y: number }[];
 };
 
 type Draft = {

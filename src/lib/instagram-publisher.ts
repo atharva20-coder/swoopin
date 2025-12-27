@@ -25,6 +25,7 @@ export interface MediaContainerParams {
   isCarouselItem?: boolean;
   locationId?: string;
   userTags?: { username: string; x?: number; y?: number }[];
+  productTags?: { product_id: string; x?: number; y?: number }[]; // Instagram Shopping
   coverUrl?: string;
   thumbOffset?: number;
   shareToFeed?: boolean;
@@ -109,6 +110,7 @@ export async function createMediaContainer(
     isCarouselItem,
     locationId,
     userTags,
+    productTags,
     coverUrl,
     thumbOffset,
     shareToFeed,
@@ -160,6 +162,11 @@ export async function createMediaContainer(
     // User tags (URL encoded)
     if (userTags && userTags.length > 0) {
       requestBody.user_tags = userTags;
+    }
+
+    // Product tags (Instagram Shopping)
+    if (productTags && productTags.length > 0) {
+      requestBody.product_tags = productTags;
     }
 
     // Cover URL for videos

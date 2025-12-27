@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, memo, useMemo } from 'react'
 import { useComments, useReplyToComment, useHideComment, useDeleteComment } from '@/hooks/use-comments'
 import { 
   MessageCircle, Send, EyeOff, Eye, Trash2, Heart, 
@@ -176,6 +176,9 @@ function Comment({
   )
 }
 
+// Memoize Comment component to prevent re-renders
+const MemoizedComment = memo(Comment)
+
 // =============================================================================
 // Comment Modal
 // =============================================================================
@@ -208,6 +211,7 @@ function CommentModal({
             <img
               src={media.media_url}
               alt=""
+              loading="lazy"
               className="w-14 h-14 rounded-xl object-cover"
             />
           ) : (
@@ -242,7 +246,7 @@ function CommentModal({
             </div>
           ) : (
             media.comments.map((comment) => (
-              <Comment
+              <MemoizedComment
                 key={comment.id}
                 comment={comment}
                 onReply={onReply}
@@ -283,6 +287,7 @@ function PostCard({ media, onClick }: PostCardProps) {
           <img
             src={media.media_url}
             alt=""
+            loading="lazy"
             className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
           />
         ) : (
@@ -322,6 +327,10 @@ function PostCard({ media, onClick }: PostCardProps) {
   )
 }
 
+// Memoize components
+const MemoizedPostCard = memo(PostCard)
+const MemoizedCommentModal = memo(CommentModal)
+
 // =============================================================================
 // Main Inbox Component
 // =============================================================================
@@ -335,10 +344,21 @@ export default function InboxView() {
   const [selectedMedia, setSelectedMedia] = useState<MediaWithComments | null>(null)
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [actionType, setActionType] = useState<'reply' | 'hide' | 'delete' | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  
+  const POSTS_PER_PAGE = 12
 
   const media = commentsData?.data?.media || []
   const totalComments = commentsData?.data?.totalComments || 0
-  const postsWithComments = media.filter(m => m.comments.length > 0)
+  
+  // Memoize filtered and paginated posts
+  const { postsWithComments, paginatedPosts, totalPages } = useMemo(() => {
+    const filtered = media.filter(m => m.comments.length > 0)
+    const pages = Math.ceil(filtered.length / POSTS_PER_PAGE)
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE
+    const paginated = filtered.slice(startIndex, startIndex + POSTS_PER_PAGE)
+    return { postsWithComments: filtered, paginatedPosts: paginated, totalPages: pages }
+  }, [media, currentPage])
 
   const handleReply = useCallback(async (commentId: string, message: string) => {
     setActiveCommentId(commentId)
@@ -433,10 +453,10 @@ export default function InboxView() {
         </button>
       </div>
 
-      {/* Posts Grid - Fixed height cards */}
+      {/* Posts Grid - Paginated for performance */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {postsWithComments.map((m) => (
-          <PostCard
+        {paginatedPosts.map((m) => (
+          <MemoizedPostCard
             key={m.id}
             media={m}
             onClick={() => setSelectedMedia(m)}
@@ -444,9 +464,34 @@ export default function InboxView() {
         ))}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Page {currentPage} of {totalPages} ({postsWithComments.length} posts)
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Comment Modal */}
       {selectedMedia && (
-        <CommentModal
+        <MemoizedCommentModal
           media={selectedMedia}
           onClose={() => setSelectedMedia(null)}
           onReply={handleReply}

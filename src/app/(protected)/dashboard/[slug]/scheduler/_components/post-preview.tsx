@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { 
   X, ChevronLeft, ChevronRight, Clock, MapPin, Hash, Music2, Users, AtSign, 
   Zap, Calendar, Send, Save, Image as ImageIcon, Film, Plus, Trash2,
-  User, Heart, MessageCircle, Bookmark, MoreHorizontal, Play, Layers, Battery, Wifi, Signal
+  User, Heart, MessageCircle, Bookmark, MoreHorizontal, Play, Layers, Battery, Wifi, Signal, Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Image from "next/image";
+import ProductPicker, { ProductTag } from "@/components/global/product-picker";
 
 type ScheduledPost = {
   id: string;
@@ -27,6 +29,7 @@ type ScheduledPost = {
   music?: string;
   taggedUsers?: string[];
   collaborators?: string[];
+  productTags?: { productId: string; x: number; y: number }[];
 };
 
 type Automation = {
@@ -83,6 +86,26 @@ export default function PostPreviewModal({
   const [scheduledTime, setScheduledTime] = useState("09:00");
   const [showMediaInput, setShowMediaInput] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [productTags, setProductTags] = useState<ProductTag[]>([]);
+  const [showProductPicker, setShowProductPicker] = useState(false);
+  const [catalogAvailable, setCatalogAvailable] = useState<boolean | null>(null);
+  const [paidPartnership, setPaidPartnership] = useState(false);
+  const [paidPartnershipLabel, setPaidPartnershipLabel] = useState("");
+
+  // Check if product catalog is available
+  useEffect(() => {
+    const checkCatalog = async () => {
+      try {
+        const res = await fetch('/api/instagram/catalog-products?limit=1');
+        const data = await res.json();
+        // Catalog is available if we don't have an error or we have products
+        setCatalogAvailable(!data.error || data.products?.length > 0);
+      } catch {
+        setCatalogAvailable(false);
+      }
+    };
+    checkCatalog();
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -112,6 +135,7 @@ export default function PostPreviewModal({
         setTaggedUsers([]);
         setCollaborators([]);
         setSelectedAutomation("");
+        setProductTags([]);
         if (initialDate) {
           setScheduledDate(initialDate.toISOString().slice(0, 10));
           setScheduledTime("09:00");
@@ -184,6 +208,7 @@ export default function PostPreviewModal({
     automationId: selectedAutomation || undefined,
     scheduledFor: getScheduledDateTime(),
     status: "SCHEDULED",
+    productTags: productTags.map(t => ({ productId: t.productId, x: t.x, y: t.y })),
   });
 
   const handleSchedule = () => {
@@ -654,6 +679,48 @@ export default function PostPreviewModal({
                 ))}
               </select>
             </div>
+
+            {/* Product Tags - only show if catalog is available */}
+            {catalogAvailable && (
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block flex items-center gap-1">
+                  <Package className="w-3 h-3" /> Product Tags
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setShowProductPicker(true)}
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  {productTags.length > 0 ? `${productTags.length} products tagged` : "Tag products"}
+                </Button>
+              </div>
+            )}
+
+            {/* Paid Partnership */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={paidPartnership}
+                  onChange={(e) => setPaidPartnership(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-neutral-600"
+                />
+                <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  Paid Partnership
+                </span>
+              </label>
+              {paidPartnership && (
+                <Input
+                  placeholder="Brand/Sponsor username"
+                  value={paidPartnershipLabel}
+                  onChange={(e) => setPaidPartnershipLabel(e.target.value)}
+                  className="text-sm"
+                />
+              )}
+            </div>
           </div>
 
           {/* Actions */}
@@ -685,7 +752,18 @@ export default function PostPreviewModal({
             <X className="w-4 h-4" />
           </button>
         </div>
-      </div>
+    </div>
+
+      {/* Product Picker Modal */}
+      {showProductPicker && (
+        <ProductPicker
+          selectedProducts={productTags}
+          onProductsChange={setProductTags}
+          mediaUrl={mediaUrls[0]}
+          maxProducts={5}
+          onClose={() => setShowProductPicker(false)}
+        />
+      )}
     </div>
   );
 }

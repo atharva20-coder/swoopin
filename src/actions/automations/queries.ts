@@ -2,9 +2,10 @@
 
 
 import { client } from "@/lib/prisma";
+import { getOrSetCache, deleteCache } from "@/lib/cache";
 
 export const createAutomation = async (userId: string, id?: string) => {
-  return await client.user.update({
+  const result = await client.user.update({
     where: {
       id: userId,
     },
@@ -16,32 +17,53 @@ export const createAutomation = async (userId: string, id?: string) => {
       },
     },
   });
+  // Invalidate cache after creating automation
+  await deleteCache(`user:${userId}:automations`);
+  return result;
 };
 export const deleteAutomation = async (id: string) => {
-  return await client.automation.delete({
+  const automation = await client.automation.findUnique({
+    where: { id },
+    select: { userId: true },
+  });
+  
+  const result = await client.automation.delete({
     where: {
       id,
     },
   });
+  
+  // Invalidate cache after deleting automation
+  if (automation?.userId) {
+    await deleteCache(`user:${automation.userId}:automations`);
+  }
+  return result;
 };
 
+// Cached for 5 minutes
 export const getAutomations = async (userId: string) => {
-  return await client.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      automations: {
-        orderBy: {
-          createdAt: "asc",
+  return await getOrSetCache(
+    `user:${userId}:automations`,
+    async () => {
+      return await client.user.findUnique({
+        where: {
+          id: userId,
         },
-        include: {
-          keywords: true,
-          listener: true,
+        select: {
+          automations: {
+            orderBy: {
+              createdAt: "asc",
+            },
+            include: {
+              keywords: true,
+              listener: true,
+            },
+          },
         },
-      },
+      });
     },
-  });
+    300 // 5 minutes TTL
+  );
 };
 
 export const findAutomation = async (id: string) => {

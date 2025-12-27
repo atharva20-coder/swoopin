@@ -3,26 +3,31 @@
 import { client } from "@/lib/prisma";
 
 // Find automation by keyword match or catch-all trigger
+// Optimized: Only select fields needed for matching
 export const matchKeyword = async (messageText: string, triggerType: "DM" | "COMMENT" = "DM") => {
-
   
   // First, try legacy keyword table - check if message contains any keyword
+  // Only select id, word, automationId - skip other fields
   const legacyKeywords = await client.keyword.findMany({
     where: {
       Automation: {
         active: true,
       },
     },
+    select: {
+      id: true,
+      word: true,
+      automationId: true,
+    },
   });
   
   for (const kw of legacyKeywords) {
     if (messageText.toLowerCase().includes(kw.word.toLowerCase())) {
-
       return kw;
     }
   }
   
-  // Search FlowNode KEYWORDS nodes
+  // Search FlowNode KEYWORDS nodes - only select needed fields
   const keywordNodes = await client.flowNode.findMany({
     where: {
       subType: "KEYWORDS",
@@ -30,32 +35,26 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
         active: true,
       },
     },
-    include: {
-      Automation: true,
+    select: {
+      automationId: true,
+      config: true,
     },
   });
-  
-
   
   // Check each KEYWORDS node's config for matching keyword
   for (const node of keywordNodes) {
     const config = node.config as Record<string, any> || {};
     const keywords = config.keywords || [];
     
-
-    
     for (const kw of keywords) {
       if (typeof kw === "string" && messageText.toLowerCase().includes(kw.toLowerCase())) {
-
         return { automationId: node.automationId };
       }
     }
   }
   
   // No keyword match - look for CATCH-ALL automations (trigger without keywords)
-
-  
-  // Get automations that have trigger nodes but NO keywords node
+  // Only select minimal fields needed
   const catchAllFlows = await client.flowNode.findMany({
     where: {
       type: "trigger",
@@ -64,10 +63,15 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
         active: true,
       },
     },
-    include: {
+    select: {
+      automationId: true,
       Automation: {
-        include: {
-          flowNodes: true,
+        select: {
+          flowNodes: {
+            where: { subType: "KEYWORDS" },
+            select: { id: true },
+            take: 1, // Only need to know if any exist
+          },
         },
       },
     },
@@ -75,17 +79,13 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
   
   for (const triggerNode of catchAllFlows) {
     // Check if this automation has any KEYWORDS node
-    const hasKeywords = triggerNode.Automation?.flowNodes?.some(
-      (n) => n.subType === "KEYWORDS"
-    );
+    const hasKeywords = (triggerNode.Automation?.flowNodes?.length || 0) > 0;
     
     if (!hasKeywords) {
-
       return { automationId: triggerNode.automationId };
     }
   }
   
-
   return null;
 };
 

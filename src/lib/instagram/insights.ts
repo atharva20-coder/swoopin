@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getOrSetCache } from "@/lib/cache";
 
 /**
  * Instagram Insights API Wrapper
@@ -70,61 +71,68 @@ export interface InsightsResponse<T> {
  * Get account-level insights (reach, profile views, etc.)
  * Uses only valid metrics for Instagram Graph API v21.0
  * Requires: instagram_manage_insights permission
+ * Cached for 5 minutes
  */
 export async function getAccountInsights(
   userId: string,
   token: string,
   period: "day" | "week" | "days_28" = "days_28"
 ): Promise<InsightsResponse<AccountInsights>> {
-  try {
-    // Valid metrics for v21.0 (from API error response)
-    const metrics = [
-      "reach",
-      "follower_count",
-      "profile_views",
-      "website_clicks",
-      "total_interactions",
-      "accounts_engaged",
-    ].join(",");
+  return await getOrSetCache(
+    `user:${userId}:insights`,
+    async () => {
+      try {
+        // Valid metrics for v21.0 (from API error response)
+        const metrics = [
+          "reach",
+          "follower_count",
+          "profile_views",
+          "website_clicks",
+          "total_interactions",
+          "accounts_engaged",
+        ].join(",");
 
-    const response = await axios.get(
-      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/insights`,
-      {
-        params: {
-          metric: metrics,
-          period: period,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 10000,
+        const response = await axios.get(
+          `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/insights`,
+          {
+            params: {
+              metric: metrics,
+              period: period,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout: 10000,
+          }
+        );
+
+        const data = response.data.data as InsightMetric[];
+        const getValue = (name: string): number => {
+          const metric = data.find((m) => m.name === name);
+          const val = metric?.values[0]?.value;
+          return typeof val === "number" ? val : 0;
+        };
+
+        const insights: AccountInsights = {
+          reach: getValue("reach"),
+          followerCount: getValue("follower_count"),
+          profileViews: getValue("profile_views"),
+          websiteClicks: getValue("website_clicks"),
+          totalInteractions: getValue("total_interactions"),
+          accountsEngaged: getValue("accounts_engaged"),
+        };
+
+        return { success: true, data: insights };
+      } catch (error) {
+        // 403 errors are expected when permission not granted - handle silently
+        if (!is403PermissionError(error)) {
+          console.error("Error fetching account insights:", error);
+        }
+        return { success: false, error: getErrorMessage(error) };
       }
-    );
-
-    const data = response.data.data as InsightMetric[];
-    const getValue = (name: string): number => {
-      const metric = data.find((m) => m.name === name);
-      const val = metric?.values[0]?.value;
-      return typeof val === "number" ? val : 0;
-    };
-
-    const insights: AccountInsights = {
-      reach: getValue("reach"),
-      followerCount: getValue("follower_count"),
-      profileViews: getValue("profile_views"),
-      websiteClicks: getValue("website_clicks"),
-      totalInteractions: getValue("total_interactions"),
-      accountsEngaged: getValue("accounts_engaged"),
-    };
-
-    return { success: true, data: insights };
-  } catch (error) {
-    // 403 errors are expected when permission not granted - handle silently
-    if (!is403PermissionError(error)) {
-      console.error("Error fetching account insights:", error);
-    }
-    return { success: false, error: getErrorMessage(error) };
-  }
+    },
+    300 // 5 minutes TTL
+  );
 }
 
 // =============================================================================

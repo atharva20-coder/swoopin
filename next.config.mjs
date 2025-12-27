@@ -1,5 +1,69 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable compression (gzip/brotli handled by Vercel/hosting)
+  compress: true,
+  
+  // Performance optimizations
+  reactStrictMode: true,
+  poweredByHeader: false, // Remove X-Powered-By header
+  
+  // Enable SWC minification
+  swcMinify: true,
+  
+  // Cache headers for edge caching
+  async headers() {
+    return [
+      // Static assets - long cache
+      {
+        source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|mp4|ttf|otf|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // API routes - short cache with revalidation
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        ],
+      },
+      // Webhook routes - no cache (must be fresh)
+      {
+        source: '/api/webhook/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      // Security headers for all routes
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+  
   // Better-Auth requires native modules to be external
   experimental: {
     serverComponentsExternalPackages: ["@node-rs/argon2"],

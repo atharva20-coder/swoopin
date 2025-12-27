@@ -155,8 +155,24 @@ const executeActionNode = async (
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
         
+        // Show typing indicator before sending
+        try {
+          await sendSenderAction(pageId, senderId, "mark_seen", token);
+          await sendSenderAction(pageId, senderId, "typing_on", token);
+          // Brief delay to show typing animation (1 second)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (e) {
+          console.log("Could not show typing indicator:", e);
+        }
+        
         console.log("MESSAGE node: Sending DM with text:", messageText.substring(0, 50) + "...");
         const result = await sendDM(pageId, senderId, messageText, token);
+        
+        // Turn off typing indicator
+        try {
+          await sendSenderAction(pageId, senderId, "typing_off", token);
+        } catch (e) {}
+        
         if (result.status === 200) {
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
@@ -563,14 +579,21 @@ export const executeFlow = async (
 
       // Handle action nodes
       if (node.type === "action") {
+        console.log(`[Flow] Executing action: ${node.subType} (${node.label})`);
+        console.log(`[Flow] context.aiResponse before:`, context.aiResponse ? "present" : "none");
+        
         const result = await executeActionNode(node, context);
         results.push({
           node: node.label,
           success: result.success,
           message: result.message,
         });
+        
+        console.log(`[Flow] Action result:`, result.message);
+        console.log(`[Flow] context.aiResponse after:`, context.aiResponse ? "present" : "none");
 
         const children = adjacencyList.get(nodeId) || [];
+        console.log(`[Flow] ${node.label} has ${children.length} child nodes`);
         for (const childId of children) {
           await executeNode(childId);
         }

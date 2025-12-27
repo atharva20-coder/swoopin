@@ -76,7 +76,7 @@ const InfoBar = ({ slug, isAdmin = false }: Props) => {
                 className={cn("w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center", PLATFORM_CONFIG[activePlatform].bgGradient)}
               >
                 {activePlatform === 'instagram' && instaProfile?.profile_pic ? (
-                  <img src={instaProfile.profile_pic} alt="" className="w-full h-full rounded-full object-cover" />
+                  <img src={instaProfile.profile_pic} alt="" loading="lazy" className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <ActiveIcon className="w-3.5 h-3.5 text-white" />
                 )}
@@ -131,7 +131,7 @@ const InfoBar = ({ slug, isAdmin = false }: Props) => {
                     title={isConnected ? config.name : `${config.name} (Coming Soon)`}
                   >
                     {platform === 'instagram' && instaProfile?.profile_pic ? (
-                      <img src={instaProfile.profile_pic} alt="" className="w-full h-full rounded-full object-cover" />
+                      <img src={instaProfile.profile_pic} alt="" loading="lazy" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       <Icon className="w-4 h-4 text-white" />
                     )}

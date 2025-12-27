@@ -1,6 +1,6 @@
 'use client'
 import { useQueryAutomations } from '@/hooks/user-queries'
-import React, { useMemo } from 'react'
+import React, { useMemo, memo } from 'react'
 
 const MetricsCard = () => {
   const { data, isLoading } = useQueryAutomations({ refetchInterval: 60000 })
@@ -72,4 +72,4 @@ const MetricsCard = () => {
   )
 }
 
-export default MetricsCard
+export default memo(MetricsCard)

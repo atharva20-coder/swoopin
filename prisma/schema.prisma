@@ -18,11 +18,14 @@ model User {
   updatedAt           DateTime            @default(now()) @updatedAt
   analytics           Analytics[]
   automations         Automation[]
+  brandPartnerships   BrandPartnership[]
   carouselTemplates   CarouselTemplate[]
   contentDrafts       ContentDraft[]
   enterpriseEnquiries EnterpriseEnquiry[]
+  instagramEvents     InstagramEvent[]
   integrations        Integrations[]
   notification        Notification[]
+  productCatalog      ProductCatalog?
   scheduledPosts      ScheduledPost[]
   subscription        Subscription?
   accounts            Account[]
@@ -104,6 +107,8 @@ model Integrations {
   expiresAt   DateTime?
   instagramId String?      @unique
   User        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Automation {
@@ -122,6 +127,10 @@ model Automation {
   posts             Post[]
   scheduledPosts    ScheduledPost[]
   trigger           Trigger[]
+
+  @@index([userId])
+  @@index([userId, active])
+  @@index([createdAt])
 }
 
 model FlowNode {
@@ -140,6 +149,7 @@ model FlowNode {
   Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, nodeId])
+  @@index([automationId])
 }
 
 model FlowEdge {
@@ -164,6 +174,10 @@ model Dms {
   reciever     String?
   message      String?
   Automation   Automation? @relation(fields: [automationId], references: [id])
+
+  @@index([automationId])
+  @@index([senderId])
+  @@index([automationId, senderId])
 }
 
 model Post {
@@ -174,6 +188,9 @@ model Post {
   mediaType    MEDIATYPE   @default(IMAGE)
   automationId String?     @db.Uuid
   Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+  @@index([postid])
 }
 
 model Listener {
@@ -203,6 +220,8 @@ model Keyword {
   Automation   Automation? @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, word])
+  @@index([automationId])
+  @@index([word])
 }
 
 model Notification {
@@ -212,6 +231,9 @@ model Notification {
   content   String
   createdAt DateTime @default(now())
   User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([userId, isSeen])
 }
 
 model Analytics {
@@ -286,6 +308,7 @@ model ScheduledPost {
   taggedUsers   String[]
   collaborators String[]
   trialParams   Json?
+  productTags   Json?          // Array of { productId: string, x: number, y: number }
   userId        String?        @db.Uuid
   automationId  String?        @db.Uuid
   Automation    Automation?    @relation(fields: [automationId], references: [id])
@@ -486,4 +509,94 @@ enum OfferingType {
   DIGITAL_PRODUCTS
   SERVICES
   SUBSCRIPTIONS
+}
+
+enum EventStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+model InstagramEvent {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String      @db.Uuid
+  eventId     String?     // Meta event ID (null if local only)
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  status      EventStatus @default(SCHEDULED)
+  coverImage  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  User        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([startTime])
+  @@index([status])
+}
+
+enum PartnershipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PartnershipType {
+  BRAND_TO_CREATOR
+  CREATOR_TO_BRAND
+}
+
+model BrandPartnership {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String            @db.Uuid
+  partnerId   String            // Instagram user ID of partner
+  partnerName String
+  partnerUsername String?
+  status      PartnershipStatus @default(PENDING)
+  type        PartnershipType
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  User        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([partnerId])
+}
+
+enum ProductStatus {
+  ACTIVE
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+model ProductCatalog {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @unique @db.Uuid
+  catalogId String    // Meta catalog ID
+  name      String?
+  syncedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products  Product[]
+}
+
+model Product {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  catalogId  String         @db.Uuid
+  externalId String         // Meta product ID
+  name       String
+  price      Decimal        @db.Decimal(10, 2)
+  currency   String         @default("USD")
+  imageUrl   String?
+  status     ProductStatus  @default(ACTIVE)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  catalog    ProductCatalog @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+
+  @@unique([catalogId, externalId])
+  @@index([catalogId])
+  @@index([status])
 }
