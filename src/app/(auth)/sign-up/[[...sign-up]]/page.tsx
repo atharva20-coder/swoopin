@@ -73,22 +73,22 @@ export default function SignUpPage() {
   // Success screen after sign up
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center p-4 transition-colors">
         <div className="w-full max-w-[400px]">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-green-400" />
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-2xl font-semibold text-white mb-2">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
               Check your email
             </h1>
-            <p className="text-[#8c8c8c]">
+            <p className="text-gray-500 dark:text-[#8c8c8c]">
               We sent a verification link to
             </p>
-            <p className="text-white font-medium mt-1">{email}</p>
+            <p className="text-gray-900 dark:text-white font-medium mt-1">{email}</p>
           </div>
 
-          <p className="text-[#8c8c8c] text-sm text-center mb-6">
+          <p className="text-gray-500 dark:text-[#8c8c8c] text-sm text-center mb-6">
             Click the link in the email to verify your account and complete registration.
           </p>
 
@@ -102,7 +102,7 @@ export default function SignUpPage() {
                 toast.success("Verification email resent!");
               }}
               variant="outline"
-              className="w-full h-12 bg-transparent hover:bg-[#383838] border-[#383838] text-white rounded-lg font-medium"
+              className="w-full h-12 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-[#383838] border-gray-200 dark:border-[#383838] text-gray-900 dark:text-white rounded-lg font-medium"
             >
               Resend verification email
             </Button>
@@ -110,7 +110,7 @@ export default function SignUpPage() {
             <Link href="/sign-in">
               <Button
                 variant="ghost"
-                className="w-full h-12 text-[#8c8c8c] hover:text-white hover:bg-[#2c2c2c] rounded-lg"
+                className="w-full h-12 text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#2c2c2c] rounded-lg"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to sign in
@@ -123,30 +123,30 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center p-4 transition-colors">
       <div className="w-full max-w-[400px]">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-[#0d99ff] to-[#7c3aed] rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-[#0d99ff] dark:to-[#7c3aed] rounded-xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-xl">A</span>
           </div>
-          <h1 className="text-2xl font-semibold text-white mb-1">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
             Create an account
           </h1>
-          <p className="text-[#8c8c8c]">
+          <p className="text-gray-500 dark:text-[#8c8c8c]">
             Get started with Auctorn for free
           </p>
         </div>
 
         {/* Form Container */}
-        <div className="bg-[#2c2c2c] rounded-2xl p-6 border border-[#383838]">
+        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-6 border border-gray-200 dark:border-[#383838] shadow-sm dark:shadow-none">
           {/* Google Sign Up */}
           <Button
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isLoading}
             variant="outline"
-            className="w-full h-12 bg-transparent hover:bg-[#383838] border-[#383838] text-white rounded-lg font-medium"
+            className="w-full h-12 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-[#383838] border-gray-200 dark:border-[#383838] text-gray-900 dark:text-white rounded-lg font-medium"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -171,29 +171,29 @@ export default function SignUpPage() {
 
           {/* Divider */}
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-[#383838]"></div>
-            <span className="px-4 text-sm text-[#8c8c8c]">or</span>
-            <div className="flex-1 border-t border-[#383838]"></div>
+            <div className="flex-1 border-t border-gray-200 dark:border-[#383838]"></div>
+            <span className="px-4 text-sm text-gray-400 dark:text-[#8c8c8c]">or</span>
+            <div className="flex-1 border-t border-gray-200 dark:border-[#383838]"></div>
           </div>
 
           {/* Email Form - Step 1 */}
           {step === "email" && (
             <form onSubmit={handleContinueWithEmail} className="space-y-4">
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8c8c8c]" />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#8c8c8c]" />
                 <Input
                   type="email"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 bg-[#1e1e1e] text-white placeholder:text-[#5c5c5c] rounded-lg pl-12 border-[#383838] focus-visible:ring-1 focus-visible:ring-[#0d99ff] focus-visible:border-[#0d99ff]"
+                  className="w-full h-12 bg-gray-50 dark:bg-[#1e1e1e] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#5c5c5c] rounded-lg pl-12 border-gray-200 dark:border-[#383838] focus-visible:ring-1 focus-visible:ring-blue-500 dark:focus-visible:ring-[#0d99ff] focus-visible:border-blue-500 dark:focus-visible:border-[#0d99ff]"
                   required
                 />
               </div>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-[#0d99ff] hover:bg-[#0b87e3] text-white rounded-lg font-medium"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 dark:bg-[#0d99ff] dark:hover:bg-[#0b87e3] text-white rounded-lg font-medium"
               >
                 Continue
               </Button>
@@ -206,40 +206,40 @@ export default function SignUpPage() {
               <button
                 type="button"
                 onClick={() => setStep("email")}
-                className="flex items-center gap-2 text-[#8c8c8c] hover:text-white text-sm mb-4 transition-colors"
+                className="flex items-center gap-2 text-gray-400 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white text-sm mb-4 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="text-white">{email}</span>
+                <span className="text-gray-900 dark:text-white">{email}</span>
               </button>
               
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8c8c8c]" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#8c8c8c]" />
                 <Input
                   type="text"
                   placeholder="Full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-12 bg-[#1e1e1e] text-white placeholder:text-[#5c5c5c] rounded-lg pl-12 border-[#383838] focus-visible:ring-1 focus-visible:ring-[#0d99ff] focus-visible:border-[#0d99ff]"
+                  className="w-full h-12 bg-gray-50 dark:bg-[#1e1e1e] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#5c5c5c] rounded-lg pl-12 border-gray-200 dark:border-[#383838] focus-visible:ring-1 focus-visible:ring-blue-500 dark:focus-visible:ring-[#0d99ff] focus-visible:border-blue-500 dark:focus-visible:border-[#0d99ff]"
                   required
                   autoFocus
                 />
               </div>
               
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#8c8c8c]" />
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#8c8c8c]" />
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password (min 8 characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 bg-[#1e1e1e] text-white placeholder:text-[#5c5c5c] rounded-lg pl-12 pr-12 border-[#383838] focus-visible:ring-1 focus-visible:ring-[#0d99ff] focus-visible:border-[#0d99ff]"
+                  className="w-full h-12 bg-gray-50 dark:bg-[#1e1e1e] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#5c5c5c] rounded-lg pl-12 pr-12 border-gray-200 dark:border-[#383838] focus-visible:ring-1 focus-visible:ring-blue-500 dark:focus-visible:ring-[#0d99ff] focus-visible:border-blue-500 dark:focus-visible:border-[#0d99ff]"
                   required
                   minLength={8}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8c8c8c] hover:text-white"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:text-[#8c8c8c] dark:hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -248,26 +248,26 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-[#0d99ff] hover:bg-[#0b87e3] text-white rounded-lg font-medium"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 dark:bg-[#0d99ff] dark:hover:bg-[#0b87e3] text-white rounded-lg font-medium"
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Create account
               </Button>
               
-              <p className="text-[#5c5c5c] text-xs text-center">
+              <p className="text-gray-400 dark:text-[#5c5c5c] text-xs text-center">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-[#8c8c8c] hover:text-white">Terms of Service</Link>
+                <Link href="/terms" className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white">Terms of Service</Link>
                 {" "}and{" "}
-                <Link href="/privacy_policy" className="text-[#8c8c8c] hover:text-white">Privacy Policy</Link>
+                <Link href="/privacy_policy" className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white">Privacy Policy</Link>
               </p>
             </form>
           )}
         </div>
 
         {/* Sign in link */}
-        <p className="text-center text-[#8c8c8c] mt-6">
+        <p className="text-center text-gray-500 dark:text-[#8c8c8c] mt-6">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-[#0d99ff] hover:text-[#0b87e3] font-medium transition-colors">
+          <Link href="/sign-in" className="text-blue-600 hover:text-blue-700 dark:text-[#0d99ff] dark:hover:text-[#0b87e3] font-medium transition-colors">
             Sign in
           </Link>
         </p>
