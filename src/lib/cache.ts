@@ -7,7 +7,13 @@ type CacheKey =
   | `user:${string}:automations`
   | `user:${string}:insights`
   | `user:${string}:notifications`
-  | `automation:${string}`;
+  | `user:${string}:events`
+  | `user:${string}:partnerships`
+  | `user:${string}:catalog`
+  | `user:${string}:products`
+  | `user:${string}:campaigns`
+  | `automation:${string}`
+  | `campaign:${string}:insights`;
 
 /**
  * Get cached data from Redis
@@ -123,4 +129,42 @@ export async function invalidateUserCache(userId: string): Promise<void> {
  */
 export async function invalidateAutomationCache(automationId: string): Promise<void> {
   await deleteCache(`automation:${automationId}`);
+}
+
+/**
+ * Invalidate events cache
+ */
+export async function invalidateEventsCache(userId: string): Promise<void> {
+  await deleteCache(`user:${userId}:events`);
+}
+
+/**
+ * Invalidate partnerships cache
+ */
+export async function invalidatePartnershipsCache(userId: string): Promise<void> {
+  await deleteCache(`user:${userId}:partnerships`);
+}
+
+/**
+ * Invalidate commerce cache
+ */
+export async function invalidateCommerceCache(userId: string): Promise<void> {
+  await Promise.all([
+    deleteCache(`user:${userId}:catalog`),
+    deleteCache(`user:${userId}:products`),
+  ]);
+}
+
+/**
+ * Invalidate ads cache
+ */
+export async function invalidateAdsCache(userId: string): Promise<void> {
+  await deleteCache(`user:${userId}:campaigns`);
+}
+
+/**
+ * Invalidate campaign insights cache
+ */
+export async function invalidateCampaignInsightsCache(campaignId: string): Promise<void> {
+  await deleteCache(`campaign:${campaignId}:insights`);
 }

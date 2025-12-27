@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest",
+    "test:run": "vitest run",
     "db:seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
@@ -49,7 +51,7 @@
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
     "@reduxjs/toolkit": "^2.5.0",
-    "@tanstack/react-query": "^5.62.8",
+    "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.66.5",
     "@types/bcrypt": "^5.0.2",
     "@types/dotenv": "^8.2.3",
@@ -98,14 +100,19 @@
   },
   "devDependencies": {
     "@prisma/client": "^6.3.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^5.1.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.21",
+    "jsdom": "^27.4.0",
     "postcss": "^8",
     "prisma": "^6.3.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.16"
   }
 }
