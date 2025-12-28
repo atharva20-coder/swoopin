@@ -18,7 +18,10 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  ImagePlus
+  ImagePlus,
+  FileSpreadsheet,
+  MessageCircle,
+  MousePointerClick
 } from "lucide-react";
 
 export type FlowNodeData = {
@@ -57,6 +60,9 @@ const iconMap: Record<string, React.ReactNode> = {
   MARK_SEEN: <CheckCircle className="w-5 h-5" />,
   PRODUCT_TEMPLATE: <ImageIcon className="w-5 h-5" />,
   QUICK_REPLIES: <MessageSquare className="w-5 h-5" />,
+  LOG_TO_SHEETS: <FileSpreadsheet className="w-5 h-5" />,
+  STORY_REPLY: <MessageCircle className="w-5 h-5" />,
+  POSTBACK: <MousePointerClick className="w-5 h-5" />,
 };
 
 const getNodeColors = (type: string) => {

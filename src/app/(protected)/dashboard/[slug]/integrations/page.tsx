@@ -3,6 +3,8 @@
 import { INTEGRATION_CARDS } from '@/constants/integrations'
 import React, { useState } from 'react'
 import IntegrationCard from './_components/integration-card'
+import GoogleIntegrationCard from './_components/google-integration-card'
+import CanvaIntegrationCard from '@/components/global/canva-integration-card'
 import { cn } from '@/lib/utils'
 import { ChevronRight, SlidersHorizontal, Instagram, MessageCircle, AtSign, Mail, Facebook, Twitter, Linkedin, Youtube } from 'lucide-react'
 import { useParams } from 'next/navigation'
@@ -153,6 +155,17 @@ export default function IntegrationsPage() {
         {/* Scrollable Integration List */}
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="space-y-1">
+            {/* Google Sheets Integration */}
+            <GoogleIntegrationCard />
+            
+            {/* Canva Integration */}
+            <CanvaIntegrationCard />
+            
+            {/* Divider */}
+            <div className="py-2">
+              <div className="border-t border-gray-100 dark:border-neutral-800" />
+            </div>
+            
             {filteredCards.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 No integrations found

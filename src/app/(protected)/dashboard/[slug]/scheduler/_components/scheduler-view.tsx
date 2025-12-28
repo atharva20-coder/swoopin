@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import SchedulerCalendar from "./scheduler-calendar";
 import ContentLibrary from "./content-library";
 import PostPreviewModal from "./post-preview";
+import CanvaPicker from "@/components/global/canva-picker";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 import { 
   createScheduledPost, 
   updateScheduledPost, 
@@ -62,6 +64,7 @@ export default function SchedulerView({
 }: SchedulerViewProps) {
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCanvaPickerOpen, setIsCanvaPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(initialScheduledPosts);
   const [drafts, setDrafts] = useState(initialDrafts);
@@ -89,7 +92,18 @@ export default function SchedulerView({
   };
 
   const handleConnectCanva = () => {
-    toast.info("Coming soon!", { description: "Canva integration is in development" });
+    setIsCanvaPickerOpen(true);
+  };
+
+  const handleCanvaDesignSelect = (imageUrl: string, designTitle: string) => {
+    setIsCanvaPickerOpen(false);
+    // Open post modal with the Canva design
+    setSelectedPost(null);
+    setSelectedDate(new Date());
+    setIsModalOpen(true);
+    toast.success(`Imported: ${designTitle}`);
+    // The mediaUrl will be set via the modal - for now we'll store it
+    // This could be enhanced to pass the imageUrl to the modal
   };
 
   const handleSchedule = async (postData: Partial<ScheduledPost>) => {
@@ -369,6 +383,24 @@ export default function SchedulerView({
         onPostNow={handlePostNow}
         onSaveDraft={handleSaveDraft}
       />
+
+      {/* Canva Picker Modal */}
+      {isCanvaPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden relative">
+            <button
+              onClick={() => setIsCanvaPickerOpen(false)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <CanvaPicker
+              onSelect={handleCanvaDesignSelect}
+              onCancel={() => setIsCanvaPickerOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

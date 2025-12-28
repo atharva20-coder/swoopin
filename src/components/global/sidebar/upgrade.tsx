@@ -1,34 +1,45 @@
+"use client";
+
 import React from "react";
-import PaymentButton from "../payment-button";
-import { Separator } from "@/components/ui/separator";
+import { Sparkles, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
-type Props = {};
+type Props = {
+  isCollapsed?: boolean;
+};
 
-export default function UpgradeCard(props: Props) {
+export default function UpgradeCard({ isCollapsed = false }: Props) {
+  if (isCollapsed) {
+    return (
+      <Link 
+        href="./billing"
+        className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center hover:scale-105 transition-transform"
+        title="Upgrade to PRO"
+      >
+        <Sparkles className="w-5 h-5 text-white" />
+      </Link>
+    );
+  }
+
   return (
-    <>
-      <Separator className="my-4 opacity-80 bg-gray-300 dark:bg-neutral-700" />
-      <div className="bg-white dark:bg-neutral-800 p-3 rounded-xl flex flex-col items-center text-center gap-y-3 shadow-sm dark:shadow-neutral-900/50 mt-4 mb-2">
-      <a href="./billing" className="w-full hover:opacity-90 transition-all duration-300">
-      <span className="text-[#111827] dark:text-gray-200 text-sm font-medium">
-        Upgrade to {""}
-        <span
-          className="bg-gradient-to-r 
-        from-purple-500 
-        to-pink-500 
-        font-semibold 
-        bg-clip-text 
-        text-transparent"
-        >
-          PRO
-        </span>
-      </span>
-      </a>
-      <p className="text-[#4B5563] dark:text-gray-400 text-sm">
-        Unlock all features <br />including AI and more
-      </p>
-      {/*<PaymentButton />*/}
-    </div>
-    </>
+    <Link 
+      href="./billing"
+      className="block p-3 rounded-xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-500/10 dark:from-purple-500/20 dark:via-pink-500/20 dark:to-orange-500/20 border border-purple-200 dark:border-purple-800/50 hover:border-purple-300 dark:hover:border-purple-700 transition-all group"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+          <Sparkles className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+            Upgrade to PRO
+            <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Unlock AI & more features
+          </p>
+        </div>
+      </div>
+    </Link>
   );
 }

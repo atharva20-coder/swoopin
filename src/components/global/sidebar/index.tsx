@@ -2,10 +2,10 @@
 import { usePaths } from "@/hooks/use-nav";
 import React from "react";
 import Items from "./items";
+import UpgradeCard from "./upgrade";
 import { SubscriptionPlan } from "../subscription-plan";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useTheme } from "@/contexts/theme-context";
-import UpgradeCard from "./upgrade";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreditCard, Settings, HelpCircle, Moon, Sun, LogOut, User, ChevronRight, Shield } from "lucide-react";
+import { Settings, HelpCircle, Moon, Sun, LogOut, User, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -34,7 +34,7 @@ const Sidebar = ({ slug, isAdmin = false }: Props) => {
   const router = useRouter();
   
   React.useEffect(() => {
-    document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '80px' : '280px');
+    document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '72px' : '260px');
     document.documentElement.style.setProperty('--main-content-width', isCollapsed ? '95%' : '82%');
   }, [isCollapsed]);
 
@@ -50,168 +50,139 @@ const Sidebar = ({ slug, isAdmin = false }: Props) => {
   };
 
   return (
-    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[80px]' : 'w-[280px]'} bg-[#F6F5F8] dark:bg-neutral-900 flex-col hidden transition-all duration-300 border-r border-gray-200 dark:border-neutral-800`}>
-      <div className={`p-6 space-y-6 ${isCollapsed ? 'items-center px-3' : ''}`}>
-        {/* Logo */}
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} w-full relative`}>
-          <div className="flex items-center gap-3">
+    <div className={`lg:flex fixed left-0 top-0 bottom-0 ${isCollapsed ? 'w-[72px]' : 'w-[260px]'} bg-[#FAFAFA] dark:bg-neutral-900 flex-col hidden transition-all duration-300 border-r border-gray-200 dark:border-neutral-800`}>
+      {/* Header */}
+      <div className={`p-4 ${isCollapsed ? 'px-3' : 'px-5'}`}>
+        {/* Logo Row */}
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
+          <div className="flex items-center gap-2.5">
             <Image
               src="/landingpage-images/Autcorn-logo.svg"
               alt="Autcorn Logo"
-              width={isCollapsed ? 32 : 40}
-              height={isCollapsed ? 32 : 40}
+              width={isCollapsed ? 32 : 36}
+              height={isCollapsed ? 32 : 36}
               className="transition-all duration-300"
             />
-            <span className={`font-['Brice'] font-bold text-2xl text-gray-900 dark:text-gray-100 ${isCollapsed ? 'hidden' : ''}`}>Auctorn</span>
+            {!isCollapsed && (
+              <span className="font-['Brice'] font-bold text-xl text-gray-900 dark:text-gray-100">
+                Auctorn
+              </span>
+            )}
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-8 bg-white dark:bg-neutral-800 rounded-lg shadow-md hover:scale-105 transition-transform z-50"
+            className={`w-7 h-7 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ${isCollapsed ? 'hidden' : ''}`}
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
-            <Image
-              src={isCollapsed ? '/icons/expand-right-stop-svgrepo-com.svg' : '/icons/expand-left-stop-svgrepo-com.svg'}
-              alt="toggle sidebar"
-              width={16}
-              height={16}
-              className="transition-transform duration-300"
-            />
+            <ChevronLeft className="w-4 h-4" />
           </Button>
         </div>
-        <div className="border-b border-gray-200 dark:border-neutral-700 w-full"></div>
 
-        {/* Navigation */}
-        <nav className="space-y-1">
-          <Items page={page} slug={slug} isCollapsed={isCollapsed} isAdmin={isAdmin} />
-        </nav>
+        {/* Collapse Button (when collapsed) */}
+        {isCollapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-full h-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 mb-2"
+            onClick={() => setIsCollapsed(false)}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
-      {/* Footer Actions */}
-      <div className={`mt-auto p-4 ${isCollapsed ? 'items-center px-3' : 'space-y-3'} border-t border-gray-100 dark:border-neutral-800 flex flex-col`}>        
-        {isCollapsed ? (
-          <>
+      {/* Navigation */}
+      <nav className={`flex-1 overflow-y-auto ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        <Items page={page} slug={slug} isCollapsed={isCollapsed} isAdmin={isAdmin} />
+      </nav>
+
+      {/* Footer */}
+      <div className={`p-3 border-t border-gray-200 dark:border-neutral-800 ${isCollapsed ? 'px-2' : ''}`}>
+        {/* Quick Actions */}
+        <div className={`flex ${isCollapsed ? 'flex-col gap-1' : 'items-center gap-1'} mb-2`}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+          <a href="https://www.instagram.com/sandipjoshi990/" target="_blank" rel="noopener noreferrer">
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
-              onClick={toggleTheme}
+              className="w-8 h-8 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              title="Help"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <HelpCircle className="w-4 h-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
-              onClick={() => router.push(`/dashboard/${slug}/settings`)}
-            >
-              <Settings className="w-5 h-5" />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="focus:outline-none mt-2">
-                  <Avatar className="w-10 h-10 ring-2 ring-gray-200 dark:ring-neutral-700 cursor-pointer hover:ring-purple-500 transition-all">
-                    <AvatarImage src={user?.image || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-medium">
-                      {user?.name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="right" className="w-56">
-                <div className="flex items-center gap-3 p-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.image || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">{user?.name?.[0] || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col min-w-0">
-                    <p className="text-sm font-semibold truncate">{user?.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+          </a>
+        </div>
+
+        {/* Upgrade Card */}
+        <SubscriptionPlan type="FREE">
+          <div className={`mb-3 ${isCollapsed ? 'flex justify-center' : ''}`}>
+            <UpgradeCard isCollapsed={isCollapsed} />
+          </div>
+        </SubscriptionPlan>
+
+        {/* User Profile */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className={`w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-white dark:hover:bg-neutral-800 transition-colors focus:outline-none ${isCollapsed ? 'justify-center' : ''}`}>
+              <Avatar className="w-8 h-8 ring-2 ring-gray-200 dark:ring-neutral-700">
+                <AvatarImage src={user?.image || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-medium">
+                  {user?.name?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              {!isCollapsed && (
+                <>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {user?.name || 'Guest'}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email}
+                    </p>
                   </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/${isAdmin ? 'admin/settings' : 'settings'}`)}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        ) : (
-          <>
-            {/* Quick Actions Row */}
-            <div className="flex items-center gap-2 mb-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex-1 justify-start gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
-                onClick={toggleTheme}
-              >
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                <span className="text-sm">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-              </Button>
-              <a href="https://www.instagram.com/sandipjoshi990/" target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon" className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800">
-                  <HelpCircle className="w-4 h-4" />
-                </Button>
-              </a>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side={isCollapsed ? "right" : "top"} className="w-56">
+            <div className="flex items-center gap-3 p-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user?.image || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                  {user?.name?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col min-w-0">
+                <p className="text-sm font-semibold truncate">{user?.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
             </div>
-
-            {/* Upgrade Card */}
-            <SubscriptionPlan type="FREE">
-              <UpgradeCard />
-            </SubscriptionPlan>
-
-            {/* User Profile Card */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-full mt-3 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all group focus:outline-none">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 ring-2 ring-purple-500/20 group-hover:ring-purple-500/50 transition-all">
-                      <AvatarImage src={user?.image || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-medium">
-                        {user?.name?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col min-w-0 flex-1 text-left">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {user?.name || 'Guest User'}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {user?.email}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-56">
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/${isAdmin ? 'admin/settings' : 'settings'}`)}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/${isAdmin ? 'admin/settings' : 'settings'}`)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/dashboard/${slug}/settings`)}>
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

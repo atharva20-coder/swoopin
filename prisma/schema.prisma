@@ -23,6 +23,7 @@ model User {
   carouselTemplates   CarouselTemplate[]
   contentDrafts       ContentDraft[]
   enterpriseEnquiries EnterpriseEnquiry[]
+  googleIntegration   GoogleIntegration?
   instagramEvents     InstagramEvent[]
   integrations        Integrations[]
   notification        Notification[]
@@ -30,10 +31,12 @@ model User {
   scheduledPosts      ScheduledPost[]
   subscription        Subscription?
   accounts            Account[]
+  dataCollections     DataCollection[]
   onboardingState     OnboardingState?
   organization        Organization?
   sessions            Session[]
   userProfile         UserProfile?
+  canvaIntegration    CanvaIntegration?
 
   @@map("user")
 }
@@ -638,4 +641,76 @@ model AdCampaign {
   @@index([userId])
   @@index([status])
   @@index([campaignId])
+}
+
+model GoogleIntegration {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @unique @db.Uuid
+  email        String
+  refreshToken String
+  accessToken  String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DataCollection {
+  id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String               @db.Uuid
+  name          String
+  source        CollectionSource
+  status        CollectionStatus     @default(ACTIVE)
+  sheetsConfig  Json?                // { spreadsheetId, spreadsheetName, sheetName }
+  triggerConfig Json?                // Source-specific config (keywords, etc.)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  responses     CollectionResponse[]
+  User          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model CollectionResponse {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  collectionId String         @db.Uuid
+  senderName   String?
+  senderId     String?
+  content      String
+  metadata     Json?
+  exportedAt   DateTime?
+  createdAt    DateTime       @default(now())
+  collection   DataCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@index([collectionId])
+  @@index([createdAt])
+}
+
+enum CollectionSource {
+  STORY_POLL
+  STORY_QUESTION
+  DM_KEYWORD
+  COMMENT_KEYWORD
+  BROADCAST_CHANNEL
+}
+
+enum CollectionStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+model CanvaIntegration {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @unique @db.Uuid
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  canvaUserId  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -20,7 +20,10 @@ import {
   Clock,
   Tag,
   Crown,
-  Sparkles
+  Sparkles,
+  FileSpreadsheet,
+  MessageCircle,
+  MousePointerClick
 } from "lucide-react";
 
 // Node definition with pro/enterprise flag
@@ -67,6 +70,22 @@ const TRIGGERS: NodeDefinition[] = [
     description: "Attach specific Instagram posts",
     icon: <ImagePlus className="w-5 h-5" />,
     type: "SELECT_POSTS",
+    tier: "FREE",
+  },
+  {
+    id: "story-reply",
+    label: "Story Reply",
+    description: "Trigger when someone replies to your story",
+    icon: <MessageCircle className="w-5 h-5" />,
+    type: "STORY_REPLY",
+    tier: "FREE",
+  },
+  {
+    id: "postback",
+    label: "Button Click",
+    description: "Trigger when user clicks a button",
+    icon: <MousePointerClick className="w-5 h-5" />,
+    type: "POSTBACK",
     tier: "FREE",
   },
 ];
@@ -150,6 +169,14 @@ const ACTIONS: NodeDefinition[] = [
     type: "SMARTAI",
     tier: "PRO",
     usageKey: "aiResponses",
+  },
+  {
+    id: "log-to-sheets",
+    label: "Log to Sheets",
+    description: "Save data to Google Sheets",
+    icon: <FileSpreadsheet className="w-5 h-5" />,
+    type: "LOG_TO_SHEETS",
+    tier: "FREE",
   },
 ];
 

@@ -22,7 +22,8 @@ type ExecutionContext = {
   messageText?: string;
   commentId?: string;
   mediaId?: string;
-  triggerType: "DM" | "COMMENT";
+  triggerType: "DM" | "COMMENT" | "STORY_REPLY";
+  isStoryReply?: boolean;
   userSubscription?: string;
   userOpenAiKey?: string;
   aiResponse?: string; // AI-generated response to pass to downstream nodes
@@ -458,6 +459,41 @@ const executeActionNode = async (
           return { success: true, message: `Delayed ${delaySeconds} seconds` };
         }
         return { success: true, message: "No delay configured" };
+      }
+
+      case "LOG_TO_SHEETS": {
+        // Log data to Google Sheets
+        const sheetsConfig = node.config?.sheetsConfig;
+        if (!sheetsConfig?.spreadsheetId || !sheetsConfig?.sheetName) {
+          console.log("LOG_TO_SHEETS: No sheets config found");
+          return { success: false, message: "No sheets configuration" };
+        }
+
+        try {
+          // Import dynamically to avoid circular deps
+          const { exportToSheet } = await import("@/actions/google");
+          
+          const timestamp = new Date().toISOString();
+          const senderInfo = context.senderId || "Unknown";
+          const messageContent = context.messageText || context.commentId || "N/A";
+          const triggerType = context.triggerType;
+
+          const result = await exportToSheet(
+            sheetsConfig.spreadsheetId,
+            sheetsConfig.sheetName,
+            ["Timestamp", "Sender ID", "Message/Comment", "Trigger Type"],
+            [[timestamp, senderInfo, messageContent, triggerType]]
+          );
+
+          if (result.status === 200) {
+            console.log("LOG_TO_SHEETS: Data logged successfully");
+            return { success: true, message: "Data logged to sheets" };
+          }
+          return { success: false, message: result.data as string };
+        } catch (error) {
+          console.error("LOG_TO_SHEETS error:", error);
+          return { success: false, message: "Failed to log to sheets" };
+        }
       }
 
       default:

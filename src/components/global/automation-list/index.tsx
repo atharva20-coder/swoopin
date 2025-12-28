@@ -144,8 +144,10 @@ const AutomationCard = memo(function AutomationCard({
           <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
             <Calendar className="w-3.5 h-3.5" />
             <span>
-              {getMonth(automation.createdAt.getUTCMonth() + 1)}{" "}
-              {automation.createdAt.getUTCDate()}, {automation.createdAt.getUTCFullYear()}
+              {(() => {
+                const date = new Date(automation.createdAt);
+                return `${getMonth(date.getUTCMonth() + 1)} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+              })()}
             </span>
           </div>
 

@@ -23,16 +23,26 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
   let matcher;
 
   try {
-    // Match keywords for DM
-    if (webhook_payload.entry[0].messaging) {
+    const messaging = webhook_payload.entry[0].messaging?.[0];
+    
+    // Check for postback event (button click)
+    if (messaging?.postback?.payload) {
+      console.log("Postback received:", messaging.postback.payload);
       matcher = await matchKeyword(
-        webhook_payload.entry[0].messaging[0].message.text,
+        messaging.postback.payload,
+        "DM" // Postbacks come through messaging, treated as DM type for matching
+      );
+    }
+    // Match keywords for DM
+    else if (messaging?.message?.text) {
+      matcher = await matchKeyword(
+        messaging.message.text,
         "DM"
       );
     }
 
     // Match keywords for Comment
-    if (webhook_payload.entry[0].changes) {
+    if (!matcher && webhook_payload.entry[0].changes) {
       matcher = await matchKeyword(
         webhook_payload.entry[0].changes[0].value.text,
         "COMMENT"
@@ -69,6 +79,10 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
           }
         }
 
+        // Detect if this is a story reply (message has replied_to property referencing a story)
+        const messagePayload = webhook_payload.entry[0].messaging?.[0]?.message;
+        const isStoryReply = !!(messagePayload?.reply_to?.story || messagePayload?.is_echo === false && messagePayload?.attachments?.[0]?.type === "story_mention");
+
         const context = {
           automationId: matcher.automationId,
           userId: automation.userId!,
@@ -82,7 +96,8 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
             : webhook_payload.entry[0].changes[0].value.text,
           commentId: isComment ? webhook_payload.entry[0].changes[0].value.id : undefined,
           mediaId: isComment ? webhook_payload.entry[0].changes[0].value.media?.id : undefined,
-          triggerType: (isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT",
+          triggerType: (isStoryReply ? "STORY_REPLY" : isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT" | "STORY_REPLY",
+          isStoryReply,
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };

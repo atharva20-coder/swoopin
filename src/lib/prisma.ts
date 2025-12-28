@@ -25,11 +25,20 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Graceful shutdown handler for serverless
-const handleShutdown = async () => {
-  await client.$disconnect();
-};
+// Only add listener once to prevent memory leak warning during hot-reload
+declare global {
+  var prismaShutdownRegistered: boolean | undefined;
+}
 
-process.on("beforeExit", handleShutdown);
+if (!globalThis.prismaShutdownRegistered) {
+  globalThis.prismaShutdownRegistered = true;
+  
+  const handleShutdown = async () => {
+    await client.$disconnect();
+  };
+  
+  process.on("beforeExit", handleShutdown);
+}
 
 /**
  * Wrapper to handle connection errors and retry

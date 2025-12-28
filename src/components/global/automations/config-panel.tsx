@@ -15,6 +15,7 @@ import Loader from "../loader";
 import ActivateAutomationButton from "../activate-automation-button";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/use-debounce";
+import SheetPicker from "@/components/global/sheet-picker";
 
 type ConfigPanelProps = {
   id: string;
@@ -122,21 +123,29 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           {selectedNode?.data.subType === "DM" && "Triggers when a user sends a direct message"}
           {selectedNode?.data.subType === "COMMENT" && "Triggers when a user comments on a post"}
           {selectedNode?.data.subType === "KEYWORDS" && "Triggers when a message contains specific keywords"}
+          {selectedNode?.data.subType === "STORY_REPLY" && "Triggers when a user replies to your story"}
+          {selectedNode?.data.subType === "POSTBACK" && "Triggers when a user clicks a button you sent"}
         </p>
       </div>
 
-      {selectedNode?.data.subType === "KEYWORDS" && (
+      {(selectedNode?.data.subType === "KEYWORDS" || selectedNode?.data.subType === "POSTBACK") && (
         <div className="space-y-3">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Keywords to Match
+            {selectedNode?.data.subType === "POSTBACK" ? "Payloads to Match" : "Keywords to Match"}
           </label>
           
-          {/* Current keywords list */}
+          {selectedNode?.data.subType === "POSTBACK" && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 mb-2">
+              Enter the exact payload values from your buttons (e.g., BUY_NOW, YES, INTERESTED)
+            </p>
+          )}
+          
+          {/* Current keywords/payloads list */}
           <div className="flex flex-wrap gap-2">
             {(formData.keywords || []).map((keyword: string, index: number) => (
               <div
                 key={index}
-                className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-mono"
               >
                 <span>{keyword}</span>
                 <button
@@ -150,15 +159,15 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
             ))}
           </div>
 
-          {/* Add new keyword input */}
+          {/* Add new keyword/payload input */}
           <div className="flex gap-2">
             <input
               type="text"
               value={newKeyword}
-              onChange={(e) => setNewKeyword(e.target.value)}
+              onChange={(e) => setNewKeyword(selectedNode?.data.subType === "POSTBACK" ? e.target.value.toUpperCase().replace(/\s+/g, "_") : e.target.value)}
               onKeyDown={handleKeywordKeyDown}
-              placeholder="Enter keyword and press Enter..."
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={selectedNode?.data.subType === "POSTBACK" ? "e.g., BUY_NOW, INTERESTED..." : "Enter keyword and press Enter..."}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
             />
             <button
               type="button"
@@ -170,7 +179,9 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           </div>
           
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Messages containing any of these keywords will trigger this automation.
+            {selectedNode?.data.subType === "POSTBACK" 
+              ? "When a user clicks a button with any of these payloads, this automation triggers."
+              : "Messages containing any of these keywords will trigger this automation."}
           </p>
 
           {/* Save Configuration Button */}
@@ -206,6 +217,13 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
 
   const renderMessageConfig = () => (
     <div className="space-y-4">
+      {/* Info box */}
+      <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+        <p className="text-sm text-green-700 dark:text-green-300">
+          📩 This message will be sent as a DM to the user who triggered the automation.
+        </p>
+      </div>
+      
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Message to Send
@@ -219,19 +237,43 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
         />
       </div>
+
+      {/* Live Preview */}
+      {formData.message && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Preview
+          </label>
+          <div className="p-3 bg-gray-100 dark:bg-neutral-800 rounded-xl">
+            <div className="flex justify-end">
+              <div className="max-w-[85%] px-4 py-2 bg-blue-500 text-white rounded-2xl rounded-br-md text-sm">
+                {formData.message}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleSave}
         disabled={isPending || !formData.message}
         className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
       >
-        {isPending ? "Saving..." : "Save Configuration"}
+        {isPending ? "Saving..." : "Save Message"}
       </button>
     </div>
   );
 
   const renderReplyCommentConfig = () => (
     <div className="space-y-4">
+      {/* Info box */}
+      <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+        <p className="text-sm text-orange-700 dark:text-orange-300">
+          💬 This reply will be posted publicly under the user's comment on your post.
+        </p>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Comment Reply
@@ -241,17 +283,38 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           onChange={(e) => setFormData({ ...formData, commentReply: e.target.value })}
           onBlur={(e) => handleAutoSave("commentReply", e.target.value)}
           placeholder="Enter your reply..."
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
         />
       </div>
+
+      {/* Live Preview */}
+      {formData.commentReply && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Preview
+          </label>
+          <div className="p-3 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700">
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                Y
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-900 dark:text-white">Your Business</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">{formData.commentReply}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleSave}
         disabled={isPending || !formData.commentReply}
         className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
       >
-        {isPending ? "Saving..." : "Save Configuration"}
+        {isPending ? "Saving..." : "Save Reply"}
       </button>
     </div>
   );
@@ -448,13 +511,16 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 ) : (
-                  <input
-                    type="text"
-                    value={button.payload || ""}
-                    onChange={(e) => updateButton(index, "payload", e.target.value)}
-                    placeholder="Postback payload"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      value={button.payload || ""}
+                      onChange={(e) => updateButton(index, "payload", e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+                      placeholder="e.g., BUY_NOW, VIEW_DETAILS, GET_STARTED"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white font-mono"
+                    />
+                    <p className="text-[10px] text-gray-400">Unique ID sent to your webhook when clicked</p>
+                  </div>
                 )}
               </div>
             ))}
@@ -557,13 +623,16 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                 />
 
                 {/* Payload */}
-                <input
-                  type="text"
-                  value={ib.payload}
-                  onChange={(e) => updateIceBreaker(index, "payload", e.target.value)}
-                  placeholder="Payload (e.g., HOURS_INQUIRY)"
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
-                />
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    value={ib.payload}
+                    onChange={(e) => updateIceBreaker(index, "payload", e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+                    placeholder="e.g., HOURS_INFO, PRICING, CONTACT_US"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white font-mono"
+                  />
+                  <p className="text-[10px] text-gray-400">Action ID when user taps this option</p>
+                </div>
               </div>
             ))}
 
@@ -688,13 +757,16 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
                   />
                 ) : (
-                  <input
-                    type="text"
-                    value={item.payload || ""}
-                    onChange={(e) => updateMenuItem(index, "payload", e.target.value)}
-                    placeholder="Postback payload (e.g., MENU_HOURS)"
-                    className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      value={item.payload || ""}
+                      onChange={(e) => updateMenuItem(index, "payload", e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+                      placeholder="e.g., MENU_HOURS, MENU_HELP, MENU_PRICING"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-gray-900 dark:text-white font-mono"
+                    />
+                    <p className="text-[10px] text-gray-400">Action ID sent when user taps</p>
+                  </div>
                 )}
               </div>
             ))}
@@ -958,13 +1030,16 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                         Remove
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      value={qr.payload || ""}
-                      onChange={(e) => updateQuickReply(index, "payload", e.target.value)}
-                      placeholder="Payload (optional, sent to webhook)"
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-white"
-                    />
+                    <div className="space-y-1">
+                      <input
+                        type="text"
+                        value={qr.payload || ""}
+                        onChange={(e) => updateQuickReply(index, "payload", e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+                        placeholder="e.g., OPTION_A, YES, NO, INTERESTED"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-white font-mono"
+                      />
+                      <p className="text-[10px] text-gray-400">User's choice sent to your automation</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1000,6 +1075,46 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
           className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           {isPending ? "Saving..." : "Save Quick Replies"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderLogToSheetsConfig = () => {
+    const sheetsConfig = formData.sheetsConfig || null;
+
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+          <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
+            Log to Google Sheets
+          </h4>
+          <p className="text-sm text-green-700 dark:text-green-300">
+            Save trigger data (sender, message) to a Google Spreadsheet.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Select Spreadsheet
+          </label>
+          <SheetPicker
+            value={sheetsConfig}
+            onChange={(config) => setFormData({ ...formData, sheetsConfig: config })}
+          />
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Data columns: Timestamp, Sender, Message, Trigger Type
+        </p>
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || !sheetsConfig}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Sheets Config"}
         </button>
       </div>
     );
@@ -1175,6 +1290,8 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       case "DM":
       case "COMMENT":
       case "KEYWORDS":
+      case "STORY_REPLY":
+      case "POSTBACK":
         return renderTriggerConfig();
       case "MESSAGE":
         return renderMessageConfig();
@@ -1198,6 +1315,8 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
         return renderProductTemplateConfig();
       case "QUICK_REPLIES":
         return renderQuickRepliesConfig();
+      case "LOG_TO_SHEETS":
+        return renderLogToSheetsConfig();
       case "POSTS":
       case "SELECT_POSTS":
         return renderPostsConfig();
