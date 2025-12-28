@@ -194,6 +194,7 @@ const executeActionNode = async (
         const result = await replyToComment(commentId, replyText, token);
         if (result.status === 200) {
           await trackResponses(automationId, "COMMENT");
+          await trackAnalytics(userId, "comment").catch(console.error);
           return { success: true, message: usedAiResponse ? "Comment reply sent with AI response" : "Comment reply sent" };
         }
         return { success: false, message: "Failed to reply to comment" };

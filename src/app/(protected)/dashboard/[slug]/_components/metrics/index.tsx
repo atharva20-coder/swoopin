@@ -86,7 +86,7 @@ const Chart = () => {
           <span className="text-sm text-gray-600 dark:text-gray-400">Messages ({totalDms})</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gray-400" />
+          <div className="w-3 h-3 rounded-full bg-emerald-500" />
           <span className="text-sm text-gray-600 dark:text-gray-400">Responses ({totalComments})</span>
         </div>
       </div>
@@ -107,8 +107,8 @@ const Chart = () => {
                 <stop offset="100%" stopColor={platformColor} stopOpacity={0}/>
               </linearGradient>
               <linearGradient id="secondaryGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#9CA3AF" stopOpacity={0.2}/>
-                <stop offset="100%" stopColor="#9CA3AF" stopOpacity={0}/>
+                <stop offset="0%" stopColor="#10B981" stopOpacity={0.2}/>
+                <stop offset="100%" stopColor="#10B981" stopOpacity={0}/>
               </linearGradient>
             </defs>
             <XAxis 
@@ -147,8 +147,8 @@ const Chart = () => {
               type="monotone"
               dataKey="commentCount"
               name="Responses"
-              stroke="#9CA3AF"
-              strokeWidth={1.5}
+              stroke="#10B981"
+              strokeWidth={2}
               fill="url(#secondaryGradient)"
             />
           </AreaChart>

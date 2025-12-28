@@ -1,10 +1,18 @@
-import {
-  AutomationDuoToneWhite,
-  HomeDuoToneWhite,
-  RocketDuoToneWhite,
-  SettingsDuoToneWhite,
-} from '@/icons'
-import { Users, BarChart3, Building2, MessageCircle, Calendar, CalendarCheck, ShoppingBag, Megaphone, Database } from 'lucide-react'
+import { 
+  Home, 
+  MessageCircle, 
+  Zap, 
+  Calendar, 
+  CalendarCheck, 
+  Users, 
+  ShoppingBag, 
+  Megaphone, 
+  Database,
+  Rocket,
+  Settings,
+  BarChart3,
+  Building2
+} from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 
 export type FieldProps = {
@@ -32,7 +40,7 @@ export const SIDEBAR_MENU_GROUPED: MenuCategory[] = [
       {
         id: uuid(),
         label: 'home',
-        icon: <HomeDuoToneWhite />,
+        icon: <Home className="w-5 h-5" />,
         name: 'Dashboard',
       },
       {
@@ -44,7 +52,7 @@ export const SIDEBAR_MENU_GROUPED: MenuCategory[] = [
       {
         id: uuid(),
         label: 'automations',
-        icon: <AutomationDuoToneWhite />,
+        icon: <Zap className="w-5 h-5" />,
         name: 'Automations',
       },
     ],
@@ -104,13 +112,13 @@ export const SIDEBAR_BOTTOM_ITEMS: SideBarProps[] = [
   {
     id: uuid(),
     label: 'integrations',
-    icon: <RocketDuoToneWhite />,
+    icon: <Rocket className="w-5 h-5" />,
     name: 'Integrations',
   },
   {
     id: uuid(),
     label: 'settings',
-    icon: <SettingsDuoToneWhite />,
+    icon: <Settings className="w-5 h-5" />,
     name: 'Settings',
   },
 ]
@@ -126,19 +134,19 @@ export const ADMIN_SIDEBAR_MENU: SideBarProps[] = [
   {
     id: uuid(),
     label: 'admin',
-    icon: <BarChart3 className="w-5 h-5 text-gray-600 dark:text-gray-300" />,
+    icon: <BarChart3 className="w-5 h-5" />,
     name: 'Dashboard',
   },
   {
     id: uuid(),
     label: 'admin/enquiries',
-    icon: <Building2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />,
+    icon: <Building2 className="w-5 h-5" />,
     name: 'Enterprise Enquiries',
   },
   {
     id: uuid(),
     label: 'admin/settings',
-    icon: <SettingsDuoToneWhite />,
+    icon: <Settings className="w-5 h-5" />,
     name: 'Settings',
   },
 ]
