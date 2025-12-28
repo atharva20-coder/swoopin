@@ -73,10 +73,10 @@ export default function CanvaIntegrationCard() {
   return (
     <div
       className={cn(
-        "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
-        "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
-        "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
-        isConnected && "ring-2 ring-purple-500/20 border-purple-200 dark:border-purple-500/30",
+        "flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group border h-full",
+        "bg-white dark:bg-[#222222] border-gray-200 dark:border-neutral-800",
+        "hover:shadow-lg hover:-translate-y-0.5 dark:hover:bg-[#262626] dark:hover:border-neutral-700",
+        isConnected && "bg-purple-50/30 dark:bg-purple-900/10 border-purple-200 dark:border-purple-500/20",
         !isConnected && "cursor-pointer"
       )}
       onClick={!isConnected ? handleConnect : undefined}
