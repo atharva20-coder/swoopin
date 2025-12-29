@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from '@/contexts/theme-context';
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import ReduxProvider from "@/providers/redux-provider";
 import ServiceWorkerProvider from "@/providers/service-worker-provider";

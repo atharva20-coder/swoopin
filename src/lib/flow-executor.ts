@@ -1,7 +1,5 @@
 import { client } from "@/lib/prisma";
 import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage, checkIfFollower, getMediaHashtags, sendButtonTemplate, setIceBreakers, setPersistentMenu, sendSenderAction, sendProductTemplate, sendQuickReplies } from "@/lib/fetch";
-import { openai } from "@/lib/openai";
-import { OpenAI } from "openai";
 import { trackResponses } from "@/actions/webhook/queries";
 import { trackAnalytics } from "@/actions/analytics";
 
@@ -243,23 +241,7 @@ const executeActionNode = async (
         );
 
         if (!generatedResponse) {
-          // Fallback to OpenAI
-          const openaiClient = context.userOpenAiKey
-            ? new OpenAI({ apiKey: context.userOpenAiKey })
-            : openai;
-
-          try {
-            const completion = await openaiClient.chat.completions.create({
-              model: "gpt-4o-mini",
-              messages: [
-                { role: "system", content: `${prompt}: Keep responses under 2 sentences` },
-                { role: "user", content: context.messageText || "" },
-              ],
-            });
-            generatedResponse = completion.choices[0]?.message?.content || null;
-          } catch (openaiError) {
-            console.error("SmartAI: OpenAI fallback failed:", openaiError);
-          }
+          console.error("SmartAI: Gemini failed to generate response");
         }
 
         try { await sendSenderAction(pageId, senderId, "typing_off", token); } catch (e) {}
