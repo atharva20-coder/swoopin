@@ -1,430 +1,162 @@
-import React, { useState } from "react";
-import Link from "next/link";
-import { Inter } from "next/font/google";
-import Image from "next/image";
-import { useTheme } from "@/contexts/theme-context";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+'use client'
 
-const inter = Inter({ subsets: ["latin"] });
+import React, { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useTheme } from "@/contexts/theme-context"
+import { Menu, X, Sun, Moon, ArrowRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+import NinthNodeLogo from "./ninth-node-logo"
 
 const LandingNav = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const { theme, toggleTheme } = useTheme()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+    setIsMenuOpen(!isMenuOpen)
+    document.body.style.overflow = !isMenuOpen ? 'hidden' : ''
+  }
+
+  const navLinks = [
+    { label: 'Products', href: '#products' },
+    { label: 'Solutions', href: '#solutions' },
+    { label: 'Agencies', href: '#agencies' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Resources', href: '#resources' },
+  ]
 
   return (
-    <nav className={`${inter.className} fixed top-0 left-0 right-0 z-50 bg-white/30 dark:bg-neutral-900/30 backdrop-blur-xl border-b border-white/20 dark:border-neutral-800/20 shadow-sm`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-[72px] md:h-[80px] lg:h-[72px]">
-          {/* Logo and Navigation Links */}
-          <div className="flex items-center space-x-4 md:space-x-6 lg:space-x-8">
-            <Link href="/" className="font-['Brice'] font-bold text-2xl md:text-2xl lg:text-3xl flex items-center gap-1 text-gray-900 dark:text-white">
-              <Image
-                src="/landingpage-images/Autcorn-logo.svg"
-                alt="Auctorn Logo"
-                width={52}
-                height={52}
-                className="w-10 h-10 md:w-11 md:h-11 lg:w-12 lg:h-12"
-              />
+    <>
+      <nav 
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          isScrolled 
+            ? "bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-neutral-800" 
+            : "bg-transparent"
+        )}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2">
+              <NinthNodeLogo showText={true} />
             </Link>
-            <NavigationMenu className="hidden md:flex">
-              <NavigationMenuList className="space-x-4 lg:space-x-8">
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">PRODUCT</NavigationMenuTrigger>
-                  <NavigationMenuContent className="p-8">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="/social/instagram" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Instagram Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full">Active</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
-                      </Link>
-                      <Link href="/social/facebook" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Facebook Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
-                      </Link>
-                      <Link href="/newsletter" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Newsletter Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
-                      </Link>
-                      <Link href="/messenger" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Messenger Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
-                      </Link>
-                      <Link href="/sheets" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Google Sheets Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Data automation, reporting, and integration with other services</p>
-                      </Link>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
 
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">SOLUTIONS</NavigationMenuTrigger>
-                  <NavigationMenuContent className="p-8">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Enterprise</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Large scale solutions for enterprise</p>
-                      </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Startups</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Flexible solutions for growing businesses</p>
-                      </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">For Agencies</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Specialized solutions for marketing agencies</p>
-                      </Link>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
 
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">AGENCIES</NavigationMenuTrigger>
-                  <NavigationMenuContent className="p-8">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Partner Program</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Join our partner network</p>
-                      </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Agency Directory</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Find certified agency partners</p>
-                      </Link>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuLink href="/social/pricings" className="text-gray-900 dark:text-white text-xs md:text-sm font-medium relative group inline-flex items-center">
-                    <span className="relative inline-block">PRICING
-                      <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gray-900 dark:bg-white transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-                    </span>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-900 dark:text-white text-xs md:text-sm font-medium bg-transparent hover:bg-transparent">RESOURCES</NavigationMenuTrigger>
-                  <NavigationMenuContent className="p-8">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">How to guide</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Learn how automations work in Auctorn</p>
-                      </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Blogs</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">For growing businesses and increasing follower count</p>
-                      </Link>
-                      <Link href="#" className="group block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Meet Developer</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Get in touch with the developer</p>
-                      </Link>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-
-          {/* Hamburger Menu */}
-          <div className="flex items-center gap-4 ml-auto">
-            <button
-              onClick={toggleMenu}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
-              aria-expanded={isMenuOpen}
-              aria-label="Toggle menu"
-            >
-              <svg
-                className="h-6 w-6 text-gray-600 dark:text-gray-300 transform transition-transform duration-300 ease-in-out"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-4">
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-500 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                aria-label="Toggle theme"
               >
-                <path
-                  className={`transform transition-transform duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}
-                  d="M4 6h16"
-                />
-                <path
-                  className={`transform transition-opacity duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}
-                  d="M4 12h16"
-                />
-                <path
-                  className={`transform transition-transform duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}
-                  d="M4 18h16"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <svg
-                  className="w-5 h-5 text-gray-900 dark:text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-5 h-5 text-gray-900 dark:text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              
+              <Link
+                href="/sign-in"
+                className="text-sm text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Log in
+              </Link>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 ml-4">
-            <Link href="/dashboard" className="group relative text-xs md:text-sm font-medium text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] px-4 md:px-6 py-2 md:py-2.5 rounded-lg border border-gray-900 dark:border-white hover:border-[#4F46E5] dark:hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
-              <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-                <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </span>
-                <span className="transform group-hover:translate-x-3 transition-transform duration-300">SIGN IN</span>
-              </span>
-            </Link>
-            <Link href="/dashboard" className="group relative bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] dark:hover:bg-gray-100 hover:rounded-none">
-              <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-                <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </span>
-                <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
-              </span>
-            </Link>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2 transition-colors duration-200"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <svg
-                  className="w-5 h-5 text-gray-900 dark:text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-5 h-5 text-gray-900 dark:text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                  />
-                </svg>
-              )}
-            </button>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-medium rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-colors"
+              >
+                Sign up
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex md:hidden items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-neutral-400 hover:text-white transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={toggleMenu}
+                className="p-2 text-neutral-400 hover:text-white transition-colors"
+                aria-label="Toggle menu"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        <div
-          className={`md:hidden absolute left-0 right-0 top-[72px] bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 shadow-lg transform transition-all duration-300 ease-in-out origin-top ${isMenuOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}
-        >
-          <div className="h-[calc(100vh-72px)] overflow-y-auto px-4 pt-2 pb-8 space-y-4 flex flex-col">
-            <div className="flex-1">
-              <Accordion type="single" collapsible className="space-y-2">
-                <AccordionItem value="product" className="border-none">
-                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
-                    PRODUCT
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3">
-                    <div className="space-y-4">
-                      <Link href="/social/instagram" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Instagram Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full">Active</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Automated responses, comment management, and engagement tools - Updated daily with new features</p>
-                      </Link>
-                      <Link href="/social/facebook" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/facebook-new.png" alt="Facebook" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Facebook Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Page management, post scheduling, and audience engagement tools</p>
-                      </Link>
-                      <Link href="/newsletter" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/email.png" alt="Newsletter" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Newsletter Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Email campaign management and subscriber engagement automation</p>
-                      </Link>
-                      <Link href="/messenger" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/facebook-messenger.png" alt="Messenger" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Messenger Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Chat automation, response templates, and customer support tools</p>
-                      </Link>
-                      <Link href="/sheets" className="block p-4 rounded-lg hover:bg-white/50 dark:hover:bg-neutral-800/50 transition-colors duration-200">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Image src="https://img.icons8.com/fluency/48/google-sheets.png" alt="Google Sheets" width={32} height={32} className="w-8 h-8" />
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Google Sheets Automation</h3>
-                            <span className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30 rounded-full">Coming Soon</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Data automation, reporting, and integration with other services</p>
-                      </Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="solutions" className="border-none">
-                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
-                    SOLUTIONS
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3">
-                    <div className="space-y-4">
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">For Enterprise</Link>
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">For Startups</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="agencies" className="border-none">
-                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
-                    AGENCIES
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3">
-                    <div className="space-y-4">
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Partner Program</Link>
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Agency Directory</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="pricing" className="border-none">
-                  <Link href="/social/pricings" className="block text-gray-900 dark:text-white text-base font-medium py-4 px-3">
-                    PRICING
-                  </Link>
-                </AccordionItem>
-
-                <AccordionItem value="resources" className="border-none">
-                  <AccordionTrigger className="text-gray-900 dark:text-white text-base font-medium py-4 px-3 hover:no-underline">
-                    RESOURCES
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3">
-                    <div className="space-y-4">
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">How to guide</Link>
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Blogs</Link>
-                      <Link href="#" className="block text-sm text-gray-600 dark:text-gray-300 hover:text-[#4F46E5] dark:hover:text-[#4F46E5]">Meet Developer</Link>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-            <div className="pt-4 border-t border-gray-200 dark:border-neutral-800">
-              <Link href="/dashboard" className="group relative block text-sm font-medium text-gray-900 dark:text-white hover:text-[#4F46E5] dark:hover:text-[#4F46E5] px-6 py-2.5 rounded-lg border border-gray-900 dark:border-white hover:border-[#4F46E5] dark:hover:border-[#4F46E5] transition-all duration-300 overflow-hidden hover:rounded-none">
-                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-                  <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </span>
-                  <span className="transform group-hover:translate-x-3 transition-transform duration-300">SIGN IN</span>
-                </span>
+      {/* Mobile Menu */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-40 md:hidden transition-all duration-300",
+          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={toggleMenu} />
+        
+        <div className={cn(
+          "absolute inset-x-0 top-16 bg-black transition-transform duration-300",
+          isMenuOpen ? "translate-y-0" : "-translate-y-full"
+        )}>
+          <div className="px-6 py-8 space-y-6">
+            {navLinks.map((link, i) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={toggleMenu}
+                className="block text-2xl font-medium text-white"
+                style={{ transitionDelay: `${i * 50}ms` }}
+              >
+                {link.label}
               </Link>
-              <Link href="/dashboard" className="group relative block bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden hover:bg-[#1a1a1a] dark:hover:bg-gray-100 hover:rounded-none mt-4">
-                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
-                  <span className="absolute left-0 transform -translate-x-6 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </span>
-                  <span className="transform group-hover:translate-x-3 transition-transform duration-300">GET STARTED</span>
-                </span>
+            ))}
+            
+            <div className="pt-6 border-t border-neutral-800 space-y-4">
+              <Link
+                href="/sign-in"
+                onClick={toggleMenu}
+                className="block w-full text-center py-3 text-neutral-400 border border-neutral-700 rounded-full"
+              >
+                Log in
               </Link>
-
+              <Link
+                href="/dashboard"
+                onClick={toggleMenu}
+                className="block w-full text-center py-3 bg-white text-black font-medium rounded-full"
+              >
+                Sign up
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </nav>
-  );
-};
+    </>
+  )
+}
 
-export default LandingNav;
+export default LandingNav

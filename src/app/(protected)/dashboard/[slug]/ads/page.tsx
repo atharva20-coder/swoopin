@@ -3,6 +3,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { client } from "@/lib/prisma";
 import AdsView from "./_components/ads-view";
+import type { AdCampaign } from "@prisma/client";
+
+// Re-export the Prisma type for use in child components
+export type { AdCampaign };
 
 export default async function AdsPage({
   params,
@@ -17,7 +21,7 @@ export default async function AdsPage({
   }
 
   // Get user's campaigns
-  let campaigns: Awaited<ReturnType<typeof client.adCampaign.findMany>> = [];
+  let campaigns: AdCampaign[] = [];
   try {
     campaigns = await client.adCampaign.findMany({
       where: { userId: session.user.id },

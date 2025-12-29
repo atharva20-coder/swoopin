@@ -19,6 +19,7 @@ import { Settings, HelpCircle, Moon, Sun, LogOut, User, ChevronRight, ChevronLef
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import NinthNodeLogo from "../ninth-node-logo";
 
 type Props = {
   slug: string;
@@ -56,18 +57,7 @@ const Sidebar = ({ slug, isAdmin = false }: Props) => {
         {/* Logo Row */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
           <div className="flex items-center gap-2.5">
-            <Image
-              src="/landingpage-images/Autcorn-logo.svg"
-              alt="Autcorn Logo"
-              width={isCollapsed ? 32 : 36}
-              height={isCollapsed ? 32 : 36}
-              className="transition-all duration-300"
-            />
-            {!isCollapsed && (
-              <span className="font-['Brice'] font-bold text-xl text-gray-900 dark:text-gray-100">
-                Auctorn
-              </span>
-            )}
+            <NinthNodeLogo showText={!isCollapsed} />
           </div>
           <Button
             variant="ghost"

@@ -32,26 +32,8 @@ import {
   syncCampaigns,
   getCampaignInsights,
 } from "@/actions/ads";
-
-type CampaignStatus = "ACTIVE" | "PAUSED" | "DELETED" | "ARCHIVED";
-type CampaignObjective = "BRAND_AWARENESS" | "REACH" | "TRAFFIC" | "ENGAGEMENT" | "CONVERSIONS" | "POST_ENGAGEMENT";
-
-interface AdCampaign {
-  id: string;
-  userId: string;
-  campaignId: string;
-  adAccountId: string;
-  name: string;
-  objective: CampaignObjective;
-  status: CampaignStatus;
-  budget: number | { toNumber(): number };
-  currency: string;
-  startDate: Date | null;
-  endDate: Date | null;
-  insights: object | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { AdCampaign, CampaignStatus, CampaignObjective } from "@prisma/client";
+import type { Decimal } from "@prisma/client/runtime/library";
 
 interface AdInsights {
   impressions: number;
@@ -109,8 +91,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
     currency: "USD",
   });
 
-  const getBudget = (campaign: AdCampaign) => {
-    const budget = typeof campaign.budget === "object" ? campaign.budget.toNumber() : campaign.budget;
+  const getBudget = (campaign: AdCampaign): string => {
+    // Prisma Decimal types can be converted to number using Number()
+    const budget = Number(campaign.budget);
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: campaign.currency || "USD",
@@ -195,10 +178,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
     total: campaigns.length,
     active: campaigns.filter((c) => c.status === "ACTIVE").length,
     paused: campaigns.filter((c) => c.status === "PAUSED").length,
-    totalSpend: campaigns.reduce((sum, c) => {
-      const budget = typeof c.budget === "object" ? c.budget.toNumber() : c.budget;
-      return sum + budget;
-    }, 0),
+    totalSpend: campaigns.reduce((sum, c) => sum + Number(c.budget), 0),
   };
 
   return (
