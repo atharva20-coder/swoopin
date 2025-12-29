@@ -21,5 +21,8 @@ async function handler(req: NextRequest) {
   }
 }
 
-// Verify QStash signature for security
-export const POST = verifySignatureAppRouter(handler);
+// Verify QStash signature for security (only when keys are available)
+const isQstashConfigured = !!process.env.QSTASH_CURRENT_SIGNING_KEY;
+export const POST = isQstashConfigured
+  ? verifySignatureAppRouter(handler)
+  : handler;
