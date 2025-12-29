@@ -270,7 +270,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
       {/* Info box */}
       <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
         <p className="text-sm text-orange-700 dark:text-orange-300">
-          💬 This reply will be posted publicly under the user's comment on your post.
+          💬 This reply will be posted publicly under the user&apos;s comment on your post.
         </p>
       </div>
 
@@ -1038,7 +1038,7 @@ const ConfigPanel = ({ id, selectedNode, onUpdateNode, onDeleteNode, className }
                         placeholder="e.g., OPTION_A, YES, NO, INTERESTED"
                         className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-white font-mono"
                       />
-                      <p className="text-[10px] text-gray-400">User's choice sent to your automation</p>
+                      <p className="text-[10px] text-gray-400">User&apos;s choice sent to your automation</p>
                     </div>
                   </div>
                 )}

@@ -634,7 +634,7 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
           </div>
           <div className="flex gap-2">
             <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-400 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">
-              I'll do this later
+              I&apos;ll do this later
             </button>
             <button className={cn(
               "px-4 py-1.5 bg-blue-600 rounded-lg text-white text-xs font-medium transition-all",
@@ -1905,7 +1905,7 @@ export default function LandingPage() {
               Know your audience
             </h2>
             <p className="text-gray-500 dark:text-neutral-500 text-lg max-w-2xl mx-auto">
-              Deep insights into who's engaging with your content across the globe
+              Deep insights into who&apos;s engaging with your content across the globe
             </p>
           </div>
           
@@ -2055,7 +2055,7 @@ export default function LandingPage() {
                     <Sparkles key={star} className="w-4 h-4 text-yellow-500" />
                   ))}
                 </div>
-                <p className="text-gray-600 dark:text-neutral-300 mb-6 leading-relaxed">"{testimonial.quote}"</p>
+                <p className="text-gray-600 dark:text-neutral-300 mb-6 leading-relaxed">&quot;{testimonial.quote}&quot;</p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 dark:text-white font-bold">
                     {testimonial.avatar}

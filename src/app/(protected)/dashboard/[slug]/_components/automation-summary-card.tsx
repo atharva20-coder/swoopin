@@ -31,33 +31,9 @@ const AutomationSummaryCard = () => {
     refetchInterval: 60000, // Refresh data every 60 seconds
   });
 
-  if (isLoading) {
-    return (
-      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent dark:border-blue-400 rounded-full animate-spin"></div>
-        </div>
-      </Card>
-    );
-  }
-
   // Memoize transformed data to prevent recalculation
   const automationData: AutomationData = useMemo(() => {
-    const transformedData = data?.data?.[0] ? {
-      platform: "Instagram",
-      title: data.data[0].name || "Instagram Automation",
-      description: data.data[0].listener?.prompt || "Automated responses for Instagram comments and DMs",
-      status: data.data[0].active ? "completed" : "pending",
-      accountCount: data.data[0].keywords?.length || 0,
-      createdAt: data.data[0].createdAt.toISOString(),
-      metrics: {
-        accountsEngaged: data.data[0].listener?.dmCount || 0,
-        totalLikes: data.data[0].listener?.commentCount || 0,
-        followersRange: "0-1K"
-      }
-    } : null;
-
-    return transformedData || {
+    if (!data?.data) return {
       platform: "Instagram",
       title: "Instagram Automation",
       description: "Automated responses for Instagram comments and DMs",
@@ -67,6 +43,21 @@ const AutomationSummaryCard = () => {
       metrics: {
         accountsEngaged: 0,
         totalLikes: 0,
+        followersRange: "0-1K"
+      }
+    };
+
+    const item = data.data[0];
+    return {
+      platform: "Instagram",
+      title: item.name || "Instagram Automation",
+      description: item.listener?.prompt || "Automated responses for Instagram comments and DMs",
+      status: item.active ? "completed" : "pending",
+      accountCount: item.keywords?.length || 0,
+      createdAt: item.createdAt.toISOString(),
+      metrics: {
+        accountsEngaged: item.listener?.dmCount || 0,
+        totalLikes: item.listener?.commentCount || 0,
         followersRange: "0-1K"
       }
     };
@@ -97,6 +88,16 @@ const AutomationSummaryCard = () => {
   }, []);
 
   const formattedDate = new Date(createdAt).toLocaleDateString();
+
+  if (isLoading) {
+    return (
+      <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center justify-center h-48">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent dark:border-blue-400 rounded-full animate-spin"></div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="transition-all duration-200 hover:shadow-md p-6 border-gray-100 dark:border-neutral-800 dark:bg-neutral-900">
