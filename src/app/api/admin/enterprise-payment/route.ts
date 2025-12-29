@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: currency.toLowerCase(),
             product_data: {
-              name: "Swoopin Enterprise Plan",
+              name: "NinthNode Enterprise Plan",
               description: description || `Custom enterprise plan for ${enquiry.company || enquiry.name || enquiry.email}`,
             },
             unit_amount: Math.round(amount * 100), // Convert to paise

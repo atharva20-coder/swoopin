@@ -28,7 +28,7 @@ const PLANS = {
       { text: "1 Automation", included: true },
       { text: "7 days analytics history", included: true },
       { text: "Community support", included: true },
-      { text: '"Powered by Swoopin" branding', included: true, subtle: true },
+      { text: '"Powered by NinthNode" branding', included: true, subtle: true },
       { text: "Post scheduling", included: false },
       { text: "AI-powered responses", included: false },
       { text: "Comment replies", included: false },
@@ -721,7 +721,7 @@ export default function BillingPage() {
                 <textarea
                   value={enterpriseForm.useCase}
                   onChange={(e) => setEnterpriseForm({ ...enterpriseForm, useCase: e.target.value })}
-                  placeholder="Tell us how you plan to use Swoopin"
+                  placeholder="Tell us how you plan to use NinthNode"
                   rows={3}
                   className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white resize-none"
                 />

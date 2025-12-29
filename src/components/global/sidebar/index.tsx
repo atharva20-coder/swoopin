@@ -57,7 +57,10 @@ const Sidebar = ({ slug, isAdmin = false }: Props) => {
         {/* Logo Row */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
           <div className="flex items-center gap-2.5">
-            <NinthNodeLogo showText={!isCollapsed} />
+            <NinthNodeLogo 
+              showText={!isCollapsed} 
+              iconClassName={isCollapsed ? "w-10 h-10" : "w-14 h-14"}
+            />
           </div>
           <Button
             variant="ghost"
