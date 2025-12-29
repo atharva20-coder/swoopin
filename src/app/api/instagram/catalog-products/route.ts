@@ -5,6 +5,7 @@ import { client } from "@/lib/prisma";
 import axios from "axios";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 interface CatalogProduct {
   id: string;
