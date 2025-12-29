@@ -196,6 +196,7 @@ export function ProductPicker({
                         )}
                       >
                         {product.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={product.imageUrl}
                             alt={product.name}
@@ -245,6 +246,7 @@ export function ProductPicker({
                 )}
                 onClick={handleImageClick}
               >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={mediaUrl}
                   alt="Post media"

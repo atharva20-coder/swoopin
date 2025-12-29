@@ -30,6 +30,7 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
 
   useEffect(() => {
     checkConnectionAndFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkConnectionAndFetch = async () => {

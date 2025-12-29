@@ -208,6 +208,7 @@ function CommentModal({
         {/* Modal Header */}
         <div className="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-neutral-800 flex-shrink-0">
           {media.media_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={media.media_url}
               alt=""
@@ -284,6 +285,7 @@ function PostCard({ media, onClick }: PostCardProps) {
       <div className="flex items-start gap-3">
         {/* Post Thumbnail */}
         {media.media_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={media.media_url}
             alt=""
@@ -348,17 +350,17 @@ export default function InboxView() {
   
   const POSTS_PER_PAGE = 12
 
-  const media = commentsData?.data?.media || []
   const totalComments = commentsData?.data?.totalComments || 0
   
   // Memoize filtered and paginated posts
   const { postsWithComments, paginatedPosts, totalPages } = useMemo(() => {
+    const media = commentsData?.data?.media || []
     const filtered = media.filter(m => m.comments.length > 0)
     const pages = Math.ceil(filtered.length / POSTS_PER_PAGE)
     const startIndex = (currentPage - 1) * POSTS_PER_PAGE
     const paginated = filtered.slice(startIndex, startIndex + POSTS_PER_PAGE)
     return { postsWithComments: filtered, paginatedPosts: paginated, totalPages: pages }
-  }, [media, currentPage])
+  }, [commentsData?.data?.media, currentPage])
 
   const handleReply = useCallback(async (commentId: string, message: string) => {
     setActiveCommentId(commentId)

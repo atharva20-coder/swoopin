@@ -37,6 +37,7 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
     if (isOpen && spreadsheets.length === 0) {
       loadSpreadsheets();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const loadSpreadsheets = async () => {
