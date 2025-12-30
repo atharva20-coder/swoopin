@@ -15,6 +15,7 @@ import {
   Mail, Reply, UserCheck, Clock, CheckCircle, Tag, MousePointerClick
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion"
 
 // Dynamic import for WorldMap to avoid SSR issues with react-simple-maps
 const WorldMap = dynamic(() => import('@/components/landing/WorldMap'), {
@@ -25,6 +26,109 @@ const WorldMap = dynamic(() => import('@/components/landing/WorldMap'), {
     </div>
   )
 })
+
+// Intro Overlay Sequence
+function IntroOverlay({ onComplete }: { onComplete: () => void }) {
+  const [phase, setPhase] = useState(0) // 0: Counter, 1: Message
+  const [labelIndex, setLabelIndex] = useState(0)
+  const labels = ["Subscribers", "Followers", "Connections", "People", "Community"]
+  
+  const count = useMotionValue(999900)
+  const rounded = useTransform(count, latest => Math.round(latest))
+  const displayCount = useTransform(rounded, latest => new Intl.NumberFormat('en-US').format(latest))
+  
+  useEffect(() => {
+    // Lock body scroll
+    document.body.style.overflow = 'hidden'
+    
+    // Phase 0: Counter Animation
+    const controls = animate(count, 1000000, {
+      duration: 3.5,
+      ease: [0.22, 1, 0.36, 1], // Custom easeOut
+      onComplete: () => {
+        setTimeout(() => setPhase(1), 800) // Brief pause before message
+      }
+    })
+
+    // Cycle labels
+    const interval = setInterval(() => {
+      setLabelIndex(prev => (prev + 1) % labels.length)
+    }, 700)
+    
+    return () => {
+      controls.stop()
+      clearInterval(interval)
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  useEffect(() => {
+    if (phase === 1) {
+      // Phase 1: Show Message then Complete
+      const timer = setTimeout(() => {
+        onComplete()
+      }, 2500) // Message visible duration
+      return () => clearTimeout(timer)
+    }
+  }, [phase, onComplete])
+
+  return (
+    <motion.div 
+      className="fixed inset-0 z-[100] bg-black flex items-center justify-center text-white"
+      initial={{ opacity: 1 }}
+      exit={{ y: "-100%", transition: { duration: 1, ease: [0.76, 0, 0.24, 1] } }}
+    >
+      <AnimatePresence mode="wait">
+        {phase === 0 && (
+          <motion.div
+            key="counter"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center"
+          >
+            <motion.div className="flex items-baseline">
+              <motion.span className="text-5xl sm:text-7xl md:text-9xl font-bold tracking-tighter tabular-nums text-white">
+                {displayCount}
+              </motion.span>
+            </motion.div>
+            
+            <div className="h-12 sm:h-16 relative flex items-center justify-center overflow-hidden mt-2 sm:mt-6">
+              <AnimatePresence mode="popLayout">
+                <motion.span 
+                  key={labels[labelIndex]}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -20, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="absolute text-lg sm:text-2xl text-neutral-500 uppercase tracking-widest font-medium"
+                >
+                  {labels[labelIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+        
+        {phase === 1 && (
+          <motion.div
+            key="message"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.8 }}
+            className="text-center px-6 max-w-4xl"
+          >
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-bold leading-tight text-white mb-6">
+              Up your social media game
+            </h2>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
 
 // Cinematic Flow Builder Animation - Exact match to actual app UI
 function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
@@ -143,7 +247,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
           {/* Dotted Grid Background - Light Mode */}
           <div 
             className="absolute inset-0 pointer-events-none dark:hidden"
@@ -186,8 +290,8 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
             )}
           </div>
           
-          {/* Components Sidebar */}
-          <div className="relative w-52 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-4 flex-shrink-0 overflow-y-auto">
+          {/* Components Sidebar - Hidden on mobile */}
+          <div className="relative w-40 lg:w-52 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-3 lg:p-4 flex-shrink-0 overflow-y-auto hidden md:block">
             <div className="text-gray-900 dark:text-white text-sm font-semibold mb-1">Components</div>
             <div className="text-gray-500 dark:text-neutral-500 text-xs mb-4">Drag to canvas to add</div>
             
@@ -255,8 +359,9 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
             </div>
           </div>
           
-          {/* Canvas Area */}
-          <div className="relative flex-1 p-4">
+          {/* Canvas Area - scaled down on mobile */}
+          <div className="relative flex-1 p-2 sm:p-4 overflow-hidden">
+            <div className="origin-top-left scale-[0.6] sm:scale-75 lg:scale-100 w-[166%] sm:w-[133%] lg:w-full h-[166%] sm:h-[133%] lg:h-full">
             {/* SVG Connection Lines - drawn as cursor connects nodes */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
               {/* Select Posts → New Comment */}
@@ -476,9 +581,10 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
               </button>
             </div>
           </div>
+          </div>
           
-          {/* Configuration Panel */}
-          <div className="relative w-52 bg-gray-50 dark:bg-[#111] border-l border-gray-200 dark:border-neutral-800 p-4 flex-shrink-0">
+          {/* Configuration Panel - Hidden on mobile */}
+          <div className="relative w-40 lg:w-52 bg-gray-50 dark:bg-[#111] border-l border-gray-200 dark:border-neutral-800 p-3 lg:p-4 flex-shrink-0 hidden md:block">
             <div className="text-gray-900 dark:text-white text-sm font-semibold mb-4">Configuration</div>
             
             {/* Automation Name */}
@@ -597,9 +703,9 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
-      {/* Sidebar with floating icons */}
-      <div className="relative w-52 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-4 overflow-hidden">
+    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+      {/* Sidebar with floating icons - Hidden on mobile */}
+      <div className="relative w-40 lg:w-52 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-3 lg:p-4 overflow-hidden hidden md:block">
         {/* Grid background */}
         <div className="absolute inset-0 opacity-30" style={{
           backgroundImage: 'linear-gradient(#222 1px, transparent 1px), linear-gradient(90deg, #222 1px, transparent 1px)',
@@ -957,9 +1063,9 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
-      {/* Content Library Sidebar */}
-      <div className="w-56 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-4 flex flex-col">
+    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+      {/* Content Library Sidebar - Hidden on mobile */}
+      <div className="w-44 lg:w-56 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-3 lg:p-4 flex flex-col hidden md:flex">
         <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Content Library</h3>
         
         {/* Design Tools */}
@@ -1384,6 +1490,64 @@ export default function LandingPage() {
   const [isInView, setIsInView] = useState(false)
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const featuresContainerRef = useRef<HTMLDivElement>(null)
+  const mobileFeatureRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
+  
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  // Mobile: Auto-open accordion on scroll into view
+  useEffect(() => {
+    if (!isMobile) return
+    
+    const observers: IntersectionObserver[] = []
+    
+    mobileFeatureRefs.current.forEach((ref, index) => {
+      if (!ref) return
+      
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+              setActiveFeature(index)
+            }
+          })
+        },
+        { threshold: 0.6, rootMargin: '-10% 0px -30% 0px' }
+      )
+      
+      observer.observe(ref)
+      observers.push(observer)
+    })
+    
+    return () => observers.forEach(obs => obs.disconnect())
+  }, [isMobile])
+
+  // Scroll-triggered animations for sections
+  useEffect(() => {
+    const animatedElements = document.querySelectorAll('.animate-on-scroll, .stagger-children, .fade-in-left, .fade-in-right, .scale-in')
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animated')
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    )
+    
+    animatedElements.forEach((el) => observer.observe(el))
+    
+    return () => observer.disconnect()
+  }, [])
 
   const features = [
     {
@@ -1480,11 +1644,15 @@ export default function LandingPage() {
   }, [features.length])
 
   return (
-    <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
-      <LandingNav />
+    <>
+      <AnimatePresence>
+        {showIntro && <IntroOverlay onComplete={() => setShowIntro(false)} />}
+      </AnimatePresence>
+      <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
+        <LandingNav />
       
       {/* Hero Section - Text */}
-      <section className="relative min-h-[120vh] w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-32 overflow-hidden">
+      <section className="relative min-h-screen sm:min-h-[120vh] w-full flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8 py-20 sm:py-32 overflow-hidden">
         {/* Full viewport stepped gradient background - light mode */}
         <div 
           className="absolute inset-0 dark:hidden" 
@@ -1502,28 +1670,28 @@ export default function LandingPage() {
         
         {/* 100vh/100vw blurry effect overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[100vw] h-[100vh] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] blur-[120px] rounded-full scale-150" />
+          <div className="w-[100vw] h-[100vh] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] blur-[80px] sm:blur-[120px] rounded-full scale-150 animate-float-slow" />
         </div>
         
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
-          {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.1]">
+        <div className="relative z-10 max-w-5xl mx-auto text-center px-1">
+          {/* Headline - Dramatically smaller on mobile for better readability */}
+          <h1 className="animate-on-scroll text-[2.5rem] leading-[1.15] sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4 sm:mb-6">
             Automate your
             <br />
             <span className="text-gray-400 dark:text-neutral-400">social growth</span>
           </h1>
           
-          {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-gray-500 dark:text-neutral-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+          {/* Subheadline - More compact on mobile */}
+          <p className="animate-on-scroll text-base sm:text-lg md:text-xl text-gray-500 dark:text-neutral-500 mb-8 sm:mb-10 max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2">
             The all-in-one platform for DMs, comments, scheduling, and lead generation.
-            Built for creators and businesses who want to grow on autopilot.
+            <span className="hidden sm:inline"> Built for creators and businesses who want to grow on autopilot.</span>
           </p>
           
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* CTAs - Full width on mobile */}
+          <div className="animate-on-scroll flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full">
             <Link
               href="/dashboard"
-              className="group flex items-center gap-2 px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all"
+              className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all tap-highlight-none hover-scale"
             >
               Start for free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -1531,7 +1699,7 @@ export default function LandingPage() {
             
             <Link
               href="#features"
-              className="flex items-center gap-2 px-8 py-4 text-base font-medium text-gray-600 dark:text-neutral-400 border border-gray-300 dark:border-neutral-800 rounded-full hover:border-gray-400 dark:hover:border-neutral-600 hover:text-gray-900 dark:hover:text-white transition-all"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-medium text-gray-600 dark:text-neutral-400 border border-gray-300 dark:border-neutral-800 rounded-full hover:border-gray-400 dark:hover:border-neutral-600 hover:text-gray-900 dark:hover:text-white transition-all tap-highlight-none"
             >
               <Play className="w-4 h-4" />
               See how it works
@@ -1557,15 +1725,25 @@ export default function LandingPage() {
       {/* Hero Visual - Dashboard Preview */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gray-100 dark:bg-black">
         <div className="w-full max-w-7xl mx-auto">
-          <div className="bg-white dark:bg-[#0a0a0a] rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden shadow-2xl" style={{ aspectRatio: '16/9' }}>
+          {/* Dashboard Section Heading */}
+          <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
+              Your command center
+            </h2>
+            <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto">
+              Everything you need to manage and grow your social presence in one powerful dashboard
+            </p>
+          </div>
+          
+          <div className="scale-in bg-white dark:bg-[#0a0a0a] rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden shadow-2xl">
             {/* Dashboard Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-neutral-800">
+            <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-neutral-500">Auctorn</span>
                 <ChevronRight className="w-3 h-3 text-neutral-600" />
                 <span className="text-gray-900 dark:text-white font-medium">Dashboard</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
                 <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 dark:bg-neutral-800 rounded-lg">
                   <div className="w-5 h-5 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-full" />
                   <span className="text-gray-900 dark:text-white text-xs">All</span>
@@ -1581,8 +1759,8 @@ export default function LandingPage() {
             </div>
             
             <div className="flex">
-              {/* Sidebar */}
-              <div className="w-14 bg-gray-50 dark:bg-[#0f0f0f] border-r border-gray-200 dark:border-neutral-800 py-4 flex flex-col items-center gap-4">
+              {/* Sidebar - Hidden on mobile */}
+              <div className="w-14 bg-gray-50 dark:bg-[#0f0f0f] border-r border-gray-200 dark:border-neutral-800 py-4 flex-col items-center gap-4 hidden sm:flex">
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4">
                   <span className="text-white text-xs font-bold">A</span>
                 </div>
@@ -1599,9 +1777,9 @@ export default function LandingPage() {
               </div>
               
               {/* Main Content */}
-              <div className="flex-1 p-6">
+              <div className="flex-1 p-3 sm:p-6">
                 {/* Stats Cards Row */}
-                <div className="grid grid-cols-6 gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
                   {[
                     { icon: Users, color: 'bg-blue-500', label: 'Followers', value: '12', sub: 'Total' },
                     { icon: Users, color: 'bg-pink-500', label: 'Reach', value: '21', sub: 'Last 28 days' },
@@ -1610,19 +1788,19 @@ export default function LandingPage() {
                     { icon: ArrowRight, color: 'bg-purple-500', label: 'Website Clicks', value: '—', sub: 'Last 28 days' },
                     { icon: Zap, color: 'bg-yellow-500', label: 'Accounts Engaged', value: '—', sub: 'Last 28 days' },
                   ].map((stat, i) => (
-                    <div key={i} className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-4">
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", stat.color)}>
-                        <stat.icon className="w-5 h-5 text-white" />
+                    <div key={i} className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-2 sm:p-4">
+                      <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3", stat.color)}>
+                        <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <p className="text-gray-900 dark:text-white text-2xl font-bold">{stat.value}</p>
-                      <p className="text-gray-700 dark:text-white text-sm">{stat.label}</p>
-                      <p className="text-gray-500 dark:text-neutral-500 text-xs">{stat.sub}</p>
+                      <p className="text-gray-900 dark:text-white text-lg sm:text-2xl font-bold">{stat.value}</p>
+                      <p className="text-gray-700 dark:text-white text-xs sm:text-sm">{stat.label}</p>
+                      <p className="text-gray-500 dark:text-neutral-500 text-[10px] sm:text-xs hidden sm:block">{stat.sub}</p>
                     </div>
                   ))}
                 </div>
                 
                 {/* Activity & Performance Row */}
-                <div className="grid grid-cols-2 gap-4 flex-1">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
                   {/* Activity Overview */}
                   <div className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -1727,52 +1905,128 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Platforms Section */}
-      <section className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Platforms Section - Mobile optimized */}
+      <section className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-5xl mx-auto text-center">
-          <p className="text-gray-500 dark:text-neutral-500 text-sm mb-8">Connect your platforms</p>
-          <div className="flex flex-wrap items-center justify-center gap-6">
+          <p className="text-gray-500 dark:text-neutral-500 text-sm mb-6 sm:mb-8">Connect your platforms</p>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
             {platforms.map((platform) => (
               <div 
                 key={platform.name}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-3 rounded-full border transition-all",
+                  "flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full border transition-all tap-highlight-none",
                   platform.active 
                     ? "border-gray-400 dark:border-neutral-600 bg-gray-100 dark:bg-neutral-900/50 text-gray-900 dark:text-white" 
                     : "border-gray-200 dark:border-neutral-800 text-gray-500 dark:text-neutral-600"
                 )}
               >
-                <platform.icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{platform.name}</span>
+                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-xs sm:text-sm font-medium">{platform.name}</span>
                 {platform.coming && (
-                  <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-neutral-800 rounded text-gray-500 dark:text-neutral-500">Soon</span>
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-neutral-800 rounded text-gray-500 dark:text-neutral-500">Soon</span>
                 )}
               </div>
             ))}
           </div>
           
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className="text-gray-500 dark:text-neutral-600 text-sm">Integrates with</span>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
+            <span className="text-gray-500 dark:text-neutral-600 text-xs sm:text-sm w-full sm:w-auto mb-2 sm:mb-0">Integrates with</span>
             {integrations.map((int) => (
               <div key={int.name} className="flex items-center gap-1.5 text-gray-500 dark:text-neutral-500">
-                <int.icon className="w-4 h-4" />
-                <span className="text-sm">{int.name}</span>
+                <int.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm">{int.name}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section - Scroll-Triggered Storytelling */}
+      {/* Features Section - MOBILE: Seamless accordion with scroll auto-open */}
+      <section id="features" className="lg:hidden py-12 px-5 border-t border-gray-200 dark:border-neutral-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold tracking-tight mb-2">
+              Everything you need
+            </h2>
+            <p className="text-gray-500 dark:text-neutral-500 text-sm">
+              Powerful features to automate your social growth
+            </p>
+          </div>
+          
+          {/* Connected accordion - no gaps */}
+          <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-neutral-800 divide-y divide-gray-200 dark:divide-neutral-800">
+            {features.map((feature, i) => (
+              <div
+                key={feature.id}
+                ref={(el) => { mobileFeatureRefs.current[i] = el }}
+                className={cn(
+                  "transition-colors tap-highlight-none",
+                  activeFeature === i 
+                    ? "bg-gray-50 dark:bg-neutral-800/50" 
+                    : "bg-white dark:bg-neutral-900/30"
+                )}
+              >
+                <button
+                  onClick={() => setActiveFeature(activeFeature === i ? -1 : i)}
+                  className="w-full text-left p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                      activeFeature === i 
+                        ? "bg-gray-900 dark:bg-white" 
+                        : "bg-gray-100 dark:bg-neutral-800"
+                    )}>
+                      <feature.icon className={cn(
+                        "w-4 h-4 transition-colors",
+                        activeFeature === i 
+                          ? "text-white dark:text-black" 
+                          : "text-gray-600 dark:text-neutral-400"
+                      )} />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">{feature.title}</h3>
+                      <p className="text-gray-400 dark:text-neutral-500 text-xs">{feature.label}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className={cn(
+                    "w-4 h-4 text-gray-400 transition-transform duration-200",
+                    activeFeature === i ? "rotate-90" : ""
+                  )} />
+                </button>
+                
+                {/* Expanded content */}
+                <div className={cn(
+                  "overflow-hidden transition-all duration-300 ease-out",
+                  activeFeature === i ? "max-h-28 pb-4" : "max-h-0"
+                )}>
+                  <div className="px-4 pl-16">
+                    <p className="text-gray-500 dark:text-neutral-400 text-xs leading-relaxed mb-2">
+                      {feature.description}
+                    </p>
+                    <Link 
+                      href="/dashboard" 
+                      className="inline-flex items-center gap-1 text-xs font-medium text-gray-900 dark:text-white"
+                    >
+                      Try it now <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - DESKTOP: Scroll-Triggered Storytelling (hidden on mobile) */}
       <section 
-        id="features" 
         ref={featuresContainerRef}
-        className="relative border-t border-gray-200 dark:border-neutral-900"
+        className="relative border-t border-gray-200 dark:border-neutral-900 hidden lg:block"
         style={{ minHeight: `${(features.length + 1) * 100}vh` }}
       >
         <div className="sticky top-0 h-screen flex items-center px-4 sm:px-6 lg:px-8">
           <div className="max-w-screen-2xl mx-auto w-full">
-            <div className="grid lg:grid-cols-12 gap-6 items-center">
+            <div className="grid lg:grid-cols-12 gap-4 lg:gap-6 items-center">
               {/* Feature tabs - Left side (sticky) */}
               <div className="lg:col-span-3">
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-8">
@@ -1822,7 +2076,7 @@ export default function LandingPage() {
 
               {/* Feature visual - Right side */}
               <div className="lg:col-span-9">
-                <div className="bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '600px' }}>
+                <div className="bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden min-h-[600px]">
                   {features.map((feature, i) => (
                     <div 
                       key={feature.id}
@@ -1841,38 +2095,38 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Capabilities Grid */}
-      <section id="solutions" className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Capabilities Grid - Mobile optimized */}
+      <section id="solutions" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Built for growth
             </h2>
-            <p className="text-lg text-gray-500 dark:text-neutral-500">
+            <p className="text-base sm:text-lg text-gray-500 dark:text-neutral-500 px-4">
               Every feature designed to help you scale
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger-children">
             {capabilities.map((cap, i) => (
               <div 
                 key={i}
-                className="group p-6 bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900/50 transition-all"
+                className="group p-4 sm:p-6 bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-xl sm:rounded-2xl hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900/50 transition-all tap-highlight-none hover-lift hover-glow"
               >
-                <cap.icon className="w-8 h-8 text-neutral-600 group-hover:text-gray-900 dark:text-white transition-colors mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{cap.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-neutral-500">{cap.description}</p>
+                <cap.icon className="w-6 h-6 sm:w-8 sm:h-8 text-neutral-600 group-hover:text-gray-900 dark:text-white transition-colors mb-2 sm:mb-4" />
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-0.5 sm:mb-1">{cap.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-500 leading-relaxed">{cap.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it Works / Pricing Placeholder */}
-      <section id="pricing" className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* How it Works / Pricing Placeholder - Mobile optimized */}
+      <section id="pricing" className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
               Get started in minutes
             </h2>
           </div>
@@ -1883,13 +2137,13 @@ export default function LandingPage() {
               { step: 2, title: 'Build your automations', description: 'Use the visual flow builder to create workflows' },
               { step: 3, title: 'Grow on autopilot', description: 'Watch your engagement and leads increase automatically' },
             ].map((item, i) => (
-              <div key={i} className="flex gap-6 py-8 border-b border-gray-200 dark:border-neutral-800 last:border-0">
-                <div className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center font-bold text-lg shrink-0">
+              <div key={i} className="flex gap-4 sm:gap-6 py-6 sm:py-8 border-b border-gray-200 dark:border-neutral-800 last:border-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
                   {item.step}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{item.title}</h3>
-                  <p className="text-gray-500 dark:text-neutral-500">{item.description}</p>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">{item.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-neutral-500">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -1897,44 +2151,44 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Demographics Section */}
-      <section id="agencies" className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Demographics Section - Mobile optimized */}
+      <section id="agencies" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Know your audience
             </h2>
-            <p className="text-gray-500 dark:text-neutral-500 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto px-2">
               Deep insights into who&apos;s engaging with your content across the globe
             </p>
           </div>
           
           {/* Demographics Preview Card */}
-          <div className="bg-white dark:bg-[#0f0f0f] rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-neutral-800">
+          <div className="bg-white dark:bg-[#0f0f0f] rounded-xl sm:rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
+            {/* Header - Stack on mobile */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-0 border-b border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-500" />
-                <span className="text-gray-900 dark:text-white font-semibold">Audience Demographics</span>
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                <span className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">Audience Demographics</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-lg">Sample Data</span>
-                <div className="flex bg-gray-200 dark:bg-neutral-800 rounded-lg overflow-hidden">
-                  <button className="px-3 py-1.5 bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white text-xs">All</button>
-                  <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs">Cities</button>
-                  <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs">Countries</button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="px-2 sm:px-3 py-1 bg-purple-500/20 text-purple-400 text-[10px] sm:text-xs rounded-lg">Sample Data</span>
+                <div className="flex bg-gray-200 dark:bg-neutral-800 rounded-lg overflow-hidden text-[10px] sm:text-xs">
+                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white">All</button>
+                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-gray-500 dark:text-neutral-500">Cities</button>
+                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-gray-500 dark:text-neutral-500 hidden sm:block">Countries</button>
                 </div>
               </div>
             </div>
             
-            <div className="p-6 flex gap-6">
+            <div className="p-4 md:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
               {/* World Map Visualization - Using react-simple-maps */}
-              <div className="flex-1 bg-gray-100 dark:bg-neutral-900/50 rounded-xl relative min-h-[350px] overflow-hidden">
+              <div className="flex-1 bg-gray-100 dark:bg-neutral-900/50 rounded-xl relative min-h-[250px] sm:min-h-[350px] overflow-hidden">
                 <WorldMap />
               </div>
               
               {/* Stats Panels */}
-              <div className="w-72 space-y-4">
+              <div className="w-full lg:w-72 space-y-4">
                 {/* Age Distribution */}
                 <div className="bg-gray-100 dark:bg-neutral-900/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-4">
@@ -2013,196 +2267,296 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Testimonials Section - Infinite scroll marquee */}
+      <section className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900 overflow-hidden">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+          <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Loved by creators worldwide
             </h2>
-            <p className="text-gray-500 dark:text-neutral-500 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto px-2">
               See what our users are saying about transforming their social media growth
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                quote: "This tool completely changed how I manage my Instagram. I went from spending 4 hours daily on DMs to just 30 minutes reviewing automation results.",
-                name: "Priya Sharma",
-                role: "Fashion Influencer",
-                followers: "1.2M followers",
-                avatar: "P"
-              },
-              {
-                quote: "The flow builder is incredibly intuitive. I created my first automation in under 10 minutes, and it's already generated 500+ leads for my business.",
-                name: "Rahul Mehta",
-                role: "E-commerce Founder",
-                followers: "200K followers",
-                avatar: "R"
-              },
-              {
-                quote: "Finally, a platform that understands Indian creators! The Google Sheets integration is perfect for my team to track all our influencer campaigns.",
-                name: "Ananya Patel",
-                role: "Marketing Agency",
-                followers: "500K+ managed",
-                avatar: "A"
-              }
-            ].map((testimonial, i) => (
-              <div key={i} className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-2xl p-6 hover:border-neutral-700 transition-colors">
-                <div className="flex mb-4">
-                  {[1,2,3,4,5].map((star) => (
-                    <Sparkles key={star} className="w-4 h-4 text-yellow-500" />
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-neutral-300 mb-6 leading-relaxed">&quot;{testimonial.quote}&quot;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-gray-900 dark:text-white font-bold">
-                    {testimonial.avatar}
+          {/* Infinite scroll container */}
+          <div className="relative -mx-5 sm:-mx-6 lg:-mx-8">
+            <div className="flex gap-4 sm:gap-6 animate-scroll-left" style={{ width: 'max-content' }}>
+              {/* First set of testimonials */}
+              {[
+                {
+                  quote: "This tool completely changed how I manage my Instagram. I went from spending 4 hours daily on DMs to just 30 minutes reviewing automation results.",
+                  name: "Priya Sharma",
+                  role: "Fashion Influencer",
+                  followers: "1.2M followers",
+                  avatar: "P"
+                },
+                {
+                  quote: "The flow builder is incredibly intuitive. I created my first automation in under 10 minutes, and it's already generated 500+ leads for my business.",
+                  name: "Rahul Mehta",
+                  role: "E-commerce Founder",
+                  followers: "200K followers",
+                  avatar: "R"
+                },
+                {
+                  quote: "Finally, a platform that understands Indian creators! The Google Sheets integration is perfect for my team to track all our influencer campaigns.",
+                  name: "Ananya Patel",
+                  role: "Marketing Agency",
+                  followers: "500K+ managed",
+                  avatar: "A"
+                },
+                {
+                  quote: "Best investment I've made for my business. The automated responses feel so natural that my followers can't tell the difference.",
+                  name: "Vikram Singh",
+                  role: "Fitness Coach",
+                  followers: "850K followers",
+                  avatar: "V"
+                },
+                {
+                  quote: "Scheduling content used to take me hours. Now I batch everything in one sitting and let the platform handle the rest.",
+                  name: "Neha Kapoor",
+                  role: "Travel Blogger",
+                  followers: "2.1M followers",
+                  avatar: "N"
+                }
+              ].map((testimonial, i) => (
+                <div key={`first-${i}`} className="flex-shrink-0 w-[300px] sm:w-[350px] bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-5 sm:p-6 hover:border-neutral-700 transition-colors">
+                  <div className="flex mb-3 sm:mb-4">
+                    {[1,2,3,4,5].map((star) => (
+                      <Sparkles key={star} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500" />
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-gray-900 dark:text-white font-medium">{testimonial.name}</p>
-                    <p className="text-gray-500 dark:text-neutral-500 text-sm">{testimonial.role}</p>
-                    <p className="text-purple-400 text-xs">{testimonial.followers}</p>
+                  <p className="text-gray-600 dark:text-neutral-300 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed">&quot;{testimonial.quote}&quot;</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white font-medium text-sm sm:text-base">{testimonial.name}</p>
+                      <p className="text-gray-500 dark:text-neutral-500 text-xs sm:text-sm">{testimonial.role}</p>
+                      <p className="text-purple-400 text-[10px] sm:text-xs">{testimonial.followers}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+              {/* Duplicate set for seamless loop */}
+              {[
+                {
+                  quote: "This tool completely changed how I manage my Instagram. I went from spending 4 hours daily on DMs to just 30 minutes reviewing automation results.",
+                  name: "Priya Sharma",
+                  role: "Fashion Influencer",
+                  followers: "1.2M followers",
+                  avatar: "P"
+                },
+                {
+                  quote: "The flow builder is incredibly intuitive. I created my first automation in under 10 minutes, and it's already generated 500+ leads for my business.",
+                  name: "Rahul Mehta",
+                  role: "E-commerce Founder",
+                  followers: "200K followers",
+                  avatar: "R"
+                },
+                {
+                  quote: "Finally, a platform that understands Indian creators! The Google Sheets integration is perfect for my team to track all our influencer campaigns.",
+                  name: "Ananya Patel",
+                  role: "Marketing Agency",
+                  followers: "500K+ managed",
+                  avatar: "A"
+                },
+                {
+                  quote: "Best investment I've made for my business. The automated responses feel so natural that my followers can't tell the difference.",
+                  name: "Vikram Singh",
+                  role: "Fitness Coach",
+                  followers: "850K followers",
+                  avatar: "V"
+                },
+                {
+                  quote: "Scheduling content used to take me hours. Now I batch everything in one sitting and let the platform handle the rest.",
+                  name: "Neha Kapoor",
+                  role: "Travel Blogger",
+                  followers: "2.1M followers",
+                  avatar: "N"
+                }
+              ].map((testimonial, i) => (
+                <div key={`second-${i}`} className="flex-shrink-0 w-[300px] sm:w-[350px] bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl sm:rounded-2xl p-5 sm:p-6 hover:border-neutral-700 transition-colors">
+                  <div className="flex mb-3 sm:mb-4">
+                    {[1,2,3,4,5].map((star) => (
+                      <Sparkles key={star} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-neutral-300 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed">&quot;{testimonial.quote}&quot;</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
+                      {testimonial.avatar}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white font-medium text-sm sm:text-base">{testimonial.name}</p>
+                      <p className="text-gray-500 dark:text-neutral-500 text-xs sm:text-sm">{testimonial.role}</p>
+                      <p className="text-purple-400 text-[10px] sm:text-xs">{testimonial.followers}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Trusted Brands Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Trusted Brands Section - Mobile optimized */}
+      <section className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-gray-500 dark:text-neutral-500 text-sm uppercase tracking-wider mb-4">Trusted by leading brands</p>
-            <h2 className="text-3xl font-bold tracking-tight">
+          <div className="text-center mb-8 sm:mb-12">
+            <p className="text-gray-500 dark:text-neutral-500 text-xs sm:text-sm uppercase tracking-wider mb-3 sm:mb-4">Trusted by leading brands</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Powering growth for top companies
             </h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-8 items-center">
             {/* Nykaa - Pink with distinctive font */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-pink-100 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900/30 hover:bg-pink-200 dark:hover:bg-pink-900/30 transition-colors">
-              <span className="text-pink-600 dark:text-pink-400 font-bold text-xl tracking-tight" style={{ fontFamily: 'serif' }}>nykaa</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-pink-100 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900/30 hover:bg-pink-200 dark:hover:bg-pink-900/30 transition-colors">
+              <span className="text-pink-600 dark:text-pink-400 font-bold text-sm sm:text-xl tracking-tight" style={{ fontFamily: 'serif' }}>nykaa</span>
             </div>
             {/* Myntra - Orange M logo style */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/30 transition-colors">
-              <span className="text-orange-600 dark:text-orange-400 font-black text-2xl">M</span>
-              <span className="text-orange-600 dark:text-orange-400 font-medium text-lg ml-0.5">yntra</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/30 transition-colors">
+              <span className="text-orange-600 dark:text-orange-400 font-black text-lg sm:text-2xl">M</span>
+              <span className="text-orange-600 dark:text-orange-400 font-medium text-xs sm:text-lg ml-0.5 hidden sm:inline">yntra</span>
             </div>
             {/* boAt - Red with bold lowercase */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-red-100 dark:bg-red-950/30 border border-red-200 dark:border-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors">
-              <span className="text-red-600 dark:text-red-400 font-black text-xl">boAt</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-red-100 dark:bg-red-950/30 border border-red-200 dark:border-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors">
+              <span className="text-red-600 dark:text-red-400 font-black text-sm sm:text-xl">boAt</span>
             </div>
             {/* Mamaearth - Green with leaf motif */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-950/30 border border-green-200 dark:border-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors">
-              <span className="text-green-600 dark:text-green-400 font-semibold text-lg">🌿 Mamaearth</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-green-100 dark:bg-green-950/30 border border-green-200 dark:border-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/30 transition-colors">
+              <span className="text-green-600 dark:text-green-400 font-semibold text-xs sm:text-lg">🌿<span className="hidden sm:inline"> Mamaearth</span></span>
             </div>
             {/* Sugar Cosmetics - Purple/Pink */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-purple-100 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors">
-              <span className="text-purple-600 dark:text-purple-400 font-bold text-xl tracking-widest">SUGAR</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-purple-100 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors">
+              <span className="text-purple-600 dark:text-purple-400 font-bold text-xs sm:text-xl tracking-widest">SUGAR</span>
             </div>
             {/* Plum - Teal/Emerald */}
-            <div className="h-16 rounded-xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/30 transition-colors">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-xl">plum</span>
-              <span className="text-emerald-500 dark:text-emerald-300 text-xs ml-1">●</span>
+            <div className="h-12 sm:h-16 rounded-lg sm:rounded-xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/30 transition-colors">
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm sm:text-xl">plum</span>
+              <span className="text-emerald-500 dark:text-emerald-300 text-[8px] sm:text-xs ml-0.5 sm:ml-1">●</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Famous Creators Section - Instagram-style Profile Cards */}
-      <section className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
-        <div className="max-w-6xl mx-auto w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
+      {/* Famous Creators Section - Honeycomb with pill-shaped creator badges */}
+      {/* Famous Creators Section - Honeycomb with pill-shaped creator badges */}
+      <section className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 border-t border-gray-200 dark:border-neutral-900 overflow-hidden">
+        <div className="max-w-4xl mx-auto w-full px-5 sm:px-6 lg:px-8">
+          <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Join top creators
             </h2>
-            <p className="text-neutral-500 text-lg max-w-2xl mx-auto">
+            <p className="text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto px-2">
               The fastest-growing influencers and creators use our platform to scale their engagement
             </p>
           </div>
-          
-          {/* Authentic Instagram Profile Embeds - Dark Theme */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: 'Komal Pandey', handle: 'komalpandeyofficial', followers: '2.1M', posts: '1,245', following: '892' },
-              { name: 'Ranveer Allahbadia', handle: 'beerbiceps', followers: '5.8M', posts: '3,421', following: '456' },
-              { name: 'Kusha Kapila', handle: 'kushakapila', followers: '3.2M', posts: '2,156', following: '1,023' },
-              { name: 'Prajakta Koli', handle: 'mostlysane', followers: '7.2M', posts: '4,567', following: '234' },
-            ].map((creator, i) => (
-              <a 
-                key={i} 
-                href={`https://instagram.com/${creator.handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-neutral-800 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-neutral-600 transition-all"
-              >
-                {/* Instagram Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <linearGradient id={`ig-gradient-${i}`} x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#FFDC80" />
-                        <stop offset="25%" stopColor="#F77737" />
-                        <stop offset="50%" stopColor="#F56040" />
-                        <stop offset="75%" stopColor="#C13584" />
-                        <stop offset="100%" stopColor="#833AB4" />
-                      </linearGradient>
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z" fill={`url(#ig-gradient-${i})`}/>
-                      <path d="M12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z" fill={`url(#ig-gradient-${i})`}/>
-                      <circle cx="18.406" cy="5.594" r="1.44" fill={`url(#ig-gradient-${i})`}/>
-                    </svg>
-                    <span className="text-white text-sm font-medium">Instagram</span>
+        </div>
+                  {/* Alternating Marquee Rows */}
+          <div className="flex flex-col gap-6 sm:gap-8 w-full">
+            {/* Row 1 - Scroll Left */}
+            <div className="relative w-full">
+              <div className="flex animate-scroll-left w-max">
+                {[...Array(2)].map((_, setIndex) => (
+                  <div key={setIndex} className="flex gap-4 sm:gap-6 pr-4 sm:pr-6">
+                    {[
+                      { name: 'Komal Pandey', handle: 'komalpandey', color: 'from-pink-500 to-rose-500' },
+                      { name: 'Ranveer', handle: 'beerbiceps', color: 'from-blue-500 to-cyan-500' },
+                      { name: 'Kusha Kapila', handle: 'kushakapila', color: 'from-purple-500 to-pink-500' },
+                      { name: 'Prajakta Koli', handle: 'mostlysane', color: 'from-orange-500 to-amber-500' },
+                      { name: 'Bhuvan Bam', handle: 'bfrhannibal', color: 'from-red-500 to-orange-500' },
+                      { name: 'Ashish', handle: 'ashish', color: 'from-emerald-500 to-teal-500' },
+                    ].map((creator, i) => (
+                      <a
+                        key={`${setIndex}-${i}`}
+                        href={`https://instagram.com/${creator.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                      >
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                          {creator.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-900 dark:text-white font-medium text-xs sm:text-sm whitespace-nowrap">{creator.name}</span>
+                          <span className="text-gray-500 dark:text-neutral-500 text-[10px] sm:text-xs">@{creator.handle}</span>
+                        </div>
+                      </a>
+                    ))}
                   </div>
-                  <span className="text-xs text-neutral-500">View profile</span>
-                </div>
-                
-                {/* Profile Section */}
-                <div className="p-4">
-                  {/* Avatar and stats */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 p-0.5 flex-shrink-0">
-                      <div className="w-full h-full bg-white dark:bg-[#121212] rounded-full flex items-center justify-center">
-                        <span className="text-gray-900 dark:text-white text-xl font-bold">{creator.name.charAt(0)}</span>
-                      </div>
-                    </div>
-                    <div className="flex-1 grid grid-cols-3 text-center">
-                      <div>
-                        <p className="text-gray-900 dark:text-white font-semibold text-sm">{creator.posts}</p>
-                        <p className="text-gray-500 dark:text-neutral-500 text-xs">posts</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-900 dark:text-white font-semibold text-sm">{creator.followers}</p>
-                        <p className="text-gray-500 dark:text-neutral-500 text-xs">followers</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-900 dark:text-white font-semibold text-sm">{creator.following}</p>
-                        <p className="text-gray-500 dark:text-neutral-500 text-xs">following</p>
-                      </div>
-                    </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Row 2 - Scroll Right */}
+            <div className="relative w-full">
+              <div className="flex animate-scroll-right w-max">
+                {[...Array(2)].map((_, setIndex) => (
+                  <div key={setIndex} className="flex gap-4 sm:gap-6 pr-4 sm:pr-6">
+                    {[
+                      { name: 'Dolly Singh', handle: 'dollysingh', color: 'from-violet-500 to-purple-500' },
+                      { name: 'Niharika NM', handle: 'niharikanm', color: 'from-fuchsia-500 to-pink-500' },
+                      { name: 'Carry Minati', handle: 'carry', color: 'from-sky-500 to-blue-500' },
+                      { name: 'Tanmay Bhat', handle: 'tanmaybhat', color: 'from-amber-500 to-yellow-500' },
+                      { name: 'Sejal Kumar', handle: 'sejalkumar', color: 'from-rose-500 to-pink-500' },
+                      { name: 'Mumbiker', handle: 'mumbiker', color: 'from-indigo-500 to-violet-500' },
+                    ].map((creator, i) => (
+                      <a
+                        key={`${setIndex}-${i}`}
+                        href={`https://instagram.com/${creator.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                      >
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                          {creator.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-900 dark:text-white font-medium text-xs sm:text-sm whitespace-nowrap">{creator.name}</span>
+                          <span className="text-gray-500 dark:text-neutral-500 text-[10px] sm:text-xs">@{creator.handle}</span>
+                        </div>
+                      </a>
+                    ))}
                   </div>
-                  
-                  {/* Name and handle */}
-                  <div className="mb-3">
-                    <h3 className="text-gray-900 dark:text-white font-semibold text-sm flex items-center gap-1">
-                      {creator.name}
-                      <svg className="w-4 h-4 text-[#3897f0]" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                      </svg>
-                    </h3>
-                    <p className="text-gray-500 dark:text-neutral-500 text-xs">@{creator.handle}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* Row 3 - Scroll Left */}
+            <div className="relative w-full">
+              <div className="flex animate-scroll-left w-max">
+                {[...Array(2)].map((_, setIndex) => (
+                  <div key={setIndex} className="flex gap-4 sm:gap-6 pr-4 sm:pr-6">
+                    {[
+                      { name: 'Flying Beast', handle: 'flyingbeast', color: 'from-cyan-500 to-teal-500' },
+                      { name: 'Ankur Warikoo', handle: 'warikoo', color: 'from-lime-500 to-green-500' },
+                      { name: 'Ranveer Singh', handle: 'ranveersingh', color: 'from-red-500 to-rose-500' },
+                      { name: 'Virat Kohli', handle: 'virat.kohli', color: 'from-blue-600 to-indigo-600' },
+                      { name: 'Sakshi Sindwani', handle: 'sakshisindwani', color: 'from-pink-600 to-purple-600' },
+                      { name: 'Masoom Minawala', handle: 'masoomminawala', color: 'from-yellow-500 to-orange-500' },
+                    ].map((creator, i) => (
+                      <a
+                        key={`${setIndex}-${i}`}
+                        href={`https://instagram.com/${creator.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                      >
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                          {creator.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-900 dark:text-white font-medium text-xs sm:text-sm whitespace-nowrap">{creator.name}</span>
+                          <span className="text-gray-500 dark:text-neutral-500 text-[10px] sm:text-xs">@{creator.handle}</span>
+                        </div>
+                      </a>
+                    ))}
                   </div>
-                  
-                  {/* Follow Button */}
-                  <button className="w-full py-1.5 bg-[#0095f6] text-white text-sm font-semibold rounded-lg hover:bg-[#1877f2] transition-colors">
-                    Follow
-                  </button>
-                </div>
-              </a>
-            ))}
+                ))}
+            </div>
           </div>
         </div>
       </section>
@@ -2280,20 +2634,20 @@ export default function LandingPage() {
         <FAQSection />
       </section>
 
-      {/* Final CTA */}
-      <section className="min-h-screen flex flex-col justify-center py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      {/* Final CTA - Mobile optimized */}
+      <section className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
             Ready to automate
             <br />
             <span className="text-gray-400 dark:text-neutral-500">your growth?</span>
           </h2>
-          <p className="text-lg text-gray-500 dark:text-neutral-500 mb-10">
+          <p className="text-base sm:text-lg text-gray-500 dark:text-neutral-500 mb-8 sm:mb-10 px-4">
             Start building your automations today. No credit card required.
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all tap-highlight-none"
           >
             Start for free
             <ArrowRight className="w-4 h-4" />
@@ -2304,5 +2658,6 @@ export default function LandingPage() {
       {/* Footer */}
       <Footer />
     </main>
+    </>
   )
 }
