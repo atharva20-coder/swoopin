@@ -30,7 +30,7 @@ const LandingNav = () => {
     { label: 'Products', href: '#products' },
     { label: 'Solutions', href: '#solutions' },
     { label: 'Agencies', href: '#agencies' },
-    { label: 'Pricing', href: '#pricing' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Resources', href: '#resources' },
   ]
 
@@ -93,14 +93,14 @@ const LandingNav = () => {
             <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={toggleTheme}
-                className="p-2 text-neutral-400 hover:text-white transition-colors"
+                className="p-2 text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 aria-label="Toggle theme"
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
               <button
                 onClick={toggleMenu}
-                className="p-2 text-neutral-400 hover:text-white transition-colors"
+                className="p-2 text-gray-500 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 aria-label="Toggle menu"
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -117,10 +117,10 @@ const LandingNav = () => {
           isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={toggleMenu} />
+        <div className="absolute inset-0 bg-white/90 dark:bg-black/90 backdrop-blur-xl" onClick={toggleMenu} />
         
         <div className={cn(
-          "absolute inset-x-0 top-16 bg-black transition-transform duration-300",
+          "absolute inset-x-0 top-16 bg-white dark:bg-black transition-transform duration-300",
           isMenuOpen ? "translate-y-0" : "-translate-y-full"
         )}>
           <div className="px-6 py-8 space-y-6">
@@ -129,25 +129,25 @@ const LandingNav = () => {
                 key={link.label}
                 href={link.href}
                 onClick={toggleMenu}
-                className="block text-2xl font-medium text-white"
+                className="block text-2xl font-medium text-gray-900 dark:text-white"
                 style={{ transitionDelay: `${i * 50}ms` }}
               >
                 {link.label}
               </Link>
             ))}
             
-            <div className="pt-6 border-t border-neutral-800 space-y-4">
+            <div className="pt-6 border-t border-gray-200 dark:border-neutral-800 space-y-4">
               <Link
                 href="/sign-in"
                 onClick={toggleMenu}
-                className="block w-full text-center py-3 text-neutral-400 border border-neutral-700 rounded-full"
+                className="block w-full text-center py-3 text-gray-600 dark:text-neutral-400 border border-gray-300 dark:border-neutral-700 rounded-full hover:border-gray-400 dark:hover:border-neutral-600 transition-colors"
               >
                 Log in
               </Link>
               <Link
                 href="/dashboard"
                 onClick={toggleMenu}
-                className="block w-full text-center py-3 bg-white text-black font-medium rounded-full"
+                className="block w-full text-center py-3 bg-gray-900 dark:bg-white text-white dark:text-black font-medium rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-colors"
               >
                 Sign up
               </Link>

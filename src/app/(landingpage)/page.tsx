@@ -4,60 +4,169 @@ import Image from "next/image"
 import Link from "next/link"
 import LandingNav from "@/components/global/landing-nav"
 import Footer from "@/components/global/footer"
+import { NinthNodeLogo } from "@/components/global/ninth-node-logo"
+import { authClient } from "@/lib/auth-client"
 import { FAQSection } from "@/components/global/FAQ/faq-section"
 import { cn } from '@/lib/utils'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { 
   Zap, MessageCircle, BarChart3, Calendar, Sparkles, Database,
-  ArrowRight, Play, ChevronRight, 
+  ArrowRight, Play, ChevronRight, Check,
   Instagram, Facebook, Send, Twitter, Linkedin,
   Palette, FileSpreadsheet, Bot, Inbox, Users, ShoppingBag,
-  Mail, Reply, UserCheck, Clock, CheckCircle, Tag, MousePointerClick
+  Mail, Reply, UserCheck, Clock, CheckCircle, Tag, MousePointerClick, X
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion"
+import { motion, AnimatePresence, useMotionValue, useTransform, animate, useInView } from "framer-motion"
 
 // Dynamic import for WorldMap to avoid SSR issues with react-simple-maps
 const WorldMap = dynamic(() => import('@/components/landing/WorldMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-neutral-900/50 rounded-xl">
-      <div className="animate-pulse text-neutral-500">Loading map...</div>
+    <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-neutral-900/50 rounded-xl">
+      <div className="animate-pulse text-gray-500 dark:text-neutral-500">Loading map...</div>
     </div>
   )
 })
+
+// Flip Digit Component
+function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
+  const isChanging = digit !== prevDigit
+  
+  return (
+    <div className="relative w-[0.6em] h-[1.2em] overflow-hidden">
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={digit}
+          initial={{ y: isChanging ? '100%' : 0, rotateX: isChanging ? -90 : 0 }}
+          animate={{ y: 0, rotateX: 0 }}
+          exit={{ y: '-100%', rotateX: 90 }}
+          transition={{ 
+            duration: 0.4, 
+            ease: [0.4, 0, 0.2, 1]
+          }}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+        >
+          {digit}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// Flip Counter Display
+function FlipCounter({ value }: { value: number }) {
+  const [prevValue, setPrevValue] = useState(value)
+  const formattedValue = value.toLocaleString('en-US')
+  const prevFormattedValue = prevValue.toLocaleString('en-US')
+  
+  // Pad to ensure same length
+  const maxLen = Math.max(formattedValue.length, prevFormattedValue.length)
+  const currentDigits = formattedValue.padStart(maxLen, ' ').split('')
+  const prevDigits = prevFormattedValue.padStart(maxLen, ' ').split('')
+  
+  useEffect(() => {
+    setPrevValue(value)
+  }, [value])
+  
+  return (
+    <div className="flex items-center text-5xl sm:text-7xl md:text-9xl font-bold tracking-tighter tabular-nums text-white" style={{ perspective: '1000px' }}>
+      {currentDigits.map((digit, i) => (
+        digit === ',' ? (
+          <span key={`comma-${i}`} className="mx-0.5">,</span>
+        ) : (
+          <FlipDigit key={i} digit={digit} prevDigit={prevDigits[i] || ' '} />
+        )
+      ))}
+    </div>
+  )
+}
+
+// Sparkle Particle Component
+function Sparkle({ delay, x, y }: { delay: number; x: number; y: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+      animate={{ 
+        opacity: [0, 1, 1, 0], 
+        scale: [0, 1, 1, 0.5],
+        x: x,
+        y: y,
+      }}
+      transition={{ 
+        duration: 1.5, 
+        delay: delay,
+        ease: "easeOut"
+      }}
+      className="absolute w-2 h-2 sm:w-3 sm:h-3"
+    >
+      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+        <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" fill="gold" />
+      </svg>
+    </motion.div>
+  )
+}
+
+// Sparkles Burst Effect
+function SparklesBurst({ isActive }: { isActive: boolean }) {
+  if (!isActive) return null
+  
+  const sparkles = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    delay: Math.random() * 0.3,
+    x: (Math.random() - 0.5) * 400,
+    y: (Math.random() - 0.5) * 300,
+  }))
+  
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+      {sparkles.map((sparkle) => (
+        <Sparkle key={sparkle.id} delay={sparkle.delay} x={sparkle.x} y={sparkle.y} />
+      ))}
+    </div>
+  )
+}
 
 // Intro Overlay Sequence
 function IntroOverlay({ onComplete }: { onComplete: () => void }) {
   const [phase, setPhase] = useState(0) // 0: Counter, 1: Message
   const [labelIndex, setLabelIndex] = useState(0)
+  const [currentNumber, setCurrentNumber] = useState(999997)
+  const [showSparkles, setShowSparkles] = useState(false)
   const labels = ["Subscribers", "Followers", "Connections", "People", "Community"]
-  
-  const count = useMotionValue(999900)
-  const rounded = useTransform(count, latest => Math.round(latest))
-  const displayCount = useTransform(rounded, latest => new Intl.NumberFormat('en-US').format(latest))
   
   useEffect(() => {
     // Lock body scroll
     document.body.style.overflow = 'hidden'
     
-    // Phase 0: Counter Animation
-    const controls = animate(count, 1000000, {
-      duration: 3.5,
-      ease: [0.22, 1, 0.36, 1], // Custom easeOut
-      onComplete: () => {
-        setTimeout(() => setPhase(1), 800) // Brief pause before message
+    // Sequence: 999,997 -> 999,998 -> 999,999 -> 1,000,000
+    const sequence = [999997, 999998, 999999, 1000000]
+    let currentIndex = 0
+    
+    const incrementTimer = setInterval(() => {
+      currentIndex++
+      if (currentIndex < sequence.length) {
+        setCurrentNumber(sequence[currentIndex])
+        // Trigger sparkles when we hit 1,000,000
+        if (sequence[currentIndex] === 1000000) {
+          setShowSparkles(true)
+        }
+      } else {
+        clearInterval(incrementTimer)
+        // Wait a moment at 1,000,000 then show message
+        setTimeout(() => setPhase(1), 1800)
       }
-    })
+    }, 1000) // 1 second per increment for dramatic effect
 
     // Cycle labels
-    const interval = setInterval(() => {
+    const labelInterval = setInterval(() => {
       setLabelIndex(prev => (prev + 1) % labels.length)
-    }, 700)
+    }, 800)
     
     return () => {
-      controls.stop()
-      clearInterval(interval)
+      clearInterval(incrementTimer)
+      clearInterval(labelInterval)
       document.body.style.overflow = ''
     }
   }, [])
@@ -67,7 +176,7 @@ function IntroOverlay({ onComplete }: { onComplete: () => void }) {
       // Phase 1: Show Message then Complete
       const timer = setTimeout(() => {
         onComplete()
-      }, 2500) // Message visible duration
+      }, 3000) // Message visible duration
       return () => clearTimeout(timer)
     }
   }, [phase, onComplete])
@@ -78,6 +187,8 @@ function IntroOverlay({ onComplete }: { onComplete: () => void }) {
       initial={{ opacity: 1 }}
       exit={{ y: "-100%", transition: { duration: 1, ease: [0.76, 0, 0.24, 1] } }}
     >
+      <SparklesBurst isActive={showSparkles} />
+      
       <AnimatePresence mode="wait">
         {phase === 0 && (
           <motion.div
@@ -86,43 +197,69 @@ function IntroOverlay({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center justify-center"
+            className="flex flex-col items-center justify-center relative z-10"
           >
-            <motion.div className="flex items-baseline">
-              <motion.span className="text-5xl sm:text-7xl md:text-9xl font-bold tracking-tighter tabular-nums text-white">
-                {displayCount}
-              </motion.span>
-            </motion.div>
+            <FlipCounter value={currentNumber} />
             
-            <div className="h-12 sm:h-16 relative flex items-center justify-center overflow-hidden mt-2 sm:mt-6">
+            <div className="h-12 sm:h-16 relative flex items-center justify-center overflow-hidden mt-4 sm:mt-8">
               <AnimatePresence mode="popLayout">
                 <motion.span 
                   key={labels[labelIndex]}
-                  initial={{ y: 20, opacity: 0 }}
+                  initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -20, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="absolute text-lg sm:text-2xl text-neutral-500 uppercase tracking-widest font-medium"
+                  exit={{ y: -30, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="absolute text-lg sm:text-2xl text-gray-500 dark:text-neutral-500 uppercase tracking-widest font-medium"
                 >
                   {labels[labelIndex]}
                 </motion.span>
               </AnimatePresence>
             </div>
+            
+            {/* Milestone celebration glow */}
+            {showSparkles && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: [0, 0.5, 0], scale: [0.8, 1.5, 2] }}
+                transition={{ duration: 1.5 }}
+                className="absolute inset-0 bg-gradient-radial from-yellow-500/20 to-transparent rounded-full blur-3xl"
+              />
+            )}
           </motion.div>
         )}
         
         {phase === 1 && (
           <motion.div
             key="message"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.8 }}
-            className="text-center px-6 max-w-4xl"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center px-6 max-w-4xl relative z-10"
           >
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-lg sm:text-xl text-gray-600 dark:text-neutral-400 mb-4 uppercase tracking-widest"
+            >
+              You could be next
+            </motion.p>
             <h2 className="text-3xl sm:text-5xl md:text-7xl font-bold leading-tight text-white mb-6">
-              Up your social media game
+              Turn your audience into
+              <br />
+              <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent">
+                a thriving community
+              </span>
             </h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-base sm:text-lg text-gray-500 dark:text-neutral-500 max-w-xl mx-auto"
+            >
+              Automate engagement. Capture leads. Grow faster.
+            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -247,7 +384,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+    <div className="relative bg-gray-100 dark:bg-neutral-900 w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
           {/* Dotted Grid Background - Light Mode */}
           <div 
             className="absolute inset-0 pointer-events-none dark:hidden"
@@ -299,8 +436,8 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span className="text-gray-500 dark:text-neutral-400 text-xs font-medium">Triggers</span>
-                <ChevronRight className="w-3 h-3 text-gray-400 dark:text-neutral-600 rotate-90" />
+                <span className="text-gray-600 dark:text-neutral-400 text-xs font-medium">Triggers</span>
+                <ChevronRight className="w-3 h-3 text-gray-500 dark:text-neutral-500 rotate-90" />
               </div>
               <div className="space-y-1">
                 {triggers.map((item) => (
@@ -310,7 +447,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                       "flex items-center gap-2 p-2 rounded-lg border transition-all duration-300 cursor-pointer",
                       activeItem === item.id 
                         ? "bg-blue-500/20 border-blue-500 scale-[0.98]" 
-                        : "border-transparent hover:bg-neutral-800/50"
+                        : "border-transparent hover:bg-gray-200 dark:bg-neutral-800/50"
                     )}
                   >
                     <div className="w-6 h-6 bg-gray-200 dark:bg-neutral-800 rounded flex items-center justify-center">
@@ -329,8 +466,8 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-gray-500 dark:text-neutral-400 text-xs font-medium">Actions</span>
-                <ChevronRight className="w-3 h-3 text-gray-400 dark:text-neutral-600 rotate-90" />
+                <span className="text-gray-600 dark:text-neutral-400 text-xs font-medium">Actions</span>
+                <ChevronRight className="w-3 h-3 text-gray-500 dark:text-neutral-500 rotate-90" />
               </div>
               <div className="space-y-1">
                 {actions.map((item) => (
@@ -340,7 +477,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                       "flex items-center gap-2 p-2 rounded-lg border transition-all duration-300 cursor-pointer",
                       activeItem === item.id 
                         ? "bg-emerald-500/20 border-emerald-500 scale-[0.98]" 
-                        : "border-transparent hover:bg-neutral-800/50"
+                        : "border-transparent hover:bg-gray-200 dark:bg-neutral-800/50"
                     )}
                   >
                     <div className="w-6 h-6 bg-gray-200 dark:bg-neutral-800 rounded flex items-center justify-center">
@@ -444,7 +581,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
                     <Calendar className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-white text-xs font-semibold">Select Posts</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">Select Posts</span>
                 </div>
                 <div className="bg-blue-600/50 px-3 py-1.5 rounded-b-lg">
                   <p className="text-blue-100 text-[10px]">Attach specific Instagram posts</p>
@@ -466,7 +603,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
                     <MessageCircle className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-white text-xs font-semibold">New Comment</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">New Comment</span>
                 </div>
                 <div className="bg-blue-600/50 px-3 py-1.5 rounded-b-lg">
                   <p className="text-blue-100 text-[10px]">Trigger on new comment</p>
@@ -487,12 +624,12 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
               <div className="bg-blue-500/20 border-2 border-blue-500 rounded-lg min-w-[180px]">
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-500 rounded-t-md">
                   <Reply className="w-3.5 h-3.5 text-white" />
-                  <span className="text-white text-xs font-semibold">Keyword Match</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">Keyword Match</span>
                 </div>
                 <div className="px-3 py-2">
-                  <p className="text-neutral-400 text-[10px] mb-2">Trigger on specific keyword</p>
-                  <div className="bg-neutral-800 rounded px-3 py-1.5">
-                    <span className="text-white text-xs">ai</span>
+                  <p className="text-gray-600 dark:text-neutral-400 text-[10px] mb-2">Trigger on specific keyword</p>
+                  <div className="bg-gray-200 dark:bg-neutral-800 rounded px-3 py-1.5">
+                    <span className="text-gray-900 dark:text-white text-xs">ai</span>
                   </div>
                 </div>
               </div>
@@ -514,7 +651,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
                     <MessageCircle className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-white text-xs font-semibold">Reply Comment</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">Reply Comment</span>
                 </div>
                 <div className="bg-emerald-600/50 px-3 py-1.5 rounded-b-lg">
                   <p className="text-emerald-100 text-[10px]">Reply to comment</p>
@@ -537,7 +674,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
                     <Bot className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-white text-xs font-semibold">Smart AI</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">Smart AI</span>
                 </div>
                 <div className="bg-emerald-600/50 px-3 py-1.5 rounded-b-lg">
                   <p className="text-emerald-100 text-[10px]">AI-powered response</p>
@@ -561,7 +698,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <div className="w-5 h-5 bg-white/20 rounded flex items-center justify-center">
                     <Send className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-white text-xs font-semibold">Send DM</span>
+                  <span className="text-gray-900 dark:text-white text-xs font-semibold">Send DM</span>
                 </div>
                 <div className="bg-emerald-600/50 px-3 py-1.5 rounded-b-lg">
                   <p className="text-emerald-100 text-[10px]">Send a direct message</p>
@@ -575,7 +712,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
               "absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-500 z-20",
               phase >= 6 ? "opacity-100" : "opacity-0"
             )}>
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-200 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg text-gray-900 dark:text-white text-sm hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors shadow-lg">
+              <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-200 dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 rounded-lg text-white text-sm hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors shadow-lg">
                 <Database className="w-4 h-4" />
                 Save Flow
               </button>
@@ -591,7 +728,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
             <div className="mb-5">
               <label className="text-gray-500 dark:text-neutral-500 text-xs block mb-2">Automation Name</label>
               <div className="bg-gray-200 dark:bg-neutral-800 rounded-lg px-3 py-2">
-                <span className="text-gray-900 dark:text-white text-sm">Logical</span>
+                <span className="text-white text-sm">Logical</span>
               </div>
             </div>
             
@@ -604,7 +741,7 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                     "w-2.5 h-2.5 rounded-full transition-all duration-500",
                     phase >= 7 ? "bg-emerald-500" : "bg-gray-400 dark:bg-neutral-600"
                   )} />
-                  <span className="text-gray-500 dark:text-neutral-400 text-xs">Active</span>
+                  <span className="text-gray-600 dark:text-neutral-400 text-xs">Active</span>
                 </div>
                 <div className={cn(
                   "w-10 h-5 rounded-full transition-all duration-500 flex items-center px-0.5 cursor-pointer",
@@ -630,14 +767,14 @@ function FlowBuilderAnimation({ isActive }: { isActive: boolean }) {
                   <p className="text-[10px] text-gray-500 dark:text-neutral-500 mb-1">DMs Sent</p>
                   <p className={cn(
                     "text-xl font-bold transition-all duration-500",
-                    phase >= 7 ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-neutral-600"
+                    phase >= 7 ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-neutral-500"
                   )}>{phase >= 7 ? "3" : "0"}</p>
                 </div>
                 <div className="bg-gray-200 dark:bg-neutral-800 rounded-lg p-3 text-center">
                   <p className="text-[10px] text-gray-500 dark:text-neutral-500 mb-1">Comments</p>
                   <p className={cn(
                     "text-xl font-bold transition-all duration-500",
-                    phase >= 7 ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-neutral-600"
+                    phase >= 7 ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-neutral-500"
                   )}>{phase >= 7 ? "18" : "0"}</p>
                 </div>
               </div>
@@ -686,10 +823,10 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
     { id: 'instagram', icon: Instagram, color: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400', x: 30, y: 50 },
     { id: 'messenger', icon: MessageCircle, color: 'bg-gradient-to-br from-blue-500 to-purple-500', x: 100, y: 100 },
     { id: 'facebook', icon: Facebook, color: 'bg-blue-600', x: 150, y: 180 },
-    { id: 'twitter', icon: Twitter, color: 'bg-neutral-800', x: 30, y: 210 },
+    { id: 'twitter', icon: Twitter, color: 'bg-gray-200 dark:bg-neutral-800', x: 30, y: 210 },
     { id: 'linkedin', icon: Linkedin, color: 'bg-blue-700', x: 30, y: 310 },
     { id: 'mail', icon: Mail, color: 'bg-gradient-to-br from-red-500 to-orange-500', x: 140, y: 280 },
-    { id: 'threads', icon: MessageCircle, color: 'bg-neutral-800', x: 170, y: 80 },
+    { id: 'threads', icon: MessageCircle, color: 'bg-gray-200 dark:bg-neutral-800', x: 170, y: 80 },
     { id: 'youtube', icon: Play, color: 'bg-red-600', x: 100, y: 380 },
   ]
 
@@ -703,7 +840,7 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+    <div className="relative bg-gray-100 dark:bg-neutral-900 w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
       {/* Sidebar with floating icons - Hidden on mobile */}
       <div className="relative w-40 lg:w-52 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-3 lg:p-4 overflow-hidden hidden md:block">
         {/* Grid background */}
@@ -739,11 +876,11 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
             <p className="text-gray-500 dark:text-neutral-500 text-xs">Connect your favorite tools to supercharge your workflow.</p>
           </div>
           <div className="flex gap-2">
-            <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-400 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">
+            <button className="px-3 py-1.5 text-gray-600 dark:text-neutral-400 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">
               I&apos;ll do this later
             </button>
             <button className={cn(
-              "px-4 py-1.5 bg-blue-600 rounded-lg text-white text-xs font-medium transition-all",
+              "px-4 py-1.5 bg-blue-600 rounded-lg text-gray-900 dark:text-white text-xs font-medium transition-all",
               phase >= 4 ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-[#111]" : ""
             )}>
               Continue →
@@ -757,19 +894,19 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm mb-6">
           <span className="text-gray-500 dark:text-neutral-500">Dashboard</span>
-          <span className="text-gray-400 dark:text-neutral-600">/</span>
+          <span className="text-gray-500 dark:text-neutral-500">/</span>
           <span className="text-gray-900 dark:text-white font-medium">Integrations</span>
         </div>
         
         {/* Tabs */}
         <div className="flex items-center gap-1 mb-6">
           <button className="px-4 py-2 bg-gray-200 dark:bg-neutral-800 rounded-lg text-gray-900 dark:text-white text-xs font-medium">View all</button>
-          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Social Media</button>
-          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Messaging</button>
-          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Marketing</button>
-          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Coming Soon</button>
+          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Social Media</button>
+          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Messaging</button>
+          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Marketing</button>
+          <button className="px-4 py-2 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Coming Soon</button>
           <div className="flex-1" />
-          <button className="flex items-center gap-1 text-neutral-500 text-xs hover:text-white transition-colors">
+          <button className="flex items-center gap-1 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">
             <Clock className="w-3 h-3" />
             Recent
           </button>
@@ -781,7 +918,7 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
             <div 
               key={item.id}
               className={cn(
-                "flex items-center gap-4 p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-xl border transition-all duration-500",
+                "flex items-center gap-4 p-4 bg-gray-100 dark:bg-neutral-900/50 rounded-xl border transition-all duration-500",
                 connectedIntegrations.includes(item.id) ? "border-gray-300 dark:border-neutral-700" : "border-transparent"
               )}
               style={{ 
@@ -821,7 +958,7 @@ function IntegrationsAnimation({ isActive }: { isActive: boolean }) {
                   )} />
                 </div>
               ) : (
-                <ChevronRight className="w-4 h-4 text-neutral-600" />
+                <ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-600" />
               )}
             </div>
           ))}
@@ -878,7 +1015,7 @@ function InboxAnimation({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative w-full h-full min-h-[400px] bg-neutral-950 rounded-xl overflow-hidden p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white font-semibold">Inbox</h3>
+        <h3 className="text-gray-900 dark:text-white font-semibold">Inbox</h3>
         <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs">4 new</span>
       </div>
       
@@ -889,12 +1026,12 @@ function InboxAnimation({ isActive }: { isActive: boolean }) {
             className={cn(
               "flex items-center gap-3 p-3 rounded-xl transition-all duration-500",
               messages.includes(i) ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4",
-              chat.unread ? "bg-neutral-800/80" : "bg-neutral-900/50"
+              chat.unread ? "bg-gray-200 dark:bg-neutral-800/80" : "bg-gray-100 dark:bg-neutral-900/50"
             )}
             style={{ transitionDelay: `${i * 100}ms` }}
           >
             <div className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm",
+              "w-10 h-10 rounded-full flex items-center justify-center text-gray-900 dark:text-white font-medium text-sm",
               i % 2 === 0 
                 ? "bg-gradient-to-br from-purple-500 to-pink-500" 
                 : "bg-gradient-to-br from-blue-500 to-cyan-500"
@@ -904,9 +1041,9 @@ function InboxAnimation({ isActive }: { isActive: boolean }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <p className="text-white text-sm font-medium">{chat.name}</p>
-                <p className="text-neutral-600 text-xs">{chat.time}</p>
+                <p className="text-gray-500 dark:text-neutral-600 text-xs">{chat.time}</p>
               </div>
-              <p className="text-neutral-500 text-sm truncate">{chat.msg}</p>
+              <p className="text-gray-500 dark:text-neutral-500 text-sm truncate">{chat.msg}</p>
             </div>
             {chat.unread && (
               <div className="w-2 h-2 bg-purple-500 rounded-full shrink-0" />
@@ -917,7 +1054,7 @@ function InboxAnimation({ isActive }: { isActive: boolean }) {
 
       {/* Typing Indicator */}
       <div className={cn(
-        "absolute bottom-4 left-4 right-4 bg-neutral-800 rounded-xl p-3 flex items-center gap-3 transition-all duration-300",
+        "absolute bottom-4 left-4 right-4 bg-gray-200 dark:bg-neutral-800 rounded-xl p-3 flex items-center gap-3 transition-all duration-300",
         typing ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}>
         <div className="flex gap-1">
@@ -925,7 +1062,7 @@ function InboxAnimation({ isActive }: { isActive: boolean }) {
           <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
           <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-        <span className="text-neutral-400 text-sm">AI is composing a reply...</span>
+        <span className="text-gray-600 dark:text-neutral-400 text-sm">AI is composing a reply...</span>
       </div>
     </div>
   )
@@ -990,8 +1127,8 @@ function AnalyticsAnimation({ isActive }: { isActive: boolean }) {
           { label: 'Engagement', value: counters.engagement, prefix: '' },
           { label: 'New Followers', value: counters.followers, prefix: '+' },
         ].map((stat, i) => (
-          <div key={i} className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 text-center">
-            <p className="text-neutral-500 text-xs mb-1">{stat.label}</p>
+          <div key={i} className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 text-center">
+            <p className="text-gray-500 dark:text-neutral-500 text-xs mb-1">{stat.label}</p>
             <p className="text-2xl font-bold text-white">
               {stat.prefix}{formatNumber(stat.value)}
             </p>
@@ -1001,11 +1138,11 @@ function AnalyticsAnimation({ isActive }: { isActive: boolean }) {
       </div>
 
       {/* Chart */}
-      <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4">
+      <div className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-neutral-400 text-sm">Engagement over time</p>
+          <p className="text-gray-600 dark:text-neutral-400 text-sm">Engagement over time</p>
           <div className="flex gap-2">
-            <span className="px-2 py-1 bg-neutral-800 text-neutral-400 rounded text-xs">7 days</span>
+            <span className="px-2 py-1 bg-gray-200 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 rounded text-xs">7 days</span>
             <span className="px-2 py-1 bg-white/10 text-white rounded text-xs">30 days</span>
           </div>
         </div>
@@ -1063,7 +1200,7 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative bg-gray-100 dark:bg-[#0a0a0a] w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+    <div className="relative bg-gray-100 dark:bg-neutral-900 w-full h-[350px] sm:h-[450px] lg:h-[600px] flex overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
       {/* Content Library Sidebar - Hidden on mobile */}
       <div className="w-44 lg:w-56 bg-gray-50 dark:bg-[#111] border-r border-gray-200 dark:border-neutral-800 p-3 lg:p-4 flex flex-col hidden md:flex">
         <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Content Library</h3>
@@ -1074,12 +1211,12 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
           phase >= 1 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
         )}>
           <p className="text-gray-500 dark:text-neutral-500 text-xs mb-2">Design Tools</p>
-          <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors">
+          <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-200 dark:bg-neutral-800 transition-colors">
             <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
               <Palette className="w-5 h-5 text-white" />
             </div>
             <div className="text-left">
-              <p className="text-gray-900 dark:text-white text-sm font-medium">Connect Canva</p>
+              <p className="text-white text-sm font-medium">Connect Canva</p>
               <p className="text-gray-500 dark:text-neutral-500 text-xs">Import your designs</p>
             </div>
           </button>
@@ -1095,12 +1232,12 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
             <p className="text-gray-500 dark:text-neutral-500 text-xs">Automations</p>
             <span className="ml-auto w-4 h-4 bg-blue-500 rounded-full text-[10px] text-white flex items-center justify-center">1</span>
           </div>
-          <p className="text-gray-400 dark:text-neutral-600 text-[10px] mb-2">Drag to calendar to schedule</p>
+          <p className="text-gray-500 dark:text-neutral-500 text-[10px] mb-2">Drag to calendar to schedule</p>
           <div className="flex items-center gap-2 p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg">
             <div className="w-6 h-6 bg-purple-500 rounded flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="text-gray-900 dark:text-white text-sm">Logical</span>
+            <span className="text-white text-sm">Logical</span>
             <div className="ml-auto w-2 h-2 bg-green-500 rounded-full" />
           </div>
         </div>
@@ -1114,7 +1251,7 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
             <FileSpreadsheet className="w-3.5 h-3.5 text-gray-500 dark:text-neutral-500" />
             <p className="text-gray-500 dark:text-neutral-500 text-xs">Drafts</p>
           </div>
-          <p className="text-gray-400 dark:text-neutral-600 text-xs text-center py-4">No drafts yet</p>
+          <p className="text-gray-500 dark:text-neutral-500 text-xs text-center py-4">No drafts yet</p>
         </div>
         
         {/* Create Post Button */}
@@ -1134,12 +1271,12 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
           <div className="flex items-center gap-2">
             <div className="flex bg-gray-200 dark:bg-neutral-800 rounded-lg overflow-hidden">
               <button className="px-3 py-1.5 bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white text-xs">Month</button>
-              <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Week</button>
-              <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-white transition-colors">Day</button>
+              <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Week</button>
+              <button className="px-3 py-1.5 text-gray-500 dark:text-neutral-500 text-xs hover:text-gray-900 dark:hover:text-gray-900 dark:hover:text-white transition-colors">Day</button>
             </div>
             <div className="flex items-center gap-1 ml-2">
-              <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded"><ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-500 rotate-180" /></button>
-              <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded"><ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-500" /></button>
+              <button className="p-1.5 hover:bg-gray-200 dark:bg-neutral-800 rounded"><ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-500 rotate-180" /></button>
+              <button className="p-1.5 hover:bg-gray-200 dark:bg-neutral-800 rounded"><ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-500" /></button>
             </div>
             <button className="px-3 py-1.5 bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 rounded-lg text-gray-900 dark:text-white text-xs transition-colors">Today</button>
           </div>
@@ -1149,14 +1286,14 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
         <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-neutral-800 rounded-xl overflow-hidden">
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="bg-gray-50 dark:bg-neutral-900 py-3 text-center text-gray-500 dark:text-neutral-500 text-xs font-medium">{d}</div>
+            <div key={d} className="bg-gray-100 dark:bg-neutral-900 py-3 text-center text-gray-500 dark:text-neutral-500 text-xs font-medium">{d}</div>
           ))}
           {/* Calendar days */}
           {calendarDays.map((day, i) => (
             <div 
               key={i} 
               className={cn(
-                "bg-white dark:bg-neutral-900 min-h-[70px] p-2 relative transition-all duration-300",
+                "bg-gray-100 dark:bg-neutral-900 min-h-[70px] p-2 relative transition-all duration-300",
                 day.isToday && "bg-blue-50 dark:bg-blue-500/10",
                 day.isOtherMonth && "opacity-40"
               )}
@@ -1172,7 +1309,7 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="px-1 py-0.5 bg-blue-500 rounded text-[8px] text-white">Post</span>
                   </div>
-                  <p className="text-[9px] text-gray-500 dark:text-neutral-400">Automation:</p>
+                  <p className="text-[9px] text-gray-600 dark:text-neutral-400">Automation:</p>
                   <p className="text-[9px] text-gray-900 dark:text-white">Logical</p>
                   <div className="flex items-center gap-1 mt-1">
                     <div className="w-2.5 h-2.5 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-full" />
@@ -1212,10 +1349,10 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
               <button className="flex items-center gap-1 px-4 py-1.5 bg-blue-500 rounded-lg text-white text-[10px]">
                 <Calendar className="w-3 h-3" /> Post
               </button>
-              <button className="flex items-center gap-1 px-4 py-1.5 bg-neutral-800 rounded-lg text-neutral-400 text-[10px]">
+              <button className="flex items-center gap-1 px-4 py-1.5 bg-gray-200 dark:bg-neutral-800 rounded-lg text-gray-600 dark:text-neutral-400 text-[10px]">
                 <Play className="w-3 h-3" /> Reel
               </button>
-              <button className="flex items-center gap-1 px-4 py-1.5 bg-neutral-800 rounded-lg text-neutral-400 text-[10px]">
+              <button className="flex items-center gap-1 px-4 py-1.5 bg-gray-200 dark:bg-neutral-800 rounded-lg text-gray-600 dark:text-neutral-400 text-[10px]">
                 <MessageCircle className="w-3 h-3" /> Story
               </button>
             </div>
@@ -1223,31 +1360,31 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
             {/* Account */}
             <div className="flex items-center gap-2 px-4 mb-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center">
-                <span className="text-white text-xs">Y</span>
+                <span className="text-gray-900 dark:text-white text-xs">Y</span>
               </div>
               <div>
                 <p className="text-white text-xs font-medium">your_account</p>
-                <p className="text-neutral-500 text-[10px]">Add location...</p>
+                <p className="text-gray-500 dark:text-neutral-500 text-[10px]">Add location...</p>
               </div>
             </div>
             
             {/* Media Area */}
-            <div className="mx-4 h-32 bg-neutral-900 rounded-xl flex flex-col items-center justify-center mb-3">
+            <div className="mx-4 h-32 bg-gray-100 dark:bg-neutral-900 rounded-xl flex flex-col items-center justify-center mb-3">
               <div className="w-10 h-10 border-2 border-dashed border-neutral-600 rounded-xl flex items-center justify-center mb-2">
-                <Palette className="w-5 h-5 text-neutral-600" />
+                <Palette className="w-5 h-5 text-gray-500 dark:text-neutral-600" />
               </div>
-              <p className="text-neutral-500 text-xs">Add Media</p>
+              <p className="text-gray-500 dark:text-neutral-500 text-xs">Add Media</p>
             </div>
             
             {/* Add button */}
             <div className="px-4 mb-3">
-              <button className="w-8 h-8 bg-neutral-800 rounded-lg flex items-center justify-center">
+              <button className="w-8 h-8 bg-gray-200 dark:bg-neutral-800 rounded-lg flex items-center justify-center">
                 <span className="text-white text-lg">+</span>
               </button>
             </div>
             
             {/* Caption area */}
-            <div className="mx-4 bg-neutral-900 rounded-xl p-3 mb-3">
+            <div className="mx-4 bg-gray-100 dark:bg-neutral-900 rounded-xl p-3 mb-3">
               <p className="text-blue-400 text-xs">#tag</p>
               <p className="text-blue-400 text-xs mt-1">@user</p>
             </div>
@@ -1258,44 +1395,44 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
           
           {/* Schedule Form */}
           <div className={cn(
-            "w-[220px] bg-neutral-900 rounded-2xl p-4 ml-4 transition-all duration-500",
+            "w-[220px] bg-gray-100 dark:bg-neutral-900 rounded-2xl p-4 ml-4 transition-all duration-500",
             phase >= 2 ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
           )}>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-white font-medium">Schedule Post</h4>
-              <button className="text-neutral-500 hover:text-white">×</button>
+              <h4 className="text-gray-900 dark:text-white font-medium">Schedule Post</h4>
+              <button className="text-gray-500 dark:text-neutral-500 hover:text-gray-900 dark:hover:text-white">×</button>
             </div>
             
             <div className="space-y-3">
               <div>
-                <label className="text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
+                <label className="text-gray-500 dark:text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
                   <Calendar className="w-3 h-3" /> Date
                 </label>
-                <div className="bg-neutral-800 rounded-lg px-3 py-2">
-                  <span className="text-white text-xs">16/12/2025</span>
+                <div className="bg-gray-200 dark:bg-neutral-800 rounded-lg px-3 py-2">
+                  <span className="text-gray-900 dark:text-white text-xs">16/12/2025</span>
                 </div>
               </div>
               
               <div>
-                <label className="text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
+                <label className="text-gray-500 dark:text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
                   <Clock className="w-3 h-3" /> Time
                 </label>
-                <div className="bg-neutral-800 rounded-lg px-3 py-2">
-                  <span className="text-white text-xs">09:00 AM</span>
+                <div className="bg-gray-200 dark:bg-neutral-800 rounded-lg px-3 py-2">
+                  <span className="text-gray-900 dark:text-white text-xs">09:00 AM</span>
                 </div>
               </div>
               
               <div>
-                <label className="text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
+                <label className="text-gray-500 dark:text-neutral-500 text-[10px] flex items-center gap-1 mb-1">
                   <Zap className="w-3 h-3" /> Automation
                 </label>
-                <div className="bg-neutral-800 rounded-lg px-3 py-2 flex items-center justify-between">
-                  <span className="text-white text-xs">Logical</span>
-                  <ChevronRight className="w-3 h-3 text-neutral-500 rotate-90" />
+                <div className="bg-gray-200 dark:bg-neutral-800 rounded-lg px-3 py-2 flex items-center justify-between">
+                  <span className="text-gray-900 dark:text-white text-xs">Logical</span>
+                  <ChevronRight className="w-3 h-3 text-gray-500 dark:text-neutral-500 rotate-90" />
                 </div>
               </div>
               
-              <label className="flex items-center gap-2 text-neutral-400 text-xs">
+              <label className="flex items-center gap-2 text-gray-600 dark:text-neutral-400 text-xs">
                 <input type="checkbox" className="rounded border-neutral-600" />
                 <Users className="w-3 h-3" /> Paid Partnership
               </label>
@@ -1309,10 +1446,10 @@ function SchedulerAnimation({ isActive }: { isActive: boolean }) {
               </button>
               
               <div className="flex gap-2">
-                <button className="flex-1 py-2 bg-neutral-800 rounded-lg text-neutral-400 text-xs flex items-center justify-center gap-1">
+                <button className="flex-1 py-2 bg-gray-200 dark:bg-neutral-800 rounded-lg text-gray-600 dark:text-neutral-400 text-xs flex items-center justify-center gap-1">
                   <Send className="w-3 h-3" /> Post Now
                 </button>
-                <button className="flex-1 py-2 bg-neutral-800 rounded-lg text-neutral-400 text-xs flex items-center justify-center gap-1">
+                <button className="flex-1 py-2 bg-gray-200 dark:bg-neutral-800 rounded-lg text-gray-600 dark:text-neutral-400 text-xs flex items-center justify-center gap-1">
                   <FileSpreadsheet className="w-3 h-3" /> Draft
                 </button>
               </div>
@@ -1365,7 +1502,7 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
   ]
 
   return (
-    <div className="relative w-full h-full min-h-[500px] bg-gray-100 dark:bg-neutral-950 rounded-xl overflow-hidden">
+    <div className="relative w-full h-full min-h-[500px] bg-gray-100 dark:bg-neutral-900 rounded-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-neutral-800">
         <div className="flex items-center gap-4">
@@ -1427,7 +1564,7 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
       </div>
       
       {/* Table Header */}
-      <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 text-sm text-gray-500 dark:text-neutral-500 font-medium">
+      <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-100 dark:bg-neutral-900/50 text-sm text-gray-500 dark:text-neutral-500 font-medium">
         <span>Name</span>
         <span>Handle</span>
         <span>Email</span>
@@ -1457,8 +1594,8 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
               </div>
               <span className="text-gray-900 dark:text-white text-base">{lead.name}</span>
             </div>
-            <span className="text-gray-500 dark:text-neutral-400 text-base">{lead.handle}</span>
-            <span className="text-gray-500 dark:text-neutral-400 text-base">{lead.email}</span>
+            <span className="text-gray-600 dark:text-neutral-400 text-base">{lead.handle}</span>
+            <span className="text-gray-600 dark:text-neutral-400 text-base">{lead.email}</span>
             <span className={cn(
               "text-xs px-2 py-1 rounded w-fit",
               lead.source === 'DM' ? "bg-blue-500/20 text-blue-500 dark:text-blue-400" :
@@ -1485,6 +1622,39 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
 }
 
 
+// Counting Number Component
+const CountingNumber = ({ value, duration = 2, delay = 0 }: { value: number; duration?: number; delay?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const end = value;
+      const totalAndFrames = duration * 60;
+      const increment = end / totalAndFrames;
+      let current = 0;
+      let frame = 0;
+
+      const timer = setInterval(() => {
+        frame++;
+        current += increment;
+        if (frame >= totalAndFrames) {
+          setDisplayValue(end);
+          clearInterval(timer);
+        } else {
+          setDisplayValue(Math.floor(current));
+        }
+      }, 1000 / 60);
+
+      return () => clearInterval(timer);
+    }
+  }, [isInView, value, duration]);
+
+  return <span ref={ref}>{displayValue.toLocaleString()}</span>;
+};
+
 export default function LandingPage() {
   const [activeFeature, setActiveFeature] = useState(0)
   const [isInView, setIsInView] = useState(false)
@@ -1492,7 +1662,31 @@ export default function LandingPage() {
   const featuresContainerRef = useRef<HTMLDivElement>(null)
   const mobileFeatureRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isMobile, setIsMobile] = useState(false)
-  const [showIntro, setShowIntro] = useState(true)
+  const [showIntro, setShowIntro] = useState(false)
+  const [showLoginPopup, setShowLoginPopup] = useState(false)
+  
+  // Check if this is the first visit (for intro overlay)
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem('ninthnode_intro_seen')
+    if (!hasSeenIntro) {
+      setShowIntro(true)
+    } else {
+      // If they've seen intro, show login popup after 5 seconds
+      const timer = setTimeout(() => {
+        setShowLoginPopup(true)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+  
+  const handleIntroComplete = () => {
+    localStorage.setItem('ninthnode_intro_seen', 'true')
+    setShowIntro(false)
+    // Show login popup after intro completes
+    setTimeout(() => {
+      setShowLoginPopup(true)
+    }, 2000)
+  }
   
   // Detect mobile viewport
   useEffect(() => {
@@ -1606,7 +1800,7 @@ export default function LandingPage() {
   const integrations = [
     { name: 'Google Sheets', icon: FileSpreadsheet },
     { name: 'Canva', icon: Palette },
-    { name: 'OpenAI', icon: Bot },
+    { name: 'Smart AI', icon: Sparkles },
   ]
 
   // Scroll-based feature detection
@@ -1646,88 +1840,153 @@ export default function LandingPage() {
   return (
     <>
       <AnimatePresence>
-        {showIntro && <IntroOverlay onComplete={() => setShowIntro(false)} />}
+        {showIntro && <IntroOverlay onComplete={handleIntroComplete} />}
       </AnimatePresence>
-      <main className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
+      
+      {/* Figma-style Login Popup */}
+      <AnimatePresence>
+        {showLoginPopup && (
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed bottom-6 right-6 z-50 w-80 bg-gray-100 dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden"
+          >
+            <div className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <NinthNodeLogo iconClassName="w-12 h-12" textClassName="text-lg" />
+                <button 
+                  onClick={() => setShowLoginPopup(false)}
+                  className="p-1 hover:bg-gray-200 dark:bg-neutral-800 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+              
+              <h3 className="text-lg font-semibold text-white mb-1">
+                Start growing today
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-neutral-400 mb-5">
+                Sign up to automate your Instagram growth
+              </p>
+              
+              <button
+                onClick={async () => {
+                  try {
+                    await authClient.signIn.social({
+                      provider: "google",
+                      callbackURL: "/dashboard",
+                      newUserCallbackURL: "/dashboard",
+                    });
+                  } catch (error) {
+                    console.error("Google sign in failed", error);
+                  }
+                }}
+                className="flex items-center justify-center gap-3 w-full py-3 px-4 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors mb-3 cursor-pointer"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span className="text-sm font-medium text-neutral-300">Continue with Google</span>
+              </button>
+              
+              <div className="text-center">
+                <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-neutral-500">
+                  By signing up, you agree to our <a href="/terms" className="underline hover:text-gray-600">Terms</a>
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      <main className="min-h-screen bg-white dark:bg-[#0a0a0a] text-gray-900 dark:text-white transition-colors duration-300">
         <LandingNav />
       
-      {/* Hero Section - Text */}
-      <section className="relative min-h-screen sm:min-h-[120vh] w-full flex flex-col items-center justify-center px-5 sm:px-6 lg:px-8 py-20 sm:py-32 overflow-hidden">
-        {/* Full viewport stepped gradient background - light mode */}
-        <div 
-          className="absolute inset-0 dark:hidden" 
-          style={{ 
-            background: 'linear-gradient(135deg, #ffffff 0%, #ffffff 30%, #f3f4f6 30.1%, #f3f4f6 60%, #e5e7eb 60.1%, #e5e7eb 85%, #d1d5db 85.1%, #d1d5db 100%)'
-          }} 
-        />
-        {/* Full viewport stepped gradient background - dark mode */}
-        <div 
-          className="absolute inset-0 hidden dark:block" 
-          style={{ 
-            background: 'linear-gradient(135deg, #0a0a0a 0%, #0a0a0a 30%, #111111 30.1%, #111111 60%, #1a1a1a 60.1%, #1a1a1a 85%, #222222 85.1%, #222222 100%)'
-          }} 
-        />
-        
-        {/* 100vh/100vw blurry effect overlay */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[100vw] h-[100vh] bg-purple-500/[0.03] dark:bg-purple-500/[0.02] blur-[80px] sm:blur-[120px] rounded-full scale-150 animate-float-slow" />
-        </div>
-        
-        <div className="relative z-10 max-w-5xl mx-auto text-center px-1">
-          {/* Headline - Dramatically smaller on mobile for better readability */}
-          <h1 className="animate-on-scroll text-[2.5rem] leading-[1.15] sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4 sm:mb-6">
-            Automate your
-            <br />
-            <span className="text-gray-400 dark:text-neutral-400">social growth</span>
-          </h1>
-          
-          {/* Subheadline - More compact on mobile */}
-          <p className="animate-on-scroll text-base sm:text-lg md:text-xl text-gray-500 dark:text-neutral-500 mb-8 sm:mb-10 max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2">
-            The all-in-one platform for DMs, comments, scheduling, and lead generation.
-            <span className="hidden sm:inline"> Built for creators and businesses who want to grow on autopilot.</span>
-          </p>
-          
-          {/* CTAs - Full width on mobile */}
-          <div className="animate-on-scroll flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full">
-            <Link
-              href="/dashboard"
-              className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all tap-highlight-none hover-scale"
-            >
-              Start for free
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+      {/* Hero Section */}
+      <section className="relative min-h-screen w-full bg-white dark:bg-[#0a0a0a] overflow-hidden">
+        {/* Hero content wrapper with border */}
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-32 sm:pt-48 lg:pt-64 pb-8 sm:pb-16">
+
+          <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
             
-            <Link
-              href="#features"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 text-base font-medium text-gray-600 dark:text-neutral-400 border border-gray-300 dark:border-neutral-800 rounded-full hover:border-gray-400 dark:hover:border-neutral-600 hover:text-gray-900 dark:hover:text-white transition-all tap-highlight-none"
-            >
-              <Play className="w-4 h-4" />
-              See how it works
-            </Link>
+            {/* Text content */}
+            <div className="w-full">
+              {/* Headline */}
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold tracking-tighter mb-6 sm:mb-8 leading-[1.1]"
+              >
+                <motion.span 
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  style={{ 
+                    backgroundImage: 'linear-gradient(to right, #60A5FA, #22D3EE, #60A5FA, #EB491C, #60A5FA, #22D3EE)',
+                    backgroundSize: '200% auto'
+                  }}
+                  className="text-transparent bg-clip-text"
+                >
+                  Integrate, Automate
+                </motion.span>
+                <br />
+                <motion.span 
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear", delay: 0.5 }}
+                  style={{ 
+                    backgroundImage: 'linear-gradient(to right, #22D3EE, #60A5FA, #22D3EE, #EB491C, #22D3EE, #60A5FA)',
+                    backgroundSize: '200% auto'
+                  }}
+                  className="text-transparent bg-clip-text"
+                >
+                  & Grow Faster
+                </motion.span>
+              </motion.h1>
+              
+              {/* Subheadline */}
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-neutral-400 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed font-medium px-4"
+              >
+                Connect Instagram, CRMs, Canva, Google Sheets and more. Automate DMs, schedule posts, and capture leads — all in one place.
+              </motion.p>
+              
+              {/* CTA */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col items-center gap-4 mb-8"
+              >
+                <Link
+                  href="/dashboard"
+                  className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white text-base font-bold rounded-full hover:rounded-2xl transition-all duration-700 ease-in-out shadow-xl hover:shadow-2xl hover:shadow-blue-500/20"
+                >
+                  <Zap className="w-5 h-5" />
+                  Start Building
+                </Link>
+                <span className="text-sm text-gray-500 dark:text-neutral-500 font-medium">* No credit card required to start</span>
+              </motion.div>
+            </div>
           </div>
         </div>
-        
-        {/* Bottom fade gradient for smooth transition */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none dark:hidden"
-          style={{
-            background: 'linear-gradient(to bottom, transparent 0%, #e9ebf0 50%, #e5e7ec 100%)'
-          }}
-        />
-        <div 
-          className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none hidden dark:block"
-          style={{
-            background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 50%, #000 100%)'
-          }}
-        />
       </section>
 
       {/* Hero Visual - Dashboard Preview */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gray-100 dark:bg-black">
-        <div className="w-full max-w-7xl mx-auto">
+      <section className="relative pt-10 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full max-w-7xl mx-auto">
+
+          
           {/* Dashboard Section Heading */}
-          <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
+          <div className="text-center mb-10 sm:mb-16 animate-on-scroll pt-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4 text-gray-900 dark:text-white">
               Your command center
             </h2>
             <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto">
@@ -1735,12 +1994,12 @@ export default function LandingPage() {
             </p>
           </div>
           
-          <div className="scale-in bg-white dark:bg-[#0a0a0a] rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden shadow-2xl">
+          <div className="scale-in bg-white dark:bg-[#0a0a0a] rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden shadow-2xl mx-4">
             {/* Dashboard Header */}
             <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-neutral-500">Auctorn</span>
-                <ChevronRight className="w-3 h-3 text-neutral-600" />
+                <span className="text-gray-500 dark:text-neutral-500">Auctorn</span>
+                <ChevronRight className="w-3 h-3 text-gray-500 dark:text-neutral-600" />
                 <span className="text-gray-900 dark:text-white font-medium">Dashboard</span>
               </div>
               <div className="hidden sm:flex items-center gap-3">
@@ -1748,12 +2007,12 @@ export default function LandingPage() {
                   <div className="w-5 h-5 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-full" />
                   <span className="text-gray-900 dark:text-white text-xs">All</span>
                   <div className="w-5 h-5 bg-gradient-to-br from-red-500 to-yellow-500 rounded-full flex items-center justify-center">
-                    <span className="text-[8px] text-gray-900 dark:text-white">2</span>
+                    <span className="text-[8px] text-white">2</span>
                   </div>
                 </div>
                 <div className="relative">
                   <div className="w-8 h-8 bg-neutral-700 rounded-full" />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-[8px] text-gray-900 dark:text-white flex items-center justify-center">10</div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-[8px] text-white flex items-center justify-center">10</div>
                 </div>
               </div>
             </div>
@@ -1764,16 +2023,16 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4">
                   <span className="text-white text-xs font-bold">A</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-neutral-600 rotate-180" />
+                <ChevronRight className="w-4 h-4 text-gray-500 dark:text-neutral-500 rotate-180" />
                 <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
                   <BarChart3 className="w-5 h-5 text-blue-500" />
                 </div>
-                <MessageCircle className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                <Zap className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                <Calendar className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                <FileSpreadsheet className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                <Users className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                <ShoppingBag className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
+                <MessageCircle className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
+                <Zap className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
+                <Calendar className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
+                <FileSpreadsheet className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
+                <Users className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
+                <ShoppingBag className="w-5 h-5 text-gray-500 dark:text-neutral-500" />
               </div>
               
               {/* Main Content */}
@@ -1781,18 +2040,21 @@ export default function LandingPage() {
                 {/* Stats Cards Row */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
                   {[
-                    { icon: Users, color: 'bg-blue-500', label: 'Followers', value: '12', sub: 'Total' },
-                    { icon: Users, color: 'bg-pink-500', label: 'Reach', value: '21', sub: 'Last 28 days' },
-                    { icon: BarChart3, color: 'bg-orange-500', label: 'Interactions', value: '21', sub: 'Last 28 days' },
-                    { icon: Sparkles, color: 'bg-emerald-500', label: 'Profile Views', value: '—', sub: 'Last 28 days' },
-                    { icon: ArrowRight, color: 'bg-purple-500', label: 'Website Clicks', value: '—', sub: 'Last 28 days' },
-                    { icon: Zap, color: 'bg-yellow-500', label: 'Accounts Engaged', value: '—', sub: 'Last 28 days' },
+                    { icon: Users, color: 'bg-blue-500', label: 'Followers', value: 12500, suffix: '', sub: 'Total' },
+                    { icon: Users, color: 'bg-pink-500', label: 'Reach', value: 45200, suffix: '', sub: 'Last 28 days' },
+                    { icon: BarChart3, color: 'bg-orange-500', label: 'Interactions', value: 15400, suffix: '', sub: 'Last 28 days' },
+                    { icon: Sparkles, color: 'bg-emerald-500', label: 'Profile Views', value: 8900, suffix: '', sub: 'Last 28 days' },
+                    { icon: ArrowRight, color: 'bg-purple-500', label: 'Website Clicks', value: 1200, suffix: '', sub: 'Last 28 days' },
+                    { icon: Zap, color: 'bg-yellow-500', label: 'Accounts Engaged', value: 3400, suffix: '', sub: 'Last 28 days' },
                   ].map((stat, i) => (
                     <div key={i} className="bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-xl p-2 sm:p-4">
                       <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center mb-2 sm:mb-3", stat.color)}>
                         <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <p className="text-gray-900 dark:text-white text-lg sm:text-2xl font-bold">{stat.value}</p>
+                      <p className="text-gray-900 dark:text-white text-lg sm:text-2xl font-bold">
+                        <CountingNumber value={stat.value} />
+                        {stat.suffix}
+                      </p>
                       <p className="text-gray-700 dark:text-white text-xs sm:text-sm">{stat.label}</p>
                       <p className="text-gray-500 dark:text-neutral-500 text-[10px] sm:text-xs hidden sm:block">{stat.sub}</p>
                     </div>
@@ -1814,10 +2076,10 @@ export default function LandingPage() {
                     </div>
                     <div className="flex items-center gap-4 mb-4">
                       <span className="flex items-center gap-1 text-xs text-gray-700 dark:text-white">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full" /> Messages (3)
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" /> Messages (<CountingNumber value={845} duration={1.5} />)
                       </span>
                       <span className="flex items-center gap-1 text-xs text-gray-700 dark:text-white">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full" /> Responses (18)
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full" /> Responses (<CountingNumber value={2450} duration={1.5} />)
                       </span>
                     </div>
                     {/* Area Chart */}
@@ -1837,15 +2099,37 @@ export default function LandingPage() {
                           </linearGradient>
                         </defs>
                         {/* Green area (Responses) */}
-                        <path d="M0 110 L60 90 L120 95 L180 75 L240 85 L300 65 L360 80 L400 70 L400 128 L0 128 Z" 
-                          fill="url(#areaGradientGreen)" />
-                        <path d="M0 110 L60 90 L120 95 L180 75 L240 85 L300 65 L360 80 L400 70" 
-                          fill="none" stroke="rgba(16, 185, 129, 0.8)" strokeWidth="2" />
+                        <motion.path 
+                          initial={{ d: "M0 128 L60 128 L120 128 L180 128 L240 128 L300 128 L360 128 L400 128 L400 128 L0 128 Z" }}
+                          whileInView={{ d: "M0 110 L60 90 L120 95 L180 75 L240 85 L300 65 L360 80 L400 70 L400 128 L0 128 Z" }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 2, ease: "easeOut" }}
+                          fill="url(#areaGradientGreen)" 
+                        />
+                        <motion.path 
+                          initial={{ pathLength: 0 }}
+                          whileInView={{ pathLength: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 2, ease: "easeOut" }}
+                          d="M0 110 L60 90 L120 95 L180 75 L240 85 L300 65 L360 80 L400 70" 
+                          fill="none" stroke="rgba(16, 185, 129, 0.8)" strokeWidth="2" 
+                        />
                         {/* Blue area (Messages) */}
-                        <path d="M0 100 L60 105 L120 98 L180 102 L240 95 L300 100 L360 92 L400 98 L400 128 L0 128 Z" 
-                          fill="url(#areaGradient)" />
-                        <path d="M0 100 L60 105 L120 98 L180 102 L240 95 L300 100 L360 92 L400 98" 
-                          fill="none" stroke="rgba(59, 130, 246, 0.8)" strokeWidth="2" />
+                        <motion.path 
+                          initial={{ d: "M0 128 L60 128 L120 128 L180 128 L240 128 L300 128 L360 128 L400 128 L400 128 L0 128 Z" }}
+                          whileInView={{ d: "M0 100 L60 105 L120 98 L180 102 L240 95 L300 100 L360 92 L400 98 L400 128 L0 128 Z" }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
+                          fill="url(#areaGradient)" 
+                        />
+                        <motion.path 
+                          initial={{ pathLength: 0 }}
+                          whileInView={{ pathLength: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
+                          d="M0 100 L60 105 L120 98 L180 102 L240 95 L300 100 L360 92 L400 98" 
+                          fill="none" stroke="rgba(59, 130, 246, 0.8)" strokeWidth="2" 
+                        />
                       </svg>
                     </div>
                   </div>
@@ -1874,19 +2158,19 @@ export default function LandingPage() {
                           <div className="flex items-center gap-1 text-gray-500 dark:text-neutral-500 text-[10px] mb-1">
                             <item.icon className="w-3 h-3" /> {item.label}
                           </div>
-                          <p className="text-gray-900 dark:text-white text-lg font-semibold">{item.value}</p>
+                          <p className="text-white text-lg font-semibold">{item.value}</p>
                         </div>
                       ))}
                     </div>
                     
                     {/* Top Performers */}
                     <div className="mt-4">
-                      <p className="text-gray-500 dark:text-neutral-400 text-xs mb-2">Top Performers (by engagement)</p>
+                      <p className="text-gray-600 dark:text-neutral-400 text-xs mb-2">Top Performers (by engagement)</p>
                       <div className="flex items-center justify-between bg-gray-200 dark:bg-neutral-800/30 rounded-lg p-2">
                         <div className="flex items-center gap-2">
                           <span className="w-5 h-5 bg-blue-500 rounded text-white text-[10px] flex items-center justify-center">1</span>
                           <div>
-                            <p className="text-gray-900 dark:text-white text-sm font-medium">Logical</p>
+                            <p className="text-white text-sm font-medium">Logical</p>
                             <p className="text-blue-500 text-[10px]">ai</p>
                           </div>
                         </div>
@@ -1906,43 +2190,161 @@ export default function LandingPage() {
       </section>
 
       {/* Platforms Section - Mobile optimized */}
-      <section className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-gray-500 dark:text-neutral-500 text-sm mb-6 sm:mb-8">Connect your platforms</p>
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
-            {platforms.map((platform) => (
-              <div 
-                key={platform.name}
-                className={cn(
-                  "flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full border transition-all tap-highlight-none",
-                  platform.active 
-                    ? "border-gray-400 dark:border-neutral-600 bg-gray-100 dark:bg-neutral-900/50 text-gray-900 dark:text-white" 
-                    : "border-gray-200 dark:border-neutral-800 text-gray-500 dark:text-neutral-600"
-                )}
-              >
-                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="text-xs sm:text-sm font-medium">{platform.name}</span>
-                {platform.coming && (
-                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-neutral-800 rounded text-gray-500 dark:text-neutral-500">Soon</span>
-                )}
-              </div>
-            ))}
-          </div>
+      <section className="relative min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50">
+        <div className="relative max-w-5xl mx-auto text-center">
+
           
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8">
-            <span className="text-gray-500 dark:text-neutral-600 text-xs sm:text-sm w-full sm:w-auto mb-2 sm:mb-0">Integrates with</span>
-            {integrations.map((int) => (
-              <div key={int.name} className="flex items-center gap-1.5 text-gray-500 dark:text-neutral-500">
-                <int.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm">{int.name}</span>
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4 text-gray-900 dark:text-white">
+              Connect your ecosystem
+            </h2>
+            <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto">
+              Seamlessly integrate with the tools you already use
+            </p>
+          </div>
+
+          <div className="relative overflow-hidden w-full max-w-[100vw] sm:max-w-7xl mx-auto mask-linear-fade">
+            {/* Row 1: Platforms (Left) */}
+            <div className="flex gap-4 sm:gap-8 mb-4 sm:mb-6 w-max animate-scroll-left">
+              {[...platforms, ...platforms, ...platforms, ...platforms].map((platform, i) => (
+                <div 
+                  key={`${platform.name}-${i}`}
+                  className={cn(
+                    "flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl border transition-all duration-300 hover:scale-105 active:scale-95 cursor-default backdrop-blur-sm",
+                    platform.active 
+                      ? "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10 shadow-[0_0_15px_-5px_theme(colors.blue.500)] text-gray-900 dark:text-white" 
+                      : "border-gray-200 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50 text-gray-500 dark:text-neutral-500 hover:border-gray-300 dark:hover:border-neutral-700"
+                  )}
+                >
+                  <platform.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", platform.active && "text-blue-500")} />
+                  <span className="text-sm sm:text-base font-semibold">{platform.name}</span>
+                  {platform.coming && (
+                    <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 bg-gray-100 dark:bg-neutral-800 rounded text-gray-400 dark:text-neutral-500">Soon</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Row 2: Integrations (Right) */}
+            <div className="flex gap-4 sm:gap-8 w-max animate-scroll-right">
+              {[...integrations, ...integrations, ...integrations, ...integrations, ...integrations].map((int, i) => (
+                <div 
+                  key={`${int.name}-${i}`} 
+                  className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-900/30 text-gray-600 dark:text-neutral-400 hover:border-solid hover:border-green-500/50 hover:text-gray-900 dark:hover:text-white hover:bg-green-500/5 transition-all duration-300 hover:scale-105 cursor-default backdrop-blur-sm"
+                >
+                  <int.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="text-sm sm:text-base font-medium">{int.name}</span>
+                </div>
+              ))}
+            </div>
+            
+            {/* Gradient Masks for fading edges */}
+            <div className="absolute inset-y-0 left-0 w-12 sm:w-32 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-12 sm:w-32 bg-gradient-to-l from-white dark:from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Section - "The NinthNode Difference" */}
+      <section className="py-20 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50 bg-gray-50/50 dark:bg-[#0a0a0a]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-gray-900 dark:text-white">
+              Experience the difference
+            </h2>
+            <p className="text-gray-500 dark:text-neutral-500 text-lg max-w-2xl mx-auto">
+              Stop struggling with clunky tools. Start building with a platform designed for you.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* "Others" Card */}
+            <div className="relative p-8 rounded-3xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/30 opacity-70 scale-95 grayscale transition-all duration-500 hover:grayscale-0 hover:scale-100 hover:opacity-100">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-neutral-800 px-4 py-1.5 rounded-full text-xs font-semibold text-gray-500 dark:text-neutral-500 uppercase tracking-wider">
+                Other Platforms
               </div>
-            ))}
+              <ul className="space-y-6">
+                <li className="flex items-start gap-4 text-gray-400 dark:text-neutral-500">
+                  <X className="w-6 h-6 text-red-500/50 shrink-0" />
+                  <div>
+                    <strong className="block text-gray-600 dark:text-neutral-400 font-semibold">Cluttered Interfaces</strong>
+                    <span className="text-sm">Confusing dashboards that take weeks to learn</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4 text-gray-400 dark:text-neutral-500">
+                  <X className="w-6 h-6 text-red-500/50 shrink-0" />
+                  <div>
+                    <strong className="block text-gray-600 dark:text-neutral-400 font-semibold">Expensive Global Pricing</strong>
+                    <span className="text-sm">High monthly fees in $$ that hurt your wallet</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4 text-gray-400 dark:text-neutral-500">
+                  <X className="w-6 h-6 text-red-500/50 shrink-0" />
+                  <div>
+                    <strong className="block text-gray-600 dark:text-neutral-400 font-semibold">Credit Card Required</strong>
+                    <span className="text-sm">Barriers to entry before you even start</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4 text-gray-400 dark:text-neutral-500">
+                  <X className="w-6 h-6 text-red-500/50 shrink-0" />
+                  <div>
+                    <strong className="block text-gray-600 dark:text-neutral-400 font-semibold">Generic Templates</strong>
+                    <span className="text-sm">Dated designs that don't stand out</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* "NinthNode" Card */}
+            <div className="relative p-8 sm:p-10 rounded-3xl border border-blue-500/30 bg-white dark:bg-neutral-900/80 shadow-2xl shadow-blue-500/10 ring-1 ring-blue-500/20 transform md:scale-105 z-10">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-graduate-to-r from-blue-600 to-purple-600 bg-blue-600 px-6 py-1.5 rounded-full text-xs font-bold text-white uppercase tracking-wider shadow-lg">
+                NinthNode
+              </div>
+              <ul className="space-y-6">
+                <li className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <strong className="block text-gray-900 dark:text-white font-bold">Clean & Intuitive</strong>
+                    <span className="text-sm text-gray-500 dark:text-neutral-400">Zero bloat. Built for speed and ease of use.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4">
+                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <strong className="block text-gray-900 dark:text-white font-bold">Localized Pricing & UPI</strong>
+                    <span className="text-sm text-gray-500 dark:text-neutral-400">Affordable plans with seamless Indian payment support</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4">
+                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <strong className="block text-gray-900 dark:text-white font-bold">No Credit Card Needed</strong>
+                    <span className="text-sm text-gray-500 dark:text-neutral-400">Start building instantly, purely friction-free.</span>
+                  </div>
+                </li>
+                <li className="flex items-start gap-4">
+                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <strong className="block text-gray-900 dark:text-white font-bold">State-of-the-Art Design</strong>
+                    <span className="text-sm text-gray-500 dark:text-neutral-400">Premium aesthetics that wow your audience.</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section - MOBILE: Seamless accordion with scroll auto-open */}
-      <section id="features" className="lg:hidden py-12 px-5 border-t border-gray-200 dark:border-neutral-900">
+      <section id="features" className="lg:hidden py-12 px-5 border-t border-gray-200 dark:border-neutral-800">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold tracking-tight mb-2">
@@ -1963,7 +2365,7 @@ export default function LandingPage() {
                   "transition-colors tap-highlight-none",
                   activeFeature === i 
                     ? "bg-gray-50 dark:bg-neutral-800/50" 
-                    : "bg-white dark:bg-neutral-900/30"
+                    : "bg-gray-100 dark:bg-neutral-900/30"
                 )}
               >
                 <button
@@ -1985,8 +2387,8 @@ export default function LandingPage() {
                       )} />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">{feature.title}</h3>
-                      <p className="text-gray-400 dark:text-neutral-500 text-xs">{feature.label}</p>
+                      <h3 className="font-medium text-white text-sm">{feature.title}</h3>
+                      <p className="text-gray-400 dark:text-gray-500 dark:text-neutral-500 text-xs">{feature.label}</p>
                     </div>
                   </div>
                   <ChevronRight className={cn(
@@ -2001,12 +2403,12 @@ export default function LandingPage() {
                   activeFeature === i ? "max-h-28 pb-4" : "max-h-0"
                 )}>
                   <div className="px-4 pl-16">
-                    <p className="text-gray-500 dark:text-neutral-400 text-xs leading-relaxed mb-2">
+                    <p className="text-gray-600 dark:text-neutral-400 text-xs leading-relaxed mb-2">
                       {feature.description}
                     </p>
                     <Link 
                       href="/dashboard" 
-                      className="inline-flex items-center gap-1 text-xs font-medium text-gray-900 dark:text-white"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-white"
                     >
                       Try it now <ArrowRight className="w-3 h-3" />
                     </Link>
@@ -2021,7 +2423,7 @@ export default function LandingPage() {
       {/* Features Section - DESKTOP: Scroll-Triggered Storytelling (hidden on mobile) */}
       <section 
         ref={featuresContainerRef}
-        className="relative border-t border-gray-200 dark:border-neutral-900 hidden lg:block"
+        className="relative border-t border-gray-200 dark:border-neutral-800 hidden lg:block"
         style={{ minHeight: `${(features.length + 1) * 100}vh` }}
       >
         <div className="sticky top-0 h-screen flex items-center px-4 sm:px-6 lg:px-8">
@@ -2042,17 +2444,17 @@ export default function LandingPage() {
                         "w-full text-left py-2 border-b border-gray-200 dark:border-neutral-800 transition-all duration-300",
                         activeFeature === i 
                           ? "bg-gray-100 dark:bg-neutral-900/50" 
-                          : "hover:bg-neutral-900/30 opacity-60 hover:opacity-100"
+                          : "hover:bg-gray-100 dark:bg-neutral-900/30 opacity-60 hover:opacity-100"
                       )}
                     >
                       <div className="flex items-center gap-2">
                         <feature.icon className={cn(
                           "w-4 h-4 transition-colors",
-                          activeFeature === i ? "text-white" : "text-neutral-600"
+                          activeFeature === i ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-neutral-600"
                         )} />
                         <span className={cn(
                           "text-sm font-medium transition-colors",
-                          activeFeature === i ? "text-white" : "text-gray-500 dark:text-neutral-500"
+                          activeFeature === i ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-neutral-500"
                         )}>
                           {feature.label}
                         </span>
@@ -2062,9 +2464,9 @@ export default function LandingPage() {
                         activeFeature === i ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                       )}>
                         <div className="pl-8">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{feature.title}</h3>
+                          <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
                           <p className="text-sm text-gray-500 dark:text-neutral-500">{feature.description}</p>
-                          <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-gray-900 dark:text-white mt-2 hover:gap-2 transition-all">
+                          <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-white mt-2 hover:gap-2 transition-all">
                             Learn more <ArrowRight className="w-3 h-3" />
                           </Link>
                         </div>
@@ -2076,7 +2478,7 @@ export default function LandingPage() {
 
               {/* Feature visual - Right side */}
               <div className="lg:col-span-9">
-                <div className="bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden min-h-[600px]">
+                <div className="bg-gray-100 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden min-h-[600px]">
                   {features.map((feature, i) => (
                     <div 
                       key={feature.id}
@@ -2096,7 +2498,7 @@ export default function LandingPage() {
       </section>
 
       {/* Capabilities Grid - Mobile optimized */}
-      <section id="solutions" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      <section id="solutions" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
@@ -2111,9 +2513,9 @@ export default function LandingPage() {
             {capabilities.map((cap, i) => (
               <div 
                 key={i}
-                className="group p-4 sm:p-6 bg-gray-50 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-xl sm:rounded-2xl hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-900/50 transition-all tap-highlight-none hover-lift hover-glow"
+                className="group p-4 sm:p-6 bg-gray-100 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-xl sm:rounded-2xl hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-800 transition-all tap-highlight-none hover-lift hover-glow"
               >
-                <cap.icon className="w-6 h-6 sm:w-8 sm:h-8 text-neutral-600 group-hover:text-gray-900 dark:text-white transition-colors mb-2 sm:mb-4" />
+                <cap.icon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500 dark:text-neutral-600 group-hover:text-gray-900 dark:group-hover:text-white transition-colors mb-2 sm:mb-4" />
                 <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-0.5 sm:mb-1">{cap.title}</h3>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-500 leading-relaxed">{cap.description}</p>
               </div>
@@ -2123,7 +2525,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it Works / Pricing Placeholder - Mobile optimized */}
-      <section id="pricing" className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      <section id="pricing" className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
@@ -2138,7 +2540,7 @@ export default function LandingPage() {
               { step: 3, title: 'Grow on autopilot', description: 'Watch your engagement and leads increase automatically' },
             ].map((item, i) => (
               <div key={i} className="flex gap-4 sm:gap-6 py-6 sm:py-8 border-b border-gray-200 dark:border-neutral-800 last:border-0">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 text-white dark:bg-white dark:text-black rounded-full flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
                   {item.step}
                 </div>
                 <div>
@@ -2152,7 +2554,7 @@ export default function LandingPage() {
       </section>
 
       {/* Demographics Section - Mobile optimized */}
-      <section id="agencies" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      <section id="agencies" className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800">
         <div className="max-w-6xl mx-auto w-full">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
@@ -2174,7 +2576,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <span className="px-2 sm:px-3 py-1 bg-purple-500/20 text-purple-400 text-[10px] sm:text-xs rounded-lg">Sample Data</span>
                 <div className="flex bg-gray-200 dark:bg-neutral-800 rounded-lg overflow-hidden text-[10px] sm:text-xs">
-                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-300 dark:bg-neutral-700 text-gray-900 dark:text-white">All</button>
+                  <button className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-300 dark:bg-neutral-700 text-white">All</button>
                   <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-gray-500 dark:text-neutral-500">Cities</button>
                   <button className="px-2 sm:px-3 py-1 sm:py-1.5 text-gray-500 dark:text-neutral-500 hidden sm:block">Countries</button>
                 </div>
@@ -2189,6 +2591,8 @@ export default function LandingPage() {
               
               {/* Stats Panels */}
               <div className="w-full lg:w-72 space-y-4">
+
+
                 {/* Age Distribution */}
                 <div className="bg-gray-100 dark:bg-neutral-900/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-4">
@@ -2207,9 +2611,15 @@ export default function LandingPage() {
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-gray-500 dark:text-neutral-500 text-xs w-10">{item.age}</span>
                         <div className="flex-1 h-4 bg-gray-200 dark:bg-neutral-800 rounded overflow-hidden">
-                          <div className={cn("h-full rounded", item.color)} style={{ width: `${item.pct}%` }} />
+                          <motion.div 
+                            className={cn("h-full rounded", item.color)} 
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${item.pct}%` }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 1.5, ease: "easeOut", delay: i * 0.1 }}
+                          />
                         </div>
-                        <span className="text-gray-900 dark:text-white text-xs w-12 text-right">{item.pct}%</span>
+                        <span className="text-white text-xs w-12 text-right">{item.pct}%</span>
                       </div>
                     ))}
                   </div>
@@ -2223,17 +2633,17 @@ export default function LandingPage() {
                   </div>
                   <div className="h-6 flex rounded-lg overflow-hidden mb-3">
                     <div className="bg-blue-500 flex items-center justify-center" style={{ width: '52%' }}>
-                      <span className="text-gray-900 dark:text-white text-xs font-medium">52%</span>
+                      <span className="text-white text-xs font-medium">52%</span>
                     </div>
                     <div className="bg-pink-500 flex items-center justify-center" style={{ width: '46%' }}>
-                      <span className="text-gray-900 dark:text-white text-xs font-medium">46%</span>
+                      <span className="text-white text-xs font-medium">46%</span>
                     </div>
                     <div className="bg-purple-400 flex items-center justify-center" style={{ width: '2%' }} />
                   </div>
                   <div className="flex justify-center gap-6 text-xs">
-                    <span className="flex items-center gap-1 text-gray-500 dark:text-neutral-400"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Male</span>
-                    <span className="flex items-center gap-1 text-gray-500 dark:text-neutral-400"><div className="w-2 h-2 bg-pink-500 rounded-full" /> Female</span>
-                    <span className="flex items-center gap-1 text-gray-500 dark:text-neutral-400"><div className="w-2 h-2 bg-purple-400 rounded-full" /> Other</span>
+                    <span className="flex items-center gap-1 text-gray-600 dark:text-neutral-400"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Male</span>
+                    <span className="flex items-center gap-1 text-gray-600 dark:text-neutral-400"><div className="w-2 h-2 bg-pink-500 rounded-full" /> Female</span>
+                    <span className="flex items-center gap-1 text-gray-600 dark:text-neutral-400"><div className="w-2 h-2 bg-purple-400 rounded-full" /> Other</span>
                   </div>
                 </div>
                 
@@ -2253,8 +2663,8 @@ export default function LandingPage() {
                     ].map((loc, i) => (
                       <div key={i} className="flex items-center justify-between py-1">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 bg-gray-200 dark:bg-neutral-800 rounded text-gray-600 dark:text-neutral-500 text-xs flex items-center justify-center">{loc.rank}</span>
-                          <span className="text-gray-900 dark:text-white text-sm">{loc.city}</span>
+                          <span className="w-5 h-5 bg-gray-200 dark:bg-neutral-800 rounded text-gray-600 dark:text-gray-500 dark:text-neutral-500 text-xs flex items-center justify-center">{loc.rank}</span>
+                          <span className="text-white text-sm">{loc.city}</span>
                         </div>
                         <span className="text-purple-400 text-sm font-medium">{loc.pct}</span>
                       </div>
@@ -2268,8 +2678,10 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section - Infinite scroll marquee */}
-      <section className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900 overflow-hidden">
-        <div className="max-w-6xl mx-auto w-full">
+      <section className="relative min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50 overflow-hidden">
+        <div className="relative max-w-6xl mx-auto w-full">
+
+          
           <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Loved by creators worldwide
@@ -2402,8 +2814,10 @@ export default function LandingPage() {
       </section>
 
       {/* Trusted Brands Section - Mobile optimized */}
-      <section className="py-16 sm:py-24 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative py-16 sm:py-24 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50">
+        <div className="relative max-w-6xl mx-auto">
+
+          
           <div className="text-center mb-8 sm:mb-12">
             <p className="text-gray-500 dark:text-neutral-500 text-xs sm:text-sm uppercase tracking-wider mb-3 sm:mb-4">Trusted by leading brands</p>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -2444,13 +2858,15 @@ export default function LandingPage() {
 
       {/* Famous Creators Section - Honeycomb with pill-shaped creator badges */}
       {/* Famous Creators Section - Honeycomb with pill-shaped creator badges */}
-      <section className="min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 border-t border-gray-200 dark:border-neutral-900 overflow-hidden">
-        <div className="max-w-4xl mx-auto w-full px-5 sm:px-6 lg:px-8">
+      <section className="relative min-h-[80vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 border-t border-gray-200 dark:border-neutral-800/50 overflow-hidden">
+        <div className="relative max-w-4xl mx-auto w-full px-5 sm:px-6 lg:px-8">
+
+          
           <div className="text-center mb-10 sm:mb-16 animate-on-scroll">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
               Join top creators
             </h2>
-            <p className="text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto px-2">
+            <p className="text-gray-500 dark:text-neutral-500 text-base sm:text-lg max-w-2xl mx-auto px-2">
               The fastest-growing influencers and creators use our platform to scale their engagement
             </p>
           </div>
@@ -2475,9 +2891,9 @@ export default function LandingPage() {
                         href={`https://instagram.com/${creator.handle}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
                       >
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-gray-900 dark:text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
                           {creator.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
@@ -2509,9 +2925,9 @@ export default function LandingPage() {
                         href={`https://instagram.com/${creator.handle}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
                       >
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-gray-900 dark:text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
                           {creator.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
@@ -2543,9 +2959,9 @@ export default function LandingPage() {
                         href={`https://instagram.com/${creator.handle}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:hover:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
+                        className="group flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-100 dark:bg-neutral-900/50 border border-gray-200 dark:border-neutral-800 rounded-full hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-200 dark:bg-neutral-800/50 transition-all tap-highlight-none hover-lift flex-shrink-0"
                       >
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${creator.color} flex items-center justify-center text-gray-900 dark:text-white font-semibold text-sm sm:text-base flex-shrink-0`}>
                           {creator.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
@@ -2562,7 +2978,7 @@ export default function LandingPage() {
       </section>
 
       {/* Blog / Success Stories Section */}
-      <section id="resources" className="py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
+      <section id="resources" className="py-32 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
@@ -2597,7 +3013,7 @@ export default function LandingPage() {
                 gradient: 'conic-gradient(from 45deg, #a5c8e4 0.000deg, #e4ad47 30.000deg, #e590dc 60.000deg, #a67451 90.000deg, #655cd0 120.000deg, #604b5e 150.000deg, #9c44c2 180.000deg, #df466d 210.000deg, #e852b2 240.000deg, #af667e 270.000deg, #6a80a1 300.000deg, #5d9d90 330.000deg, #93b98f 360.000deg)'
               }
             ].map((post, i) => (
-              <article key={i} className="group bg-white dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-all">
+              <article key={i} className="group bg-gray-100 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-all">
                 {/* Image placeholder */}
                 <div className="h-48 relative" style={{ background: post.gradient }}>
                   <div className="absolute inset-0 bg-black/20" />
@@ -2610,11 +3026,11 @@ export default function LandingPage() {
                   <h3 className="text-white font-semibold text-lg mb-2 group-hover:text-purple-400 transition-colors">
                     {post.title}
                   </h3>
-                  <p className="text-neutral-500 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-500 dark:text-neutral-500 text-sm mb-4 line-clamp-2">
                     {post.excerpt}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-600 text-xs">{post.readTime}</span>
+                    <span className="text-gray-500 dark:text-neutral-600 text-xs">{post.readTime}</span>
                     <Link 
                       href="#" 
                       className="text-purple-400 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
@@ -2630,27 +3046,29 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-gray-200 dark:border-neutral-900">
+      <section id="faq" className="border-t border-gray-200 dark:border-neutral-800">
         <FAQSection />
       </section>
 
       {/* Final CTA - Mobile optimized */}
-      <section className="min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-900">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="relative min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50">
+        <div className="relative max-w-3xl mx-auto text-center">
+
+          
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
             Ready to automate
             <br />
-            <span className="text-gray-400 dark:text-neutral-500">your growth?</span>
+            <span className="text-gray-500 dark:text-neutral-500">your growth?</span>
           </h2>
           <p className="text-base sm:text-lg text-gray-500 dark:text-neutral-500 mb-8 sm:mb-10 px-4">
             Start building your automations today. No credit card required.
           </p>
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black text-base font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-all tap-highlight-none"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white text-base font-semibold rounded-xl transition-all tap-highlight-none"
           >
-            Start for free
-            <ArrowRight className="w-4 h-4" />
+            <Zap className="w-5 h-5" />
+            Start Building
           </Link>
         </div>
       </section>

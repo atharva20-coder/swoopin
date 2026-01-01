@@ -132,6 +132,14 @@ const config: Config = {
           '0%': { opacity: '1', transform: 'scale(1)' },
           '100%': { opacity: '0', transform: 'scale(0.85)' },
         },
+        'scroll-left': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        'scroll-right': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -142,6 +150,8 @@ const config: Config = {
         'shape-appear': 'shape-appear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
         'avatar-appear-smooth': 'avatar-appear-smooth 0.8s ease-out',
         'avatar-disappear-smooth': 'avatar-disappear-smooth 0.8s ease-out',
+        'scroll-left': 'scroll-left 40s linear infinite',
+        'scroll-right': 'scroll-right 40s linear infinite',
       },
     },
   },

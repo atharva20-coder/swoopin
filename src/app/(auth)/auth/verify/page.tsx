@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import NinthNodeLogo from "@/components/global/ninth-node-logo";
 
 function VerifyContent() {
   const router = useRouter();
@@ -61,6 +62,9 @@ function VerifyContent() {
       <div className="min-h-[calc(100vh-80px)] flex">
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
           <div className="max-w-sm mx-auto w-full text-center">
+            <div className="flex justify-center mb-8">
+              <NinthNodeLogo showText={true} className="h-10" />
+            </div>
             <Loader2 className="w-12 h-12 animate-spin mx-auto text-gray-900 dark:text-white" />
             <p className="text-gray-600 dark:text-gray-400 mt-4">Verifying your email...</p>
           </div>
@@ -86,6 +90,9 @@ function VerifyContent() {
       <div className="min-h-[calc(100vh-80px)] flex">
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
           <div className="max-w-sm mx-auto w-full">
+            <div className="flex justify-center lg:justify-start mb-8">
+              <NinthNodeLogo showText={true} className="h-10" />
+            </div>
             <div className="mb-8">
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -130,6 +137,9 @@ function VerifyContent() {
     <div className="min-h-[calc(100vh-80px)] flex">
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-12">
         <div className="max-w-sm mx-auto w-full">
+          <div className="flex justify-center lg:justify-start mb-8">
+            <NinthNodeLogo showText={true} className="h-10" />
+          </div>
           <div className="mb-8">
             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6">
               <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />

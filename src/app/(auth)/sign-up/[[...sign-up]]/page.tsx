@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Mail, Lock, User, Eye, EyeOff, CheckCircle } from "lucide-react";
 
+import NinthNodeLogo from "@/components/global/ninth-node-logo";
+
 export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -123,30 +125,30 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1e1e1e] flex items-center justify-center p-4 transition-colors">
-      <div className="w-full max-w-[400px]">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-50/50 dark:bg-[#0a0a0a] transition-colors duration-500">
+      <div className="w-full max-w-[380px] animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-[#0d99ff] dark:to-[#7c3aed] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">A</span>
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-6 scale-110">
+            <NinthNodeLogo showText={false} className="w-12 h-12" />
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
-            Create an account
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
+            Create account
           </h1>
-          <p className="text-gray-500 dark:text-[#8c8c8c]">
-            Get started with Auctorn for free
+          <p className="text-sm text-gray-500 dark:text-neutral-400">
+            Start building with NinthNode for free
           </p>
         </div>
 
         {/* Form Container */}
-        <div className="bg-white dark:bg-[#2c2c2c] rounded-2xl p-6 border border-gray-200 dark:border-[#383838] shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-neutral-800 shadow-xl shadow-gray-200/50 dark:shadow-none ring-1 ring-gray-200/50 dark:ring-neutral-800">
           {/* Google Sign Up */}
           <Button
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isLoading}
             variant="outline"
-            className="w-full h-12 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-[#383838] border-gray-200 dark:border-[#383838] text-gray-900 dark:text-white rounded-lg font-medium"
+            className="w-full h-11 bg-white dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-800 border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium transition-all"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -169,11 +171,15 @@ export default function SignUpPage() {
             Continue with Google
           </Button>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-200 dark:border-[#383838]"></div>
-            <span className="px-4 text-sm text-gray-400 dark:text-[#8c8c8c]">or</span>
-            <div className="flex-1 border-t border-gray-200 dark:border-[#383838]"></div>
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-100 dark:border-neutral-800" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white dark:bg-neutral-900 px-2 text-gray-400 dark:text-neutral-600">
+                Or continue with email
+              </span>
+            </div>
           </div>
 
           {/* Email Form - Step 1 */}
@@ -256,7 +262,7 @@ export default function SignUpPage() {
               
               <p className="text-gray-400 dark:text-[#5c5c5c] text-xs text-center">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white">Terms of Service</Link>
+                <Link href="/terms" className="underline underline-offset-4 hover:text-primary">Terms of Service</Link>
                 {" "}and{" "}
                 <Link href="/privacy_policy" className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white">Privacy Policy</Link>
               </p>

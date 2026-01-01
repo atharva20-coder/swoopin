@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CookieConsent = () => {
@@ -34,7 +35,9 @@ const CookieConsent = () => {
             <div className="text-center sm:text-left">
               <p className="text-gray-600 dark:text-gray-300">
                 We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
-                <a href="/privacy_policy" className="text-[#4F46E5] dark:text-blue-400 hover:underline ml-1">Learn more</a>
+                <Link href="/privacy_policy" className="underline hover:text-gray-900 dark:hover:text-white transition-colors">
+                  privacy policy
+                </Link>.
               </p>
             </div>
             <Button

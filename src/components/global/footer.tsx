@@ -44,8 +44,9 @@ export default function Footer() {
       links: [
         { label: 'About', href: '/about' },
         { label: 'Careers', href: '/careers' },
-        { label: 'Privacy', href: '/privacy' },
+        { label: 'Privacy', href: '/privacy_policy' },
         { label: 'Terms', href: '/terms' },
+        { label: 'Refund', href: '/refund' },
         { label: 'Contact', href: '/contact' },
       ]
     },
