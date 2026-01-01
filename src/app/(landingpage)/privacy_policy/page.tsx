@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
               1. Introduction
             </h2>
             <p className="text-gray-600 dark:text-neutral-400 mb-4">
-              This Privacy Policy explains how NinthNode ("we", "our", or "us") collects, uses, and protects your personal information when you use our service. By using NinthNode, you agree to the terms described in this policy.
+              This Privacy Policy explains how NinthNode (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) collects, uses, and protects your personal information when you use our service. By using NinthNode, you agree to the terms described in this policy.
             </p>
           </section>
 

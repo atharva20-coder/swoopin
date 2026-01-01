@@ -17,7 +17,7 @@ export default function RefundPage() {
             Refund Policy
           </h1>
           <p className="text-lg text-gray-600 dark:text-neutral-400">
-            We want you to be satisfied with our service. Here's our refund policy.
+            We want you to be satisfied with our service. Here&apos;s our refund policy.
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default function RefundPage() {
               1. Subscription Refunds
             </h2>
             <p className="text-gray-600 dark:text-neutral-400 mb-4">
-              We offer a 7-day money-back guarantee for new subscribers. If you're not satisfied 
+              We offer a 7-day money-back guarantee for new subscribers. If you&apos;re not satisfied 
               with our service within the first 7 days of your subscription, you can request a 
               full refund.
             </p>
@@ -85,7 +85,7 @@ export default function RefundPage() {
             </h2>
             <p className="text-gray-600 dark:text-neutral-400">
               If we offer a free trial, you will not be charged during the trial period. 
-              You can cancel at any time during the trial without being charged. If you don't 
+              You can cancel at any time during the trial without being charged. If you don&apos;t 
               cancel before the trial ends, your payment method will be charged for the subscription.
             </p>
           </section>

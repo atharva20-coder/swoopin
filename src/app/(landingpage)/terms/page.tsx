@@ -28,7 +28,7 @@ export default function TermsPage() {
               1. Acceptance of Terms
             </h2>
             <p className="text-gray-600 dark:text-neutral-400 mb-4">
-              By accessing or using NinthNode ("Service"), you agree to be bound by these Terms & Conditions. 
+              By accessing or using NinthNode (&quot;Service&quot;), you agree to be bound by these Terms &amp; Conditions. 
               If you do not agree to these terms, please do not use our Service.
             </p>
             <p className="text-gray-600 dark:text-neutral-400">
@@ -81,8 +81,8 @@ export default function TermsPage() {
               <li>In any way that violates any applicable law or regulation</li>
               <li>To send spam or unsolicited messages</li>
               <li>To impersonate or attempt to impersonate another person</li>
-              <li>To engage in any conduct that restricts or inhibits anyone's use of the Service</li>
-              <li>To violate any third-party platform's terms of service (including Instagram, Facebook, etc.)</li>
+              <li>To engage in any conduct that restricts or inhibits anyone&apos;s use of the Service</li>
+              <li>To violate any third-party platform&apos;s terms of service (including Instagram, Facebook, etc.)</li>
             </ul>
           </section>
 
