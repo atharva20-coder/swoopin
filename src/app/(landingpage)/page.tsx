@@ -2997,6 +2997,7 @@ export default function LandingPage() {
                 excerpt: 'Learn how she automated her comment replies and increased engagement by 300% in just 3 months.',
                 category: 'Case Study',
                 readTime: '5 min read',
+                slug: 'priya-fashion-brand-1m-followers',
                 gradient: 'linear-gradient(135deg, #534e20 0.000%, #534e20 7.692%, #554f2e calc(7.692% + 1px), #554f2e 15.385%, #555040 calc(15.385% + 1px), #555040 23.077%, #555154 calc(23.077% + 1px), #555154 30.769%, #54536b calc(30.769% + 1px), #54536b 38.462%, #515482 calc(38.462% + 1px), #515482 46.154%, #4e5599 calc(46.154% + 1px), #4e5599 53.846%, #4a57af calc(53.846% + 1px), #4a57af 61.538%, #4558c3 calc(61.538% + 1px), #4558c3 69.231%, #4159d4 calc(69.231% + 1px), #4159d4 76.923%, #3c5be2 calc(76.923% + 1px), #3c5be2 84.615%, #375dea calc(84.615% + 1px), #375dea 92.308%, #335eee calc(92.308% + 1px) 100.000%)'
               },
               {
@@ -3004,6 +3005,7 @@ export default function LandingPage() {
                 excerpt: 'Rahul shares his automation workflow that generated 500+ qualified leads for his online store.',
                 category: 'Tutorial',
                 readTime: '8 min read',
+                slug: 'ecommerce-500-leads-instagram-dms',
                 gradient: 'conic-gradient(from 285deg, #dac5b3 0.000deg, #acb6a4 90.000deg, #799d8d 180.000deg, #567f70 270.000deg, #515f4f 360.000deg)'
               },
               {
@@ -3011,37 +3013,48 @@ export default function LandingPage() {
                 excerpt: 'How one marketing agency scaled their influencer management with our automation tools.',
                 category: 'Agency',
                 readTime: '6 min read',
+                slug: 'agency-secrets-managing-50-creator-accounts',
                 gradient: 'conic-gradient(from 45deg, #a5c8e4 0.000deg, #e4ad47 30.000deg, #e590dc 60.000deg, #a67451 90.000deg, #655cd0 120.000deg, #604b5e 150.000deg, #9c44c2 180.000deg, #df466d 210.000deg, #e852b2 240.000deg, #af667e 270.000deg, #6a80a1 300.000deg, #5d9d90 330.000deg, #93b98f 360.000deg)'
               }
             ].map((post, i) => (
-              <article key={i} className="group bg-gray-100 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-all">
-                {/* Image placeholder */}
-                <div className="h-48 relative" style={{ background: post.gradient }}>
-                  <div className="absolute inset-0 bg-black/20" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">{post.category}</span>
+              <Link key={i} href={`/blog/${post.slug}`}>
+                <article className="group h-full bg-gray-100 dark:bg-neutral-900/30 border border-gray-200 dark:border-neutral-800 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-all">
+                  {/* Image placeholder */}
+                  <div className="h-48 relative" style={{ background: post.gradient }}>
+                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute bottom-4 left-4">
+                      <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full">{post.category}</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-white font-semibold text-lg mb-2 group-hover:text-purple-400 transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-500 dark:text-neutral-500 text-sm mb-4 line-clamp-2">
-                    {post.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 dark:text-neutral-600 text-xs">{post.readTime}</span>
-                    <Link 
-                      href="#" 
-                      className="text-purple-400 text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all"
-                    >
-                      Read more <ArrowRight className="w-3 h-3" />
-                    </Link>
+                  
+                  <div className="p-6">
+                    <h3 className="text-gray-900 dark:text-white font-semibold text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-500 dark:text-neutral-500 text-sm mb-4 line-clamp-2">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 dark:text-neutral-600 text-xs">{post.readTime}</span>
+                      <span className="text-blue-600 dark:text-blue-400 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                        Read more <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             ))}
+          </div>
+          
+          {/* View All Stories Button */}
+          <div className="text-center mt-12">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black font-semibold rounded-full hover:bg-gray-800 dark:hover:bg-neutral-200 transition-colors"
+            >
+              View All Stories
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
