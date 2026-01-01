@@ -1,37 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-
-// List of admin email addresses
-// Set in .env file: ADMIN_EMAILS=admin1@example.com,admin2@example.com
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((email) => email.trim().toLowerCase())
-  .filter((email) => email.length > 0);
+import { requireAdmin, getAdminSession } from "@/lib/admin";
 
 /**
  * GET /api/admin/check
  * 
- * Check if the current user is an admin
+ * Check if the current user is an admin.
+ * Returns admin status and email.
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const session = await getAdminSession();
 
-    if (!session?.user) {
+    if (!session) {
       return NextResponse.json({
         isAdmin: false,
-        error: "Not authenticated",
+        error: "Not authenticated or not an admin",
       });
     }
 
-    const userEmail = session.user.email.toLowerCase();
-    const isAdmin = ADMIN_EMAILS.includes(userEmail);
-
     return NextResponse.json({
-      isAdmin,
+      isAdmin: true,
       email: session.user.email,
     });
   } catch (error) {

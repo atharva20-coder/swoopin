@@ -1,33 +1,21 @@
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-
-// List of admin email addresses
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((email) => email.trim().toLowerCase())
-  .filter((email) => email.length > 0);
-
-async function isAdmin(): Promise<boolean> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  
-  if (!session?.user) return false;
-  return ADMIN_EMAILS.includes(session.user.email.toLowerCase());
-}
+import { requireAdmin } from "@/lib/admin";
 
 /**
  * GET /api/admin/stats
- * Get admin dashboard stats with monthly analytics
+ * 
+ * Get admin dashboard stats with monthly analytics.
+ * Requires admin authentication.
  */
 export async function GET(req: NextRequest) {
-  try {
-    if (!(await isAdmin())) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Require admin authentication
+  const adminError = await requireAdmin();
+  if (adminError) {
+    return adminError;
+  }
 
+  try {
     // Get user counts
     const [totalUsers, subscriptions, pendingEnquiries, recentUsersData] = await Promise.all([
       client.user.count(),
@@ -121,7 +109,6 @@ export async function GET(req: NextRequest) {
       enterpriseUsers: planCounts["ENTERPRISE"] || 0,
       pendingEnquiries,
       recentUsers,
-      // Monthly analytics
       monthlyData,
       monthlyRevenue,
       userGrowthPercent: parseFloat(userGrowthPercent),
@@ -134,7 +121,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server Error", message: "Failed to fetch stats" },
+      { status: 500 }
+    );
   }
 }
-

@@ -1,33 +1,21 @@
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-
-// List of admin email addresses
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((email) => email.trim().toLowerCase())
-  .filter((email) => email.length > 0);
-
-async function isAdmin(): Promise<boolean> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  
-  if (!session?.user) return false;
-  return ADMIN_EMAILS.includes(session.user.email.toLowerCase());
-}
+import { requireAdmin } from "@/lib/admin";
 
 /**
  * GET /api/admin/users
- * List all users with their subscription info
+ * 
+ * List all users with their subscription info.
+ * Requires admin authentication.
  */
 export async function GET(req: NextRequest) {
-  try {
-    if (!(await isAdmin())) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Require admin authentication
+  const adminError = await requireAdmin();
+  if (adminError) {
+    return adminError;
+  }
 
+  try {
     const users = await client.user.findMany({
       orderBy: { createdAt: "desc" },
       select: {
@@ -51,6 +39,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server Error", message: "Failed to fetch users" },
+      { status: 500 }
+    );
   }
 }

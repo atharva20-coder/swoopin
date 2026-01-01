@@ -1,51 +1,43 @@
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-
-// List of admin email addresses
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((email) => email.trim().toLowerCase())
-  .filter((email) => email.length > 0);
-
-async function isAdmin(): Promise<boolean> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  
-  if (!session?.user) return false;
-  return ADMIN_EMAILS.includes(session.user.email.toLowerCase());
-}
+import { requireAdmin } from "@/lib/admin";
+import { validateBody, upgradeUserSchema } from "@/schemas/api";
 
 /**
  * POST /api/admin/users/upgrade
- * Upgrade/downgrade a user's plan
+ * 
+ * Upgrade/downgrade a user's plan.
+ * Requires admin authentication.
  */
 export async function POST(req: NextRequest) {
+  // Require admin authentication
+  const adminError = await requireAdmin();
+  if (adminError) {
+    return adminError;
+  }
+
+  // Validate request body
+  const validation = await validateBody(req, upgradeUserSchema);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: "Validation Error", message: validation.error },
+      { status: 400 }
+    );
+  }
+
+  const { email, plan } = validation.data;
+
   try {
-    if (!(await isAdmin())) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { email, plan } = body;
-
-    if (!email || !plan) {
-      return NextResponse.json({ error: "Email and plan are required" }, { status: 400 });
-    }
-
-    if (!["FREE", "PRO", "ENTERPRISE"].includes(plan)) {
-      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-    }
-
     const user = await client.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
       include: { subscription: true },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Not Found", message: "User not found" },
+        { status: 404 }
+      );
     }
 
     if (user.subscription) {
@@ -76,6 +68,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error upgrading user:", error);
-    return NextResponse.json({ error: "Failed to upgrade user" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server Error", message: "Failed to upgrade user" },
+      { status: 500 }
+    );
   }
 }
