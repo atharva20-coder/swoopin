@@ -55,8 +55,8 @@ export default function ContactPage() {
             Contact Us
           </h1>
           <p className="text-xl text-gray-600 dark:text-neutral-400 max-w-2xl mx-auto">
-            Have questions? We'd love to hear from you. Send us a message and 
-            we'll respond as soon as possible.
+            Have questions? We&apos;d love to hear from you. Send us a message and 
+            we&apos;ll respond as soon as possible.
           </p>
         </div>
 
@@ -95,7 +95,7 @@ export default function ContactPage() {
                     Message Sent!
                   </h3>
                   <p className="text-gray-600 dark:text-neutral-400">
-                    Thanks for reaching out. We'll get back to you within 24 hours.
+                    Thanks for reaching out. We&apos;ll get back to you within 24 hours.
                   </p>
                 </div>
               ) : (

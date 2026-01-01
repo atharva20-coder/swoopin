@@ -129,12 +129,13 @@ function SparklesBurst({ isActive }: { isActive: boolean }) {
 }
 
 // Intro Overlay Sequence
+const INTRO_LABELS = ["Subscribers", "Followers", "Connections", "People", "Community"] as const
+
 function IntroOverlay({ onComplete }: { onComplete: () => void }) {
   const [phase, setPhase] = useState(0) // 0: Counter, 1: Message
   const [labelIndex, setLabelIndex] = useState(0)
   const [currentNumber, setCurrentNumber] = useState(999997)
   const [showSparkles, setShowSparkles] = useState(false)
-  const labels = ["Subscribers", "Followers", "Connections", "People", "Community"]
   
   useEffect(() => {
     // Lock body scroll
@@ -161,7 +162,7 @@ function IntroOverlay({ onComplete }: { onComplete: () => void }) {
 
     // Cycle labels
     const labelInterval = setInterval(() => {
-      setLabelIndex(prev => (prev + 1) % labels.length)
+      setLabelIndex(prev => (prev + 1) % INTRO_LABELS.length)
     }, 800)
     
     return () => {
@@ -204,14 +205,14 @@ function IntroOverlay({ onComplete }: { onComplete: () => void }) {
             <div className="h-12 sm:h-16 relative flex items-center justify-center overflow-hidden mt-4 sm:mt-8">
               <AnimatePresence mode="popLayout">
                 <motion.span 
-                  key={labels[labelIndex]}
+                  key={INTRO_LABELS[labelIndex]}
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -30, opacity: 0 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   className="absolute text-lg sm:text-2xl text-gray-500 dark:text-neutral-500 uppercase tracking-widest font-medium"
                 >
-                  {labels[labelIndex]}
+                  {INTRO_LABELS[labelIndex]}
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -2289,7 +2290,7 @@ export default function LandingPage() {
                   <X className="w-6 h-6 text-red-500/50 shrink-0" />
                   <div>
                     <strong className="block text-gray-600 dark:text-neutral-400 font-semibold">Generic Templates</strong>
-                    <span className="text-sm">Dated designs that don't stand out</span>
+                    <span className="text-sm">Dated designs that don&apos;t stand out</span>
                   </div>
                 </li>
               </ul>

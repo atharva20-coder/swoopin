@@ -38,7 +38,7 @@ export default function AboutPage() {
             About NinthNode
           </h1>
           <p className="text-xl text-gray-600 dark:text-neutral-400 max-w-3xl mx-auto">
-            We're on a mission to help creators and businesses automate their social media 
+            We&apos;re on a mission to help creators and businesses automate their social media 
             growth, so they can focus on what matters most—creating great content.
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function AboutPage() {
             Join Us on This Journey
           </h2>
           <p className="text-lg text-gray-600 dark:text-neutral-400 mb-8 max-w-2xl mx-auto">
-            Whether you're a creator, business, or agency, we're here to help you grow. 
+            Whether you&apos;re a creator, business, or agency, we&apos;re here to help you grow. 
             Start automating your social media today.
           </p>
           <a 

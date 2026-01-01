@@ -99,7 +99,7 @@ export default function PricingPage() {
             </h1>
             
             <p className="text-xl text-gray-600 dark:text-neutral-400 max-w-xl mx-auto mb-10">
-              Start free, upgrade when you're ready. No hidden fees.
+              Start free, upgrade when you&apos;re ready. No hidden fees.
             </p>
           </motion.div>
           
@@ -253,7 +253,7 @@ export default function PricingPage() {
             Still have questions?
           </h2>
           <p className="text-gray-600 dark:text-neutral-400 mb-8 max-w-lg mx-auto">
-            We're here to help you find the right plan for your business needs. Chat with our team.
+            We&apos;re here to help you find the right plan for your business needs. Chat with our team.
           </p>
           <Link
             href="/contact"
