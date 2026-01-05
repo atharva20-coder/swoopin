@@ -175,7 +175,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 dark:border-neutral-800 gap-3">
         <div className="flex items-center gap-2 text-sm">
           <a href={`/dashboard/${slug}`} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
             Dashboard
@@ -183,51 +183,52 @@ export default function DataHubView({ slug }: DataHubViewProps) {
           <span className="text-gray-400">/</span>
           <span className="text-gray-900 dark:text-white font-medium">Data Hub</span>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+        <Button onClick={() => setShowCreateModal(true)} className="gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           New Collection
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 p-6">
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.collections}</p>
-          <p className="text-sm text-gray-500">Collections</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.collections}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Collections</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.responses}</p>
-          <p className="text-sm text-gray-500">Total Responses</p>
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.responses}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Total Responses</p>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-          <p className="text-sm text-gray-500">Active</p>
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <p className="text-lg sm:text-2xl font-bold text-green-600">{stats.active}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Active</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 px-6 border-b border-gray-100 dark:border-neutral-800">
+      <div className="flex items-center gap-1 sm:gap-2 px-4 sm:px-6 border-b border-gray-100 dark:border-neutral-800 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition",
+              "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition whitespace-nowrap shrink-0",
               activeTab === tab.id
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             )}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 sm:p-6">
         {activeTab === "collections" && (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {isLoading ? (
               <div className="text-center py-8 text-gray-500">Loading...</div>
             ) : collections.length === 0 ? (
@@ -240,24 +241,24 @@ export default function DataHubView({ slug }: DataHubViewProps) {
               collections.map((collection) => (
                 <div
                   key={collection.id}
-                  className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-100 dark:border-neutral-800"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-100 dark:border-neutral-800 gap-3"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="text-2xl">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="text-xl sm:text-2xl shrink-0">
                       {SOURCE_OPTIONS.find((s) => s.id === collection.source)?.icon || "📋"}
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{collection.name}</p>
-                      <p className="text-sm text-gray-500">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">{collection.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {collection._count?.responses || 0} responses
                         {collection.sheetsConfig && " • Sheets connected"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 justify-end">
                     <span
                       className={cn(
-                        "px-2 py-1 text-xs font-medium rounded",
+                        "px-2 py-1 text-[10px] sm:text-xs font-medium rounded",
                         collection.status === "ACTIVE"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-600"
@@ -268,16 +269,17 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="h-8 w-8 p-0"
                       onClick={() => handleToggleStatus(collection.id, collection.status)}
                     >
                       {collection.status === "ACTIVE" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </Button>
                     {collection.sheetsConfig && (
-                      <Button size="sm" variant="ghost" onClick={() => handleExport(collection.id)}>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleExport(collection.id)}>
                         <Download className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(collection.id)}>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDelete(collection.id)}>
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
@@ -296,20 +298,20 @@ export default function DataHubView({ slug }: DataHubViewProps) {
 
         {activeTab === "demo" && (
           <div className="max-w-md mx-auto">
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-100 dark:border-neutral-800">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Demo: Export to Sheets</h3>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 sm:p-6 border border-gray-100 dark:border-neutral-800">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-sm sm:text-base">Demo: Export to Sheets</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-4">
                 Test the Google Sheets integration by exporting sample data.
               </p>
 
               {!googleConnected ? (
-                <p className="text-sm text-orange-600">
+                <p className="text-xs sm:text-sm text-orange-600">
                   Please connect Google Sheets in the Integrations page first.
                 </p>
               ) : (
                 <>
                   <div className="mb-4">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Select Sheet
                     </label>
                     <SheetPicker value={demoSheetConfig} onChange={setDemoSheetConfig} />
@@ -319,6 +321,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     onClick={handleDemoExport}
                     disabled={!demoSheetConfig || isDemoExporting}
                     className="w-full gap-2"
+                    size="sm"
                   >
                     {isDemoExporting ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -331,7 +334,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                   </Button>
 
                   {demoSuccess && (
-                    <p className="text-sm text-green-600 mt-3 text-center">
+                    <p className="text-xs sm:text-sm text-green-600 mt-3 text-center">
                       ✓ Sample data added to your sheet!
                     </p>
                   )}
@@ -350,37 +353,37 @@ export default function DataHubView({ slug }: DataHubViewProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create Collection</h2>
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800 shrink-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Create Collection</h2>
               <button onClick={() => setShowCreateModal(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Name</label>
+                <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Name</label>
                 <Input placeholder="My Collection" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Source</label>
-                <div className="grid grid-cols-2 gap-3">
+                <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Source</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   {SOURCE_OPTIONS.map((source) => (
                     <button
                       key={source.id}
                       onClick={() => setSelectedSource(source.id)}
                       className={cn(
-                        "p-4 rounded-xl border text-left transition",
+                        "p-3 sm:p-4 rounded-xl border text-left transition",
                         selectedSource === source.id
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
                       )}
                     >
-                      <span className="text-2xl mb-2 block">{source.icon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">{source.label}</span>
+                      <span className="text-xl sm:text-2xl mb-1 sm:mb-2 block">{source.icon}</span>
+                      <span className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">{source.label}</span>
                     </button>
                   ))}
                 </div>
@@ -388,14 +391,14 @@ export default function DataHubView({ slug }: DataHubViewProps) {
 
               {(selectedSource === "DM_KEYWORD" || selectedSource === "COMMENT_KEYWORD") && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Keyword</label>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Keyword</label>
                   <Input placeholder="Enter trigger keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
                 </div>
               )}
 
               {googleConnected && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Export to Sheets (Optional)
                   </label>
                   <SheetPicker value={sheetConfig} onChange={setSheetConfig} />
@@ -403,9 +406,9 @@ export default function DataHubView({ slug }: DataHubViewProps) {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-100 dark:border-neutral-800">
-              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button onClick={handleCreate}>Create Collection</Button>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 p-4 border-t border-gray-100 dark:border-neutral-800 shrink-0">
+              <Button variant="ghost" size="sm" onClick={() => setShowCreateModal(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button size="sm" onClick={handleCreate} className="w-full sm:w-auto">Create Collection</Button>
             </div>
           </div>
         </div>
