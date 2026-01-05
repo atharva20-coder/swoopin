@@ -132,7 +132,7 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-1 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm">
           <a
             href={`/dashboard/${slug}`}
@@ -143,59 +143,59 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
           <span className="text-gray-400">/</span>
           <span className="text-gray-900 dark:text-white font-medium">Collabs</span>
         </div>
-        <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2">
+        <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2 w-full sm:w-auto">
           <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
           Sync
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{partnerships.length}</p>
-              <p className="text-sm text-gray-500">Total Partners</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{partnerships.length}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Partners</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingCount}</p>
-              <p className="text-sm text-gray-500">Pending</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{pendingCount}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Pending</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
               <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                 {partnerships.filter((p) => p.status === "APPROVED").length}
               </p>
-              <p className="text-sm text-gray-500">Approved</p>
+              <p className="text-xs sm:text-sm text-gray-500">Approved</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-4">
+      {/* Filter Tabs - Scrollable on mobile */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         {(["all", "PENDING", "APPROVED", "REJECTED"] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
             className={cn(
-              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              "px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0",
               filter === status
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700"
@@ -209,32 +209,32 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
       {/* Partnerships List */}
       <div className="flex-1 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 overflow-hidden">
         {filteredPartnerships.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500 p-4">
             <Users className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-lg font-medium">No partnerships found</p>
-            <p className="text-sm">Sync with Instagram to load your brand partners</p>
+            <p className="text-lg font-medium text-center">No partnerships found</p>
+            <p className="text-sm text-center">Sync with Instagram to load your brand partners</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-neutral-800">
             {filteredPartnerships.map((partnership) => (
               <div
                 key={partnership.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors gap-3"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0.5">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 p-0.5 shrink-0">
                     <div className="w-full h-full rounded-full bg-white dark:bg-neutral-900 flex items-center justify-center">
                       {partnership.type === "BRAND_TO_CREATOR" ? (
-                        <Building2 className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-300" />
                       ) : (
-                        <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-300" />
                       )}
                     </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">{partnership.partnerName}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-white truncate">{partnership.partnerName}</p>
                     {partnership.partnerUsername && (
-                      <p className="text-sm text-gray-500">@{partnership.partnerUsername}</p>
+                      <p className="text-sm text-gray-500 truncate">@{partnership.partnerUsername}</p>
                     )}
                     <p className="text-xs text-gray-400">
                       {partnership.type === "BRAND_TO_CREATOR" ? "Brand Partner" : "Creator Partner"}
@@ -242,15 +242,17 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-start">
                   <span
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium",
+                      "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium",
                       STATUS_COLORS[partnership.status]
                     )}
                   >
                     {STATUS_ICONS[partnership.status]}
-                    {partnership.status.charAt(0) + partnership.status.slice(1).toLowerCase()}
+                    <span className="hidden xs:inline">
+                      {partnership.status.charAt(0) + partnership.status.slice(1).toLowerCase()}
+                    </span>
                   </span>
 
                   {partnership.status === "PENDING" && (
@@ -258,7 +260,7 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-green-600"
+                        className="text-green-600 h-8 w-8 p-0 sm:w-auto sm:px-3"
                         onClick={() => handleApprove(partnership.id)}
                         disabled={isLoading}
                       >
@@ -267,7 +269,7 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600"
+                        className="text-red-600 h-8 w-8 p-0 sm:w-auto sm:px-3"
                         onClick={() => handleReject(partnership.id)}
                         disabled={isLoading}
                       >
@@ -279,7 +281,7 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-gray-400 hover:text-red-600"
+                    className="text-gray-400 hover:text-red-600 h-8 w-8 p-0"
                     onClick={() => handleRemove(partnership.id)}
                     disabled={isLoading}
                   >
