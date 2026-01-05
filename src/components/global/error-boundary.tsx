@@ -3,6 +3,7 @@
 import React, { Component, ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sanitizeErrorMessage } from "@/lib/error-sanitizer";
 
 interface Props {
   children: ReactNode;
@@ -25,6 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log full error for debugging (only visible in console)
     console.error("Error caught by boundary:", error, errorInfo);
   }
 
@@ -33,6 +35,11 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) {
         return this.props.fallback;
       }
+
+      // Sanitize error message to hide sensitive information in production
+      const safeMessage = this.state.error 
+        ? sanitizeErrorMessage(this.state.error)
+        : "An unexpected error occurred";
 
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
@@ -43,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h2>
           <p className="text-gray-500 dark:text-gray-400 text-center mb-4 max-w-md">
-            {this.state.error?.message || "An unexpected error occurred"}
+            {safeMessage}
           </p>
           <Button
             onClick={() => {

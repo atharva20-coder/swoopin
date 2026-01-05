@@ -253,7 +253,7 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-1 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm">
           <a
             href={`/dashboard/${slug}`}
@@ -264,7 +264,7 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
           <span className="text-gray-400">/</span>
           <span className="text-gray-900 dark:text-white font-medium">Events</span>
         </div>
-        <Button onClick={() => openCreateModal()} className="gap-2">
+        <Button onClick={() => openCreateModal()} className="gap-2 w-full sm:w-auto">
           <Plus className="w-4 h-4" />
           Create Event
         </Button>
@@ -273,8 +273,8 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
       {/* Calendar */}
       <div className="flex-1 bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800 overflow-hidden">
         {/* Month Navigation */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 dark:border-neutral-800 gap-2">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
             {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
           </h2>
           <div className="flex items-center gap-2">
@@ -305,10 +305,12 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 text-center text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-neutral-800">
+        <div className="grid grid-cols-7 text-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-neutral-800">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="py-3">
-              {day}
+            <div key={day} className="py-2 sm:py-3">
+              {/* Single letter on mobile */}
+              <span className="sm:hidden">{day.charAt(0)}</span>
+              <span className="hidden sm:inline">{day}</span>
             </div>
           ))}
         </div>
@@ -321,21 +323,21 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
                 key={i}
                 onClick={() => openCreateModal(date)}
                 className={cn(
-                  "min-h-[100px] p-2 border-b border-r border-gray-100 dark:border-neutral-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors",
+                  "min-h-[70px] sm:min-h-[100px] p-1 sm:p-2 border-b border-r border-gray-100 dark:border-neutral-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors",
                   !isCurrentMonth(date) && "bg-gray-50 dark:bg-neutral-800/40"
                 )}
               >
                 <div
                   className={cn(
-                    "w-7 h-7 rounded-full flex items-center justify-center text-sm mb-1 text-gray-700 dark:text-gray-200",
+                    "w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm mb-0.5 sm:mb-1 text-gray-700 dark:text-gray-200",
                     isToday(date) && "bg-blue-600 text-white font-semibold",
                     !isCurrentMonth(date) && "text-gray-400 dark:text-gray-500"
                   )}
                 >
                   {date.getDate()}
                 </div>
-                <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((event) => (
+                <div className="space-y-0.5 sm:space-y-1">
+                  {dayEvents.slice(0, 2).map((event) => (
                     <button
                       key={event.id}
                       onClick={(e) => {
@@ -343,17 +345,17 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
                         openEditModal(event);
                       }}
                       className={cn(
-                        "w-full text-left px-2 py-1 rounded text-xs truncate flex items-center gap-1",
+                        "w-full text-left px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs truncate flex items-center gap-1",
                         STATUS_COLORS[event.status]
                       )}
                     >
-                      {STATUS_ICONS[event.status]}
+                      <span className="hidden sm:inline">{STATUS_ICONS[event.status]}</span>
                       <span className="truncate">{event.title}</span>
                     </button>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
-                      +{dayEvents.length - 3} more
+                  {dayEvents.length > 2 && (
+                    <div className="text-[9px] sm:text-xs text-gray-500 dark:text-gray-400 px-1 sm:px-2">
+                      +{dayEvents.length - 2} more
                     </div>
                   )}
                 </div>
@@ -468,40 +470,42 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
               )}
             </div>
 
-            <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-neutral-800 gap-3">
-              {editingEvent && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-orange-600"
-                    onClick={() => {
-                      handleCancel(editingEvent.id);
-                      setShowModal(false);
-                    }}
-                    disabled={isLoading || editingEvent.status === "CANCELLED"}
-                  >
-                    Cancel Event
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600"
-                    onClick={() => {
-                      handleDelete(editingEvent.id);
-                      setShowModal(false);
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-              <div className="flex gap-2 ml-auto">
-                <Button variant="outline" onClick={() => setShowModal(false)}>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-between p-4 border-t border-gray-100 dark:border-neutral-800 gap-3">
+              <div className="flex gap-2">
+                {editingEvent && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-orange-600 flex-1 sm:flex-none"
+                      onClick={() => {
+                        handleCancel(editingEvent.id);
+                        setShowModal(false);
+                      }}
+                      disabled={isLoading || editingEvent.status === "CANCELLED"}
+                    >
+                      Cancel Event
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => {
+                        handleDelete(editingEvent.id);
+                        setShowModal(false);
+                      }}
+                      disabled={isLoading}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={() => setShowModal(false)} className="flex-1 sm:flex-none">
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit} disabled={isLoading}>
+                <Button onClick={handleSubmit} disabled={isLoading} className="flex-1 sm:flex-none">
                   {editingEvent ? "Update" : "Create"}
                 </Button>
               </div>

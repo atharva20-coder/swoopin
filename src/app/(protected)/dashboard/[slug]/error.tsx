@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sanitizeErrorMessage } from "@/lib/error-sanitizer";
 
 export default function Error({
   error,
@@ -12,8 +13,12 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
+    // Log full error in console for debugging (only visible to developers)
     console.error("Dashboard error:", error);
   }, [error]);
+
+  // Sanitize error message to hide sensitive information in production
+  const safeMessage = sanitizeErrorMessage(error);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
@@ -24,7 +29,7 @@ export default function Error({
         Something went wrong
       </h2>
       <p className="text-gray-500 dark:text-gray-400 text-center mb-6 max-w-md">
-        {error.message || "An unexpected error occurred while loading this page."}
+        {safeMessage}
       </p>
       <div className="flex gap-3">
         <Button onClick={reset} className="gap-2">
