@@ -127,7 +127,7 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-1 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm">
           <a
             href={`/dashboard/${slug}`}
@@ -138,63 +138,63 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
           <span className="text-gray-400">/</span>
           <span className="text-gray-900 dark:text-white font-medium">Commerce</span>
         </div>
-        <Button onClick={handleSync} disabled={isLoading} className="gap-2">
+        <Button onClick={handleSync} disabled={isLoading} className="gap-2 w-full sm:w-auto">
           <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
           Sync Catalog
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+              <Package className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-gray-500">Total Products</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Products</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
-              <p className="text-sm text-gray-500">In Stock</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
+              <p className="text-xs sm:text-sm text-gray-500">In Stock</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.outOfStock}</p>
-              <p className="text-sm text-gray-500">Out of Stock</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.outOfStock}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Out of Stock</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+              <X className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.discontinued}</p>
-              <p className="text-sm text-gray-500">Discontinued</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.discontinued}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Discontinued</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-4">
+        <div className="relative flex-1 sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search products..."
@@ -203,57 +203,66 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2">
-          {(["all", "ACTIVE", "OUT_OF_STOCK", "DISCONTINUED"] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                filter === status
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300"
-              )}
+        <div className="flex items-center gap-2 justify-between sm:justify-start">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
+            {(["all", "ACTIVE", "OUT_OF_STOCK", "DISCONTINUED"] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={cn(
+                  "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0",
+                  filter === status
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300"
+                )}
+              >
+                {status === "all" ? "All" : (
+                  <>
+                    <span className="sm:hidden">{status === "OUT_OF_STOCK" ? "OOS" : STATUS_LABELS[status].split(" ")[0]}</span>
+                    <span className="hidden sm:inline">{STATUS_LABELS[status]}</span>
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1 shrink-0">
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("grid")}
             >
-              {status === "all" ? "All" : STATUS_LABELS[status]}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1 ml-auto">
-          <Button
-            variant={viewMode === "grid" ? "secondary" : "ghost"}
-            size="icon"
-            onClick={() => setViewMode("grid")}
-          >
-            <Grid className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "secondary" : "ghost"}
-            size="icon"
-            onClick={() => setViewMode("list")}
-          >
-            <List className="w-4 h-4" />
-          </Button>
+              <Grid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("list")}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Products Grid/List */}
       <div className="flex-1 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 overflow-hidden">
         {filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500 p-4">
             <ShoppingBag className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-lg font-medium">No products found</p>
-            <p className="text-sm">Sync your catalog to load products</p>
+            <p className="text-lg font-medium text-center">No products found</p>
+            <p className="text-sm text-center">Sync your catalog to load products</p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-4 gap-4 p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4">
             {filteredProducts.map((product) => (
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="text-left bg-gray-50 dark:bg-neutral-800 rounded-xl p-3 hover:ring-2 ring-blue-500 transition-all"
+                className="text-left bg-gray-50 dark:bg-neutral-800 rounded-xl p-2 sm:p-3 hover:ring-2 ring-blue-500 transition-all"
               >
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-700 mb-3">
+                <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-700 mb-2 sm:mb-3">
                   {product.imageUrl ? (
                     <Image
                       src={product.imageUrl}
@@ -264,13 +273,13 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-8 h-8 text-gray-400" />
+                      <Package className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                     </div>
                   )}
                 </div>
-                <h3 className="font-medium text-gray-900 dark:text-white truncate">{product.name}</h3>
-                <p className="text-sm text-gray-500 mb-2">{getPrice(product)}</p>
-                <span className={cn("text-xs px-2 py-1 rounded-full", STATUS_COLORS[product.status])}>
+                <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate">{product.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">{getPrice(product)}</p>
+                <span className={cn("text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full", STATUS_COLORS[product.status])}>
                   {STATUS_LABELS[product.status]}
                 </span>
               </button>
@@ -282,9 +291,9 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
               <button
                 key={product.id}
                 onClick={() => setSelectedProduct(product)}
-                className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors text-left"
               >
-                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-700 flex-shrink-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-700 flex-shrink-0">
                   {product.imageUrl ? (
                     <Image
                       src={product.imageUrl}
@@ -295,16 +304,17 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-6 h-6 text-gray-400" />
+                      <Package className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 dark:text-white">{product.name}</h3>
-                  <p className="text-sm text-gray-500">{getPrice(product)}</p>
+                  <h3 className="font-medium text-sm sm:text-base text-gray-900 dark:text-white truncate">{product.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">{getPrice(product)}</p>
                 </div>
-                <span className={cn("text-xs px-3 py-1 rounded-full", STATUS_COLORS[product.status])}>
-                  {STATUS_LABELS[product.status]}
+                <span className={cn("text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full shrink-0", STATUS_COLORS[product.status])}>
+                  <span className="hidden sm:inline">{STATUS_LABELS[product.status]}</span>
+                  <span className="sm:hidden">{product.status === "OUT_OF_STOCK" ? "OOS" : STATUS_LABELS[product.status].split(" ")[0]}</span>
                 </span>
               </button>
             ))}
@@ -320,9 +330,9 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
           >
-            <div className="relative h-48 bg-gray-200 dark:bg-neutral-800">
+            <div className="relative h-40 sm:h-48 bg-gray-200 dark:bg-neutral-800">
               {selectedProduct.imageUrl ? (
                 <Image
                   src={selectedProduct.imageUrl}
@@ -332,7 +342,7 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-16 h-16 text-gray-400" />
+                  <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
                 </div>
               )}
               <button
@@ -343,45 +353,48 @@ export default function CommerceView({ slug, initialCatalog }: CommerceViewProps
               </button>
             </div>
 
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {selectedProduct.name}
               </h2>
-              <p className="text-2xl font-bold text-blue-600 mb-4">{getPrice(selectedProduct)}</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600 mb-4">{getPrice(selectedProduct)}</p>
 
-              <div className="mb-6">
-                <p className="text-sm text-gray-500 mb-2">Current Status</p>
-                <span className={cn("text-sm px-3 py-1 rounded-full", STATUS_COLORS[selectedProduct.status])}>
+              <div className="mb-4 sm:mb-6">
+                <p className="text-xs sm:text-sm text-gray-500 mb-2">Current Status</p>
+                <span className={cn("text-xs sm:text-sm px-3 py-1 rounded-full", STATUS_COLORS[selectedProduct.status])}>
                   {STATUS_LABELS[selectedProduct.status]}
                 </span>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 mb-3">Update Status</p>
-                <div className="flex gap-2">
+                <p className="text-xs sm:text-sm text-gray-500 mb-3">Update Status</p>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => handleStatusUpdate(selectedProduct.id, "ACTIVE")}
                     disabled={isLoading || selectedProduct.status === "ACTIVE"}
-                    className="flex-1"
+                    className="flex-1 text-xs sm:text-sm"
                   >
                     <Check className="w-4 h-4 mr-1" />
                     In Stock
                   </Button>
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => handleStatusUpdate(selectedProduct.id, "OUT_OF_STOCK")}
                     disabled={isLoading || selectedProduct.status === "OUT_OF_STOCK"}
-                    className="flex-1"
+                    className="flex-1 text-xs sm:text-sm"
                   >
                     <AlertCircle className="w-4 h-4 mr-1" />
                     Out of Stock
                   </Button>
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => handleStatusUpdate(selectedProduct.id, "DISCONTINUED")}
                     disabled={isLoading || selectedProduct.status === "DISCONTINUED"}
-                    className="flex-1 text-red-600"
+                    className="flex-1 text-red-600 text-xs sm:text-sm"
                   >
                     <X className="w-4 h-4 mr-1" />
                     Discontinue
