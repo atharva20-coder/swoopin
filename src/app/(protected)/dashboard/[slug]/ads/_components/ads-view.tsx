@@ -184,7 +184,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 py-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-1 py-3 gap-3">
         <div className="flex items-center gap-2 text-sm">
           <a
             href={`/dashboard/${slug}`}
@@ -196,62 +196,63 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
           <span className="text-gray-900 dark:text-white font-medium">Ads</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2">
+          <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2 flex-1 sm:flex-none">
             <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-            Sync
+            <span className="hidden sm:inline">Sync</span>
           </Button>
-          <Button onClick={() => setShowWizard(true)} className="gap-2">
+          <Button onClick={() => setShowWizard(true)} className="gap-2 flex-1 sm:flex-none">
             <Plus className="w-4 h-4" />
-            Create Campaign
+            <span className="hidden sm:inline">Create Campaign</span>
+            <span className="sm:hidden">Create</span>
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Megaphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+              <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-gray-500">Total Campaigns</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Campaigns</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <Play className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
-              <p className="text-sm text-gray-500">Active</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Active</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-              <Pause className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+              <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.paused}</p>
-              <p className="text-sm text-gray-500">Paused</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.paused}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Paused</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+        <div className="bg-white dark:bg-neutral-900 rounded-xl p-3 sm:p-4 border border-gray-100 dark:border-neutral-800">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                 ${stats.totalSpend.toFixed(2)}
               </p>
-              <p className="text-sm text-gray-500">Total Budget</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Budget</p>
             </div>
           </div>
         </div>
@@ -260,10 +261,10 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
       {/* Campaigns List */}
       <div className="flex-1 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 overflow-hidden">
         {campaigns.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+          <div className="flex flex-col items-center justify-center h-64 text-gray-500 p-4">
             <Megaphone className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-lg font-medium">No campaigns yet</p>
-            <p className="text-sm mb-4">Create your first ad campaign to get started</p>
+            <p className="text-lg font-medium text-center">No campaigns yet</p>
+            <p className="text-sm mb-4 text-center">Create your first ad campaign to get started</p>
             <Button onClick={() => setShowWizard(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               Create Campaign
@@ -274,31 +275,35 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             {campaigns.map((campaign) => (
               <div
                 key={campaign.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors gap-3"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shrink-0">
                     {OBJECTIVE_ICONS[campaign.objective]}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{campaign.name}</h3>
-                    <p className="text-sm text-gray-500 flex items-center gap-2">
-                      <Target className="w-3 h-3" />
-                      {OBJECTIVE_LABELS[campaign.objective]}
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white truncate">{campaign.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1 sm:gap-2 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Target className="w-3 h-3" />
+                        <span className="hidden sm:inline">{OBJECTIVE_LABELS[campaign.objective]}</span>
+                        <span className="sm:hidden">{campaign.objective.split('_')[0]}</span>
+                      </span>
                       <span className="text-gray-300">•</span>
                       {getBudget(campaign)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className={cn("px-3 py-1 rounded-full text-xs font-medium", STATUS_COLORS[campaign.status])}>
+                <div className="flex items-center gap-2 sm:gap-3 justify-end">
+                  <span className={cn("px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium", STATUS_COLORS[campaign.status])}>
                     {campaign.status}
                   </span>
 
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="h-8 w-8 p-0"
                     onClick={() => handleViewInsights(campaign)}
                     disabled={isLoading}
                   >
@@ -308,7 +313,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={campaign.status === "ACTIVE" ? "text-yellow-600" : "text-green-600"}
+                    className={cn("h-8 w-8 p-0", campaign.status === "ACTIVE" ? "text-yellow-600" : "text-green-600")}
                     onClick={() => handleStatusToggle(campaign)}
                     disabled={isLoading}
                   >
@@ -318,7 +323,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-red-600"
+                    className="text-red-600 h-8 w-8 p-0"
                     onClick={() => handleDelete(campaign.id)}
                     disabled={isLoading}
                   >
@@ -339,13 +344,13 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Wizard Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800 shrink-0">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create Campaign</h2>
-                <p className="text-sm text-gray-500">Step {wizardStep} of 3</p>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Create Campaign</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Step {wizardStep} of 3</p>
               </div>
               <button
                 onClick={() => setShowWizard(false)}
@@ -356,25 +361,25 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             </div>
 
             {/* Wizard Content */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
               {wizardStep === 1 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Campaign Objective</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Campaign Objective</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     {(Object.keys(OBJECTIVE_LABELS) as CampaignObjective[]).map((obj) => (
                       <button
                         key={obj}
                         onClick={() => setFormData({ ...formData, objective: obj })}
                         className={cn(
-                          "p-4 rounded-xl border text-left transition-all",
+                          "p-3 sm:p-4 rounded-xl border text-left transition-all",
                           formData.objective === obj
                             ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                             : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
                         )}
                       >
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2">
                           {OBJECTIVE_ICONS[obj]}
-                          <span className="font-medium text-gray-900 dark:text-white text-sm">
+                          <span className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">
                             {OBJECTIVE_LABELS[obj]}
                           </span>
                         </div>
@@ -386,9 +391,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
 
               {wizardStep === 2 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Campaign Details</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Campaign Details</h3>
                   <div>
-                    <label className="text-sm text-gray-500 mb-1 block">Campaign Name</label>
+                    <label className="text-xs sm:text-sm text-gray-500 mb-1 block">Campaign Name</label>
                     <Input
                       placeholder="e.g. Summer Sale 2024"
                       value={formData.name}
@@ -400,9 +405,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
 
               {wizardStep === 3 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Budget</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Budget</h3>
                   <div>
-                    <label className="text-sm text-gray-500 mb-1 block">Daily Budget (USD)</label>
+                    <label className="text-xs sm:text-sm text-gray-500 mb-1 block">Daily Budget (USD)</label>
                     <Input
                       type="number"
                       min={1}
@@ -415,20 +420,21 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             </div>
 
             {/* Wizard Footer */}
-            <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-neutral-800">
+            <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-neutral-800 shrink-0">
               <Button
                 variant="ghost"
+                size="sm"
                 onClick={() => wizardStep > 1 && setWizardStep(wizardStep - 1)}
                 disabled={wizardStep === 1}
               >
                 Back
               </Button>
               {wizardStep < 3 ? (
-                <Button onClick={() => setWizardStep(wizardStep + 1)} className="gap-2">
+                <Button size="sm" onClick={() => setWizardStep(wizardStep + 1)} className="gap-1">
                   Next <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
-                <Button onClick={handleCreateCampaign} disabled={isLoading}>
+                <Button size="sm" onClick={handleCreateCampaign} disabled={isLoading}>
                   Create Campaign
                 </Button>
               )}
@@ -448,10 +454,10 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate pr-2">
                 {selectedCampaign.name} Insights
               </h2>
               <button
@@ -459,52 +465,52 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                   setSelectedCampaign(null);
                   setInsights(null);
                 }}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {isLoading ? (
                 <div className="flex items-center justify-center h-32">
                   <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
                 </div>
               ) : insights ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
-                      <Eye className="w-4 h-4" />
-                      <span className="text-sm">Impressions</span>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 mb-1">
+                      <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Impressions</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {insights.impressions.toLocaleString()}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
-                      <Users className="w-4 h-4" />
-                      <span className="text-sm">Reach</span>
+                  <div className="p-3 sm:p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 mb-1">
+                      <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Reach</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {insights.reach.toLocaleString()}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
-                      <MousePointerClick className="w-4 h-4" />
-                      <span className="text-sm">Clicks</span>
+                  <div className="p-3 sm:p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 mb-1">
+                      <MousePointerClick className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Clicks</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {insights.clicks.toLocaleString()}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
-                    <div className="flex items-center gap-2 text-gray-500 mb-1">
-                      <DollarSign className="w-4 h-4" />
-                      <span className="text-sm">Spend</span>
+                  <div className="p-3 sm:p-4 bg-gray-50 dark:bg-neutral-800 rounded-xl">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 mb-1">
+                      <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Spend</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">${insights.spend}</p>
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">${insights.spend}</p>
                   </div>
                 </div>
               ) : (
