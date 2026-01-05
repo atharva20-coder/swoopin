@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, GripVertical, FileText, Zap, ExternalLink, Image, Film, Clock, MoreHorizontal, Check, Loader2 } from "lucide-react";
+import { Plus, GripVertical, FileText, Zap, ExternalLink, Image, Film, Clock, MoreHorizontal, Check, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -30,6 +30,10 @@ type ContentLibraryProps = {
   onDragAutomation?: (automation: Automation) => void;
   onDraftClick?: (draft: Draft) => void;
   onCanvaDesignSelect?: (imageUrl: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onAutomationSelect?: (automation: Automation) => void; // For mobile tap-to-schedule
+  selectedAutomationId?: string | null;
 };
 
 // Canva logo component
@@ -55,6 +59,10 @@ export default function ContentLibrary({
   onDragAutomation,
   onDraftClick,
   onCanvaDesignSelect,
+  isOpen,
+  onClose,
+  onAutomationSelect,
+  selectedAutomationId,
 }: ContentLibraryProps) {
   const [canvaConnected, setCanvaConnected] = useState(false);
   const [canvaLoading, setCanvaLoading] = useState(true);
@@ -113,10 +121,20 @@ export default function ContentLibrary({
   };
 
   return (
-    <div className="w-72 shrink-0 flex flex-col h-full bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
+    <div className="w-full h-full shrink-0 flex flex-col bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
+      <div className="p-4 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">Content Library</h2>
+        {/* Mobile close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+            aria-label="Close content library"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        )}
       </div>
 
       {/* Scrollable Content */}
@@ -169,30 +187,49 @@ export default function ContentLibrary({
             </span>
           </div>
           
-          <p className="text-xs text-gray-400 mb-3">Drag to calendar to schedule</p>
+          {/* Responsive help text */}
+          <p className="text-xs text-gray-400 mb-3">
+            <span className="hidden lg:inline">Drag to calendar to schedule</span>
+            <span className="lg:hidden">Tap to select, then tap calendar date</span>
+          </p>
           
           <div className="space-y-2">
             {automations.length > 0 ? (
-              automations.map((automation) => (
-                <div
-                  key={automation.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, automation)}
-                  className={cn(
-                    "flex items-center gap-2 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-all",
-                    "hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700",
-                    automation.active
-                      ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20"
-                      : "border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900"
-                  )}
-                >
-                  <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="text-sm truncate flex-1 text-gray-900 dark:text-white">{automation.name}</span>
-                  {automation.active && (
-                    <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-                  )}
-                </div>
-              ))
+              automations.map((automation) => {
+                const isSelected = selectedAutomationId === automation.id;
+                return (
+                  <div
+                    key={automation.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, automation)}
+                    onClick={() => onAutomationSelect?.(automation)}
+                    className={cn(
+                      "flex items-center gap-2 p-3 rounded-lg border transition-all",
+                      "lg:cursor-grab lg:active:cursor-grabbing cursor-pointer",
+                      "hover:shadow-md",
+                      isSelected 
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 ring-2 ring-blue-500"
+                        : automation.active
+                          ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 hover:border-blue-300 dark:hover:border-blue-700"
+                          : "border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900 hover:border-blue-300 dark:hover:border-blue-700"
+                    )}
+                  >
+                    {/* Show grip on desktop, checkmark on mobile when selected */}
+                    <div className="w-4 h-4 shrink-0">
+                      <GripVertical className="hidden lg:block w-4 h-4 text-gray-400" />
+                      {isSelected ? (
+                        <Check className="lg:hidden w-4 h-4 text-blue-500" />
+                      ) : (
+                        <div className="lg:hidden w-4 h-4" />
+                      )}
+                    </div>
+                    <span className="text-sm truncate flex-1 text-gray-900 dark:text-white">{automation.name}</span>
+                    {automation.active && (
+                      <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <p className="text-sm text-gray-400 text-center py-4">No automations yet</p>
             )}

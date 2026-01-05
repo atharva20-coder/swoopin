@@ -6,7 +6,7 @@ import ContentLibrary from "./content-library";
 import PostPreviewModal from "./post-preview";
 import CanvaPicker from "@/components/global/canva-picker";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Menu } from "lucide-react";
 import { 
   createScheduledPost, 
   updateScheduledPost, 
@@ -69,11 +69,31 @@ export default function SchedulerView({
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(initialScheduledPosts);
   const [drafts, setDrafts] = useState(initialDrafts);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedAutomation, setSelectedAutomation] = useState<{ id: string; name: string } | null>(null);
 
   const handleDateClick = (date: Date) => {
+    // If an automation is selected (mobile tap-to-schedule), schedule it
+    if (selectedAutomation) {
+      handleAutomationDrop(date, selectedAutomation);
+      setSelectedAutomation(null);
+      setIsSidebarOpen(false);
+      return;
+    }
+    
     setSelectedPost(null);
     setSelectedDate(date);
     setIsModalOpen(true);
+  };
+
+  // Handle automation selection for mobile tap-to-schedule
+  const handleAutomationTap = (automation: { id: string; name: string; active: boolean }) => {
+    if (selectedAutomation?.id === automation.id) {
+      // Deselect if already selected
+      setSelectedAutomation(null);
+    } else {
+      setSelectedAutomation({ id: automation.id, name: automation.name });
+    }
   };
 
   const handlePostClick = (post: { id: string }) => {
@@ -330,25 +350,53 @@ export default function SchedulerView({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 px-1 py-3 text-sm">
-        <a href={`/dashboard/${slug}`} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-          Dashboard
-        </a>
-        <span className="text-gray-400">/</span>
-        <span className="text-gray-900 dark:text-white font-medium">Scheduler</span>
+      {/* Breadcrumbs with mobile toggle */}
+      <div className="flex items-center justify-between px-1 py-3 text-sm">
+        <div className="flex items-center gap-2">
+          <a href={`/dashboard/${slug}`} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+            Dashboard
+          </a>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-900 dark:text-white font-medium">Scheduler</span>
+        </div>
+        
+        {/* Mobile sidebar toggle */}
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="lg:hidden p-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+          aria-label="Open content library"
+        >
+          <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        </button>
       </div>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden gap-4">
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        
         {/* Left Sidebar - Content Library */}
-        <ContentLibrary
-          automations={automations}
-          drafts={drafts}
-          onCreatePost={handleCreatePost}
-          onConnectCanva={handleConnectCanva}
-          onDraftClick={handleDraftClick}
-        />
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-80 transform transition-transform duration-300 lg:relative lg:inset-auto lg:z-auto lg:w-72 lg:transform-none
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <ContentLibrary
+            automations={automations}
+            drafts={drafts}
+            onCreatePost={() => { handleCreatePost(); setIsSidebarOpen(false); }}
+            onConnectCanva={() => { handleConnectCanva(); setIsSidebarOpen(false); }}
+            onDraftClick={(draft) => { handleDraftClick(draft); setIsSidebarOpen(false); }}
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onAutomationSelect={handleAutomationTap}
+            selectedAutomationId={selectedAutomation?.id || null}
+          />
+        </div>
 
         {/* Main Calendar */}
         <SchedulerCalendar

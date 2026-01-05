@@ -352,9 +352,11 @@ export default function SchedulerCalendar({
   const MonthView = () => (
     <>
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-neutral-800">
-        {DAYS.map((day) => (
-          <div key={day} className="py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
-            {day}
+        {DAYS.map((day, i) => (
+          <div key={day} className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
+            {/* Single letter on mobile, abbreviated on desktop */}
+            <span className="sm:hidden">{day.charAt(0)}</span>
+            <span className="hidden sm:inline">{day}</span>
           </div>
         ))}
       </div>
@@ -375,7 +377,7 @@ export default function SchedulerCalendar({
               onDragLeave={() => setDragOverDate(null)}
               onDrop={(e) => handleDrop(e, date)}
               className={cn(
-                "border-b border-r border-gray-100 dark:border-neutral-800 p-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-h-[120px] overflow-hidden",
+                "border-b border-r border-gray-100 dark:border-neutral-800 p-1 sm:p-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors min-h-[80px] sm:min-h-[120px] overflow-hidden",
                 !inCurrentMonth && "bg-gray-50 dark:bg-neutral-900/50",
                 isCurrentDay && "bg-blue-50/50 dark:bg-blue-950/30",
                 isDragOver && "bg-green-100 dark:bg-green-900/30 ring-2 ring-green-400 ring-inset"
@@ -383,7 +385,7 @@ export default function SchedulerCalendar({
             >
               <div className="flex flex-col h-full">
                 <span className={cn(
-                  "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full mb-1",
+                  "text-xs sm:text-sm font-medium w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-full mb-0.5 sm:mb-1",
                   isCurrentDay ? "bg-blue-600 text-white" : inCurrentMonth ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-600"
                 )}>
                   {date.getDate()}
@@ -391,15 +393,15 @@ export default function SchedulerCalendar({
                 
                 {isDragOver ? (
                   <div className="flex-1 flex items-center justify-center">
-                    <span className="text-xs text-green-600 font-medium">Drop to schedule</span>
+                    <span className="text-[10px] sm:text-xs text-green-600 font-medium">Drop here</span>
                   </div>
                 ) : (
-                  <div className="flex-1 space-y-1 overflow-y-auto">
+                  <div className="flex-1 space-y-0.5 sm:space-y-1 overflow-y-auto">
                     {posts.slice(0, 2).map((post) => (
                       <PostCard key={post.id} post={post} />
                     ))}
                     {posts.length > 2 && (
-                      <span className="text-[10px] text-gray-500 block text-center">+{posts.length - 2} more</span>
+                      <span className="text-[8px] sm:text-[10px] text-gray-500 block text-center">+{posts.length - 2} more</span>
                     )}
                   </div>
                 )}
@@ -521,12 +523,12 @@ export default function SchedulerCalendar({
   return (
     <div className="flex-1 flex flex-col h-full bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
       {/* Calendar Header */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white truncate">
           {getHeaderTitle()}
         </h2>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* View Mode Toggle */}
           <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-lg p-1">
             {(["Month", "Week", "Day"] as ViewMode[]).map((mode) => (
@@ -534,13 +536,15 @@ export default function SchedulerCalendar({
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={cn(
-                  "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                  "px-2 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors",
                   viewMode === mode
                     ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 )}
               >
-                {mode}
+                {/* Show initial only on mobile for Month/Week */}
+                <span className="sm:hidden">{mode === "Month" ? "M" : mode === "Week" ? "W" : "D"}</span>
+                <span className="hidden sm:inline">{mode}</span>
               </button>
             ))}
           </div>
@@ -557,7 +561,7 @@ export default function SchedulerCalendar({
           
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+            className="px-2 sm:px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
           >
             Today
           </button>

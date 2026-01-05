@@ -91,6 +91,7 @@ export default function PostPreviewModal({
   const [catalogAvailable, setCatalogAvailable] = useState<boolean | null>(null);
   const [paidPartnership, setPaidPartnership] = useState(false);
   const [paidPartnershipLabel, setPaidPartnershipLabel] = useState("");
+  const [mobileTab, setMobileTab] = useState<"preview" | "schedule">("preview");
 
   // Check if product catalog is available
   useEffect(() => {
@@ -377,13 +378,13 @@ export default function PostPreviewModal({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={mediaUrls[0]} alt="Reel preview" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 to-black z-10">
             <div className="text-center">
               <Play className="w-12 h-12 text-white/50 mx-auto mb-2" />
               <p className="text-white/50 text-xs">Add video for Reel</p>
               <button
                 onClick={() => setShowMediaInput(true)}
-                className="mt-2 px-3 py-1.5 bg-white/20 rounded-full text-white text-xs"
+                className="mt-2 px-3 py-1.5 bg-white/20 rounded-full text-white text-xs hover:bg-white/30 transition-colors"
               >
                 Add Video
               </button>
@@ -501,7 +502,7 @@ export default function PostPreviewModal({
       </div>
 
       {/* Story content */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center z-10">
         {mediaUrls.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={mediaUrls[0]} alt="Story preview" className="w-full h-full object-cover" />
@@ -513,7 +514,7 @@ export default function PostPreviewModal({
             <p className="text-white/50 text-xs">Add image or video</p>
             <button
               onClick={() => setShowMediaInput(true)}
-              className="mt-2 px-4 py-2 bg-white text-black rounded-full text-xs font-semibold"
+              className="mt-2 px-4 py-2 bg-white text-black rounded-full text-xs font-semibold hover:bg-gray-200 transition-colors"
             >
               Add Media
             </button>
@@ -570,60 +571,124 @@ export default function PostPreviewModal({
     </div>
   );
 
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="relative flex gap-6 items-start">
-        {/* iPhone Frame */}
-        <div className="relative">
-          {/* iPhone Outer Frame */}
-          <div className="relative w-[320px] h-[680px] bg-gray-900 rounded-[50px] p-3 shadow-2xl">
-            {/* iPhone Inner Bezel */}
-            <div className="w-full h-full bg-black rounded-[38px] overflow-hidden relative">
-              {/* Dynamic Island */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-20 flex items-center justify-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-gray-800" />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-700" />
-              </div>
-              
-              {/* Status Bar */}
-              <div className="absolute top-0 left-0 right-0 h-12 z-10 flex items-end justify-between px-8 pb-1">
-                <span className="text-white text-xs font-semibold">{currentTime}</span>
-                <div className="flex items-center gap-1">
-                  <Signal className="w-3.5 h-3.5 text-white" />
-                  <Wifi className="w-3.5 h-3.5 text-white" />
-                  <Battery className="w-5 h-3 text-white" />
-                </div>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      {/* Mobile Layout - Full screen with tabs */}
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        className="relative w-full h-full sm:w-auto sm:h-auto flex flex-col sm:flex-row gap-0 sm:gap-6 items-stretch sm:items-start sm:bg-transparent overflow-hidden sm:overflow-visible"
+      >
+        {/* Mobile Header */}
+        <div className="sm:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Create Post</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-              {/* Screen Content */}
-              <div className="w-full h-full pt-12 flex flex-col">
-                {/* Post Type Tabs */}
-                <div className="flex bg-gray-100 dark:bg-neutral-800 mx-2 rounded-lg p-0.5">
-                  {POST_TYPES.map((type) => (
-                    <button
-                      key={type.value}
-                      onClick={() => setPostType(type.value)}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-medium transition-all",
-                        postType === type.value ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
-                      )}
-                    >
-                      <type.icon className="w-3 h-3" />
-                      {type.label}
-                    </button>
-                  ))}
+        {/* Mobile Tabs */}
+        <div className="sm:hidden flex bg-gray-100 dark:bg-neutral-800 m-3 rounded-lg p-1">
+          <button
+            onClick={() => setMobileTab("preview")}
+            className={cn(
+              "flex-1 py-2 text-sm font-medium rounded-md transition-colors",
+              mobileTab === "preview" ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+            )}
+          >
+            Preview
+          </button>
+          <button
+            onClick={() => setMobileTab("schedule")}
+            className={cn(
+              "flex-1 py-2 text-sm font-medium rounded-md transition-colors",
+              mobileTab === "schedule" ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+            )}
+          >
+            Schedule
+          </button>
+        </div>
+
+        {/* iPhone Frame - Hidden on mobile when schedule tab active */}
+        <div className={cn("relative flex-1 sm:flex-none overflow-auto sm:overflow-visible", mobileTab !== "preview" && "hidden sm:block")}>
+          {/* Mobile Preview (no iPhone frame) */}
+          <div className="sm:hidden h-full flex flex-col">
+            {/* Post Type Tabs */}
+            <div className="flex bg-gray-100 dark:bg-neutral-800 mx-3 rounded-lg p-0.5 mb-2 shrink-0">
+              {POST_TYPES.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={() => setPostType(type.value)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-medium transition-all",
+                    postType === type.value ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+                  )}
+                >
+                  <type.icon className="w-4 h-4" />
+                  {type.label}
+                </button>
+              ))}
+            </div>
+            {/* Preview Content - needs min-height for absolute positioned content (Reel/Story) */}
+            <div className="flex-1 overflow-auto px-3 pb-3 relative" style={{ minHeight: '400px' }}>
+              {postType === "POST" && <InstagramPostPreview />}
+              {postType === "REEL" && <InstagramReelPreview />}
+              {postType === "STORY" && <InstagramStoryPreview />}
+            </div>
+          </div>
+
+          {/* Desktop iPhone Frame */}
+          <div className="hidden sm:block relative">
+            {/* iPhone Outer Frame */}
+            <div className="relative w-[320px] h-[680px] bg-gray-900 rounded-[50px] p-3 shadow-2xl">
+              {/* iPhone Inner Bezel */}
+              <div className="w-full h-full bg-black rounded-[38px] overflow-hidden relative">
+                {/* Dynamic Island */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-20 flex items-center justify-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-gray-800" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-700" />
+                </div>
+                
+                {/* Status Bar */}
+                <div className="absolute top-0 left-0 right-0 h-12 z-10 flex items-end justify-between px-8 pb-1">
+                  <span className="text-white text-xs font-semibold">{currentTime}</span>
+                  <div className="flex items-center gap-1">
+                    <Signal className="w-3.5 h-3.5 text-white" />
+                    <Wifi className="w-3.5 h-3.5 text-white" />
+                    <Battery className="w-5 h-3 text-white" />
+                  </div>
                 </div>
 
-                {/* Preview Content */}
-                <div className="flex-1 overflow-hidden mt-1">
-                  {postType === "POST" && <InstagramPostPreview />}
-                  {postType === "REEL" && <InstagramReelPreview />}
-                  {postType === "STORY" && <InstagramStoryPreview />}
-                </div>
+                {/* Screen Content */}
+                <div className="w-full h-full pt-12 flex flex-col">
+                  {/* Post Type Tabs */}
+                  <div className="flex bg-gray-100 dark:bg-neutral-800 mx-2 rounded-lg p-0.5">
+                    {POST_TYPES.map((type) => (
+                      <button
+                        key={type.value}
+                        onClick={() => setPostType(type.value)}
+                        className={cn(
+                          "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-medium transition-all",
+                          postType === type.value ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+                        )}
+                      >
+                        <type.icon className="w-3 h-3" />
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Home Indicator */}
-                <div className="h-8 flex items-center justify-center">
-                  <div className="w-32 h-1 bg-white/30 rounded-full" />
+                  {/* Preview Content */}
+                  <div className="flex-1 overflow-hidden mt-1">
+                    {postType === "POST" && <InstagramPostPreview />}
+                    {postType === "REEL" && <InstagramReelPreview />}
+                    {postType === "STORY" && <InstagramStoryPreview />}
+                  </div>
+
+                  {/* Home Indicator */}
+                  <div className="h-8 flex items-center justify-center">
+                    <div className="w-32 h-1 bg-white/30 rounded-full" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -631,12 +696,15 @@ export default function PostPreviewModal({
         </div>
 
         {/* Side Panel - Schedule & Actions */}
-        <div className="w-72 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="p-4 border-b border-gray-100 dark:border-neutral-800">
+        <div className={cn(
+          "sm:w-72 bg-white dark:bg-neutral-900 sm:rounded-2xl sm:shadow-2xl overflow-hidden flex-1 sm:flex-none",
+          mobileTab !== "schedule" && "hidden sm:block"
+        )}>
+          <div className="hidden sm:block p-4 border-b border-gray-100 dark:border-neutral-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">Schedule Post</h3>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
             {/* Date Picker */}
             <div>
               <label className="text-xs text-gray-500 mb-1 block flex items-center gap-1">
@@ -747,8 +815,8 @@ export default function PostPreviewModal({
             )}
           </div>
 
-          {/* Close */}
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-gray-200 transition-colors">
+          {/* Close - Desktop only */}
+          <button onClick={onClose} className="hidden sm:flex absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 items-center justify-center hover:bg-gray-200 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
