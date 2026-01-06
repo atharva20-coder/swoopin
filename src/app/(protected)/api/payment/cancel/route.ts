@@ -1,13 +1,21 @@
-import { stripe } from "@/lib/stripe";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from "@/lib/rate-limiter";
-import { client } from "@/lib/prisma";
+/**
+ * Cancel Subscription API Route
+ * 
+ * Marks the subscription to not renew at period end.
+ * User keeps PRO access until current period ends, then downgrades to FREE.
+ * 
+ * POST /api/payment/cancel
+ */
+
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { applyRateLimit } from '@/lib/rate-limiter';
+import { client } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   // Apply rate limiting
-  const rateLimitResult = await applyRateLimit(req, "API");
+  const rateLimitResult = await applyRateLimit(req, 'API');
   if (!rateLimitResult.allowed) {
     return rateLimitResult.response;
   }
@@ -15,9 +23,9 @@ export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  
+
   if (!session?.user) {
-    return NextResponse.json({ status: 401, error: "Unauthorized" });
+    return NextResponse.json({ status: 401, error: 'Unauthorized' });
   }
 
   try {
@@ -27,57 +35,64 @@ export async function POST(req: NextRequest) {
       include: { subscription: true },
     });
 
-    if (!dbUser?.subscription?.customerId) {
-      return NextResponse.json({ 
-        status: 400, 
-        error: "No active subscription found" 
+    if (!dbUser?.subscription) {
+      return NextResponse.json({
+        status: 400,
+        error: 'No subscription found',
       });
     }
 
-    // Get customer's subscriptions from Stripe
-    const subscriptions = await stripe.subscriptions.list({
-      customer: dbUser.subscription.customerId,
-      status: "active",
-    });
+    const subscription = dbUser.subscription;
 
-    if (subscriptions.data.length === 0) {
-      return NextResponse.json({ 
-        status: 400, 
-        error: "No active subscription found" 
+    // Check if already on FREE plan
+    if (subscription.plan === 'FREE') {
+      return NextResponse.json({
+        status: 400,
+        error: 'You are already on the Free plan',
       });
     }
 
-    // Cancel at period end (user keeps access until end of billing period)
-    const subscription = await stripe.subscriptions.update(
-      subscriptions.data[0].id,
-      {
-        cancel_at_period_end: true,
-      }
-    );
+    // Check if already cancelling
+    if (subscription.cancelAtPeriodEnd) {
+      return NextResponse.json({
+        status: 200,
+        message: 'Subscription is already set to cancel',
+        endsAt: subscription.currentPeriodEnd?.toISOString(),
+      });
+    }
 
-    const periodEndDate = new Date(subscription.current_period_end * 1000);
+    // Get period end date (or set to now if not available)
+    const periodEndDate = subscription.currentPeriodEnd || new Date();
 
-    // Mark subscription as cancelled but keep PRO plan until period ends
-    // The plan will be changed to FREE when the period actually ends (via webhook or cron)
+    // Mark subscription to cancel at period end
+    // User keeps PRO access until period ends
     await client.subscription.update({
-      where: { id: dbUser.subscription.id },
+      where: { id: subscription.id },
       data: {
         cancelAtPeriodEnd: true,
-        currentPeriodEnd: periodEndDate,
         // Keep the current plan - don't change to FREE yet!
+        // The plan will be changed to FREE when the period actually ends (via cron)
+      },
+    });
+
+    // Create notification
+    await client.notification.create({
+      data: {
+        userId: dbUser.id,
+        content: `Your subscription will end on ${periodEndDate.toLocaleDateString()}. You'll keep PRO access until then.`,
       },
     });
 
     return NextResponse.json({
       status: 200,
-      message: "Subscription will be cancelled at end of billing period",
+      message: 'Subscription will be cancelled at end of billing period',
       endsAt: periodEndDate.toISOString(),
     });
   } catch (error) {
-    console.error("Error cancelling subscription:", error);
-    return NextResponse.json({ 
-      status: 500, 
-      error: "Failed to cancel subscription" 
+    console.error('[Cancel Subscription] Error:', error);
+    return NextResponse.json({
+      status: 500,
+      error: 'Failed to cancel subscription',
     });
   }
 }

@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       freeUsers,
       proUsers,
       enterpriseUsers,
-      // These would come from Stripe in a real implementation
+      // Revenue tracking can be implemented via Cashfree dashboard
       totalRevenue: 0,
       monthlyRevenue: 0,
     };

@@ -1122,7 +1122,7 @@ function AnalyticsAnimation({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative w-full h-full min-h-[400px] bg-neutral-950 rounded-xl overflow-hidden p-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
           { label: 'Total Reach', value: counters.reach, prefix: '' },
           { label: 'Engagement', value: counters.engagement, prefix: '' },
@@ -1545,7 +1545,7 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
       </div>
       
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-6 p-6 border-b border-gray-200 dark:border-neutral-800">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 p-4 sm:p-6 border-b border-gray-200 dark:border-neutral-800">
         <div className="text-center">
           <p className="text-3xl font-bold text-gray-900 dark:text-white">{rows.length}</p>
           <p className="text-gray-500 dark:text-neutral-500 text-sm">New Leads</p>
@@ -1565,7 +1565,7 @@ function DataHubAnimation({ isActive }: { isActive: boolean }) {
       </div>
       
       {/* Table Header */}
-      <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-100 dark:bg-neutral-900/50 text-sm text-gray-500 dark:text-neutral-500 font-medium">
+      <div className="hidden sm:grid grid-cols-5 gap-4 px-6 py-4 bg-gray-100 dark:bg-neutral-900/50 text-sm text-gray-500 dark:text-neutral-500 font-medium">
         <span>Name</span>
         <span>Handle</span>
         <span>Email</span>
@@ -1999,9 +1999,9 @@ export default function LandingPage() {
             {/* Dashboard Header */}
             <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-neutral-500">Auctorn</span>
+                <span className="text-gray-500 dark:text-neutral-500">Dashboard</span>
                 <ChevronRight className="w-3 h-3 text-gray-500 dark:text-neutral-600" />
-                <span className="text-gray-900 dark:text-white font-medium">Dashboard</span>
+                <span className="text-gray-900 dark:text-white font-medium">Home</span>
               </div>
               <div className="hidden sm:flex items-center gap-3">
                 <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 dark:bg-neutral-800 rounded-lg">
@@ -2148,7 +2148,7 @@ export default function LandingPage() {
                     </div>
                     
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                       {[
                         { icon: ArrowRight, label: 'Link Requests', value: '3' },
                         { icon: MessageCircle, label: 'DMs Generated', value: '3' },
@@ -2191,8 +2191,8 @@ export default function LandingPage() {
       </section>
 
       {/* Platforms Section - Mobile optimized */}
-      <section className="relative min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50">
-        <div className="relative max-w-5xl mx-auto text-center">
+      <section className="relative min-h-[70vh] sm:min-h-screen flex flex-col justify-center py-16 sm:py-32 px-5 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-neutral-800/50 overflow-x-hidden">
+        <div className="relative max-w-5xl mx-auto text-center w-full">
 
           
           <div className="text-center mb-10 sm:mb-16">
@@ -2204,7 +2204,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="relative overflow-hidden w-full max-w-[100vw] sm:max-w-7xl mx-auto mask-linear-fade">
+          <div className="relative overflow-hidden w-full mx-auto mask-linear-fade">
             {/* Row 1: Platforms (Left) */}
             <div className="flex gap-4 sm:gap-8 mb-4 sm:mb-6 w-max animate-scroll-left">
               {[...platforms, ...platforms, ...platforms, ...platforms].map((platform, i) => (

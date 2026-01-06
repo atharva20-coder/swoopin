@@ -1,12 +1,21 @@
-import { client } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
-import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+/**
+ * Admin Payment Status Check API
+ * 
+ * Check payment status from Cashfree and update DB.
+ * Used for enterprise enquiries.
+ * 
+ * GET /api/admin/enquiries/[id]/payment-status
+ */
+
+import { client } from '@/lib/prisma';
+import { getOrderStatus } from '@/lib/payments/cashfree/orders';
+import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 // List of admin email addresses
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+  .split(',')
   .map((email) => email.trim().toLowerCase())
   .filter((email) => email.length > 0);
 
@@ -14,14 +23,14 @@ async function isAdmin(): Promise<boolean> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  
+
   if (!session?.user) return false;
   return ADMIN_EMAILS.includes(session.user.email.toLowerCase());
 }
 
 /**
  * GET /api/admin/enquiries/[id]/payment-status
- * Check payment status from Stripe and update DB
+ * Check payment status from Cashfree and update DB
  */
 export async function GET(
   req: NextRequest,
@@ -29,7 +38,7 @@ export async function GET(
 ) {
   try {
     if (!(await isAdmin())) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get the enquiry
@@ -38,33 +47,36 @@ export async function GET(
     });
 
     if (!enquiry) {
-      return NextResponse.json({ error: "Enquiry not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 });
     }
 
-    if (!enquiry.stripeSessionId) {
+    if (!enquiry.cashfreeOrderId) {
       return NextResponse.json({
         success: true,
-        paymentStatus: enquiry.paymentStatus || "PENDING",
-        message: "No payment session created yet",
+        paymentStatus: enquiry.paymentStatus || 'PENDING',
+        message: 'No payment session created yet',
       });
     }
 
-    // Check Stripe session status
-    const session = await stripe.checkout.sessions.retrieve(enquiry.stripeSessionId);
-    
+    // Check Cashfree order status
+    const orderResult = await getOrderStatus(enquiry.cashfreeOrderId);
+
+    if (!orderResult.success) {
+      return NextResponse.json({
+        success: false,
+        paymentStatus: enquiry.paymentStatus,
+        error: orderResult.error,
+      });
+    }
+
     let newPaymentStatus = enquiry.paymentStatus;
     let transactionId = enquiry.transactionId;
 
-    if (session.payment_status === "paid") {
-      newPaymentStatus = "PAID";
-      // Get the subscription ID as transaction reference
-      if (session.subscription) {
-        transactionId = typeof session.subscription === 'string' 
-          ? session.subscription 
-          : session.subscription.id;
-      }
-    } else if (session.status === "expired") {
-      newPaymentStatus = "EXPIRED";
+    if (orderResult.status === 'PAID') {
+      newPaymentStatus = 'PAID';
+      transactionId = enquiry.cashfreeOrderId;
+    } else if (orderResult.status === 'EXPIRED') {
+      newPaymentStatus = 'EXPIRED';
     }
 
     // Update DB if status changed
@@ -82,13 +94,12 @@ export async function GET(
       success: true,
       paymentStatus: newPaymentStatus,
       transactionId: transactionId,
-      stripeStatus: session.status,
-      stripePaymentStatus: session.payment_status,
+      cashfreeStatus: orderResult.status,
     });
   } catch (error) {
-    console.error("Error checking payment status:", error);
+    console.error('[Admin Payment Status] Error:', error);
     return NextResponse.json(
-      { error: "Failed to check payment status" },
+      { error: 'Failed to check payment status' },
       { status: 500 }
     );
   }

@@ -1,25 +1,22 @@
-import { stripe } from "@/lib/stripe";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
-import { applyRateLimit } from "@/lib/rate-limiter";
-import { client } from "@/lib/prisma";
+/**
+ * Payment API Route
+ * 
+ * Creates a Cashfree payment order for subscription purchases.
+ * Uses dynamic pricing from code (not Cashfree Dashboard).
+ * 
+ * GET /api/payment?plan=PRO&cycle=monthly
+ */
 
-// Price IDs for different plans (you'll need to create these in Stripe)
-const PRICE_IDS = {
-  PRO: {
-    monthly: process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
-  },
-  ENTERPRISE: {
-    monthly: process.env.STRIPE_ENTERPRISE_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_ENTERPRISE_ANNUAL_PRICE_ID,
-  },
-};
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { applyRateLimit } from '@/lib/rate-limiter';
+import { client } from '@/lib/prisma';
+import { createPaymentOrder } from '@/lib/payments/cashfree/orders';
 
 export async function GET(req: NextRequest) {
   // Apply rate limiting (API tier - 100 requests/minute)
-  const rateLimitResult = await applyRateLimit(req, "API");
+  const rateLimitResult = await applyRateLimit(req, 'API');
   if (!rateLimitResult.allowed) {
     return rateLimitResult.response;
   }
@@ -27,88 +24,74 @@ export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  
+
   if (!session?.user) {
-    return NextResponse.json({ status: 404 });
+    return NextResponse.json({ status: 401, error: 'Unauthorized' });
   }
 
   // Get plan and cycle from query params
   const { searchParams } = new URL(req.url);
-  const plan = searchParams.get("plan") || "PRO";
-  const cycle = searchParams.get("cycle") || "monthly";
+  const plan = searchParams.get('plan') || 'PRO';
+  const cycle = searchParams.get('cycle') || 'monthly';
 
-  // Validate plan
-  if (plan !== "PRO" && plan !== "ENTERPRISE") {
-    return NextResponse.json({ status: 400, error: "Invalid plan" });
+  // Validate plan (only PRO supported currently)
+  if (plan !== 'PRO') {
+    return NextResponse.json({ status: 400, error: 'Invalid plan. Use PRO.' });
   }
 
-  // Get price ID based on plan and cycle
-  const priceId = PRICE_IDS[plan][cycle as "monthly" | "annual"];
-  
-  if (!priceId) {
-    // Fallback to legacy price ID if specific ones not configured
-    const fallbackPriceId = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
-    if (!fallbackPriceId) {
-      return NextResponse.json({ status: 500, error: "Price not configured" });
-    }
+  // Validate cycle
+  if (cycle !== 'monthly' && cycle !== 'annual') {
+    return NextResponse.json({ status: 400, error: 'Invalid cycle. Use monthly or annual.' });
   }
 
-  // Get or create Stripe customer
-  let customerId: string | undefined;
-  
-  const dbUser = await client.user.findUnique({
-    where: { email: session.user.email },
-    include: { subscription: true },
-  });
-
-  if (dbUser?.subscription?.customerId) {
-    customerId = dbUser.subscription.customerId;
-  } else {
-    // Create new Stripe customer
-    const customer = await stripe.customers.create({
-      email: session.user.email,
-      name: session.user.name || undefined,
-      metadata: {
-        userId: session.user.id,
-      },
+  try {
+    // Get user from database
+    const dbUser = await client.user.findUnique({
+      where: { email: session.user.email },
+      include: { subscription: true },
     });
-    customerId = customer.id;
-    
-    // Save customer ID
-    if (dbUser?.subscription) {
-      await client.subscription.update({
-        where: { id: dbUser.subscription.id },
-        data: { customerId },
+
+    if (!dbUser) {
+      return NextResponse.json({ status: 404, error: 'User not found' });
+    }
+
+    // Build webhook URL for payment notifications
+    const baseUrl = process.env.NEXT_PUBLIC_HOST_URL || process.env.NEXT_PUBLIC_API_URL;
+    const returnUrl = `${baseUrl}/payment`;
+    const notifyUrl = `${baseUrl}/api/cashfree/webhook`;
+
+    // Create Cashfree payment order
+    const orderResult = await createPaymentOrder({
+      userId: dbUser.id,
+      userEmail: session.user.email,
+      userName: session.user.name || undefined,
+      plan: plan as 'PRO',
+      cycle: cycle as 'monthly' | 'annual',
+      returnUrl,
+      notifyUrl,
+    });
+
+    if (!orderResult.success) {
+      console.error('[Payment] Order creation failed:', orderResult.error);
+      return NextResponse.json({ 
+        status: 500, 
+        error: orderResult.error || 'Failed to create payment order' 
       });
     }
-  }
 
-  // Create Stripe checkout session
-  const checkoutSession = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [
-      {
-        price: priceId || process.env.STRIPE_SUBSCRIPTION_PRICE_ID,
-        quantity: 1,
-      },
-    ],
-    payment_method_types: ["card"],
-    success_url: `${process.env.NEXT_PUBLIC_HOST_URL}/payment?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_HOST_URL}/payment?cancel=true`,
-    metadata: {
-      userId: session.user.id,
-      plan,
-      cycle,
-    },
-  });
-
-  if (checkoutSession) {
+    // Return payment session for frontend JS SDK integration
+    // Frontend will use: cashfree.checkout({ paymentSessionId })
     return NextResponse.json({
       status: 200,
-      session_url: checkoutSession.url,
+      payment_session_id: orderResult.paymentSessionId,
+      order_id: orderResult.orderId,
+      amount: orderResult.amount,
+    });
+  } catch (error) {
+    console.error('[Payment] Error:', error);
+    return NextResponse.json({ 
+      status: 500, 
+      error: 'Failed to initiate payment' 
     });
   }
-
-  return NextResponse.json({ status: 400 });
 }

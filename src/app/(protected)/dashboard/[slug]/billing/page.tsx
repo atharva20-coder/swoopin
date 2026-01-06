@@ -194,12 +194,46 @@ export default function BillingPage() {
     try {
       const response = await fetch(`/api/payment?plan=${plan}&cycle=${billingCycle}`);
       const data = await response.json();
-      if (data.session_url) {
-        window.location.href = data.session_url;
+      
+      if (data.payment_session_id) {
+        // Dynamically load Cashfree JS SDK
+        const loadCashfreeSDK = (): Promise<void> => {
+          return new Promise((resolve, reject) => {
+            // Check if already loaded
+            if ((window as unknown as { Cashfree?: unknown }).Cashfree) {
+              resolve();
+              return;
+            }
+            const script = document.createElement("script");
+            script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
+            document.body.appendChild(script);
+          });
+        };
+        
+        await loadCashfreeSDK();
+        
+        // Initialize Cashfree and open checkout
+        const Cashfree = (window as unknown as { Cashfree: (config: { mode: string }) => { checkout: (options: { paymentSessionId: string; redirectTarget: string }) => Promise<{ error?: { message: string } }> } }).Cashfree;
+        const cashfree = Cashfree({ 
+          mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "production" ? "production" : "sandbox" 
+        });
+        
+        const result = await cashfree.checkout({
+          paymentSessionId: data.payment_session_id,
+          redirectTarget: "_self",
+        });
+        
+        if (result.error) {
+          toast.error(result.error.message || "Payment failed");
+        }
       } else {
-        toast.error("Failed to start checkout");
+        toast.error(data.error || "Failed to start checkout");
       }
     } catch (error) {
+      console.error("Payment error:", error);
       toast.error("Something went wrong");
     } finally {
       setIsLoading(null);
@@ -577,7 +611,7 @@ export default function BillingPage() {
             </div>
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <Shield className="w-5 h-5" />
-              <span>Secure Payments via Stripe</span>
+              <span>Secure Payments via Cashfree</span>
             </div>
           </div>
         </div>

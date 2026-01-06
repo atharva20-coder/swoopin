@@ -47,12 +47,12 @@ const InfoBar = ({ slug, isAdmin = false }: Props) => {
       <div className="flex items-center justify-between w-full py-4">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-          <Link href="/dashboard" className="hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
-            Auctorn
+          <Link href={`/dashboard/${slug}`} className="hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+            Dashboard
           </Link>
-          <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-gray-400">/</span>
           <span className="text-gray-900 dark:text-white font-medium">
-            {page === slug ? "Dashboard" : page.charAt(0).toUpperCase() + page.slice(1)}
+            {page === slug ? "Home" : page.charAt(0).toUpperCase() + page.slice(1)}
           </span>
         </div>
         

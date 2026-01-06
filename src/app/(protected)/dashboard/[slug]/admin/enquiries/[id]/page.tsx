@@ -28,7 +28,7 @@ type Enquiry = {
   customAiLimit: number | null;
   dealAmount: number | null;
   dealClosed: boolean;
-  stripeSessionId: string | null;
+  cashfreeOrderId: string | null;
   paymentStatus: string | null;
   transactionId: string | null;
   paymentLinkUrl: string | null;

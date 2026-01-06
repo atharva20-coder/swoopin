@@ -228,8 +228,8 @@ export default function AdminSettingsPage() {
             
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mb-4">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                💡 Offers are managed in Stripe. Create coupon codes in your Stripe Dashboard 
-                and they&apos;ll automatically work with checkout.
+                💡 Offers can be configured via Cashfree Dashboard or custom discount codes 
+                managed in your database.
               </p>
             </div>
 
@@ -268,13 +268,13 @@ export default function AdminSettingsPage() {
               </div>
               
               <a 
-                href="https://dashboard.stripe.com/coupons" 
+                href="https://merchant.cashfree.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                   <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Create in Stripe Dashboard
+                  Open Cashfree Dashboard
                 </Button>
               </a>
             </div>
@@ -309,9 +309,8 @@ export default function AdminSettingsPage() {
               
               <div className="mt-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  To update pricing, edit <code className="bg-gray-200 dark:bg-neutral-700 px-1 rounded">PLAN_LIMITS</code> in 
-                  <code className="bg-gray-200 dark:bg-neutral-700 px-1 rounded ml-1">src/lib/access-control.ts</code> 
-                  and Stripe product prices.
+                  To update pricing, edit <code className="bg-gray-200 dark:bg-neutral-700 px-1 rounded">PRICING</code> in 
+                  <code className="bg-gray-200 dark:bg-neutral-700 px-1 rounded ml-1">src/lib/payments/pricing.ts</code>
                 </p>
               </div>
             </div>

@@ -91,15 +91,15 @@ model Verification {
 }
 
 model Subscription {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String?           @unique @db.Uuid
-  createdAt         DateTime          @default(now())
-  plan              SUBSCRIPTION_PLAN @default(FREE)
-  updatedAt         DateTime          @default(now())
-  customerId        String?           @unique
-  cancelAtPeriodEnd Boolean           @default(false)
-  currentPeriodEnd  DateTime?
-  User              User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String?           @unique @db.Uuid
+  createdAt            DateTime          @default(now())
+  plan                 SUBSCRIPTION_PLAN @default(FREE)
+  updatedAt            DateTime          @default(now())
+  cashfreeCustomerId   String?           @unique  // Cashfree customer ID
+  cancelAtPeriodEnd    Boolean           @default(false)
+  currentPeriodEnd     DateTime?
+  User                 User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Integrations {
@@ -354,7 +354,7 @@ model EnterpriseEnquiry {
   paymentLinkUrl         String?
   paymentStatus          String?        @default("PENDING")
   phone                  String?
-  stripeSessionId        String?
+  cashfreeOrderId        String?  // Cashfree order ID for payment tracking
   transactionId          String?
   userType               String?
   isActive               Boolean        @default(false)
@@ -363,6 +363,22 @@ model EnterpriseEnquiry {
 
   @@index([userId])
   @@index([status])
+}
+
+// Track processed webhook events for idempotency
+model PaymentEvent {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId   String   @unique  // Unique event identifier
+  eventType String             // Event type (PAYMENT_SUCCESS, etc.)
+  userId    String?  @db.Uuid
+  orderId   String?            // Cashfree order ID
+  amount    Decimal? @db.Decimal(10, 2)
+  payload   Json               // Full webhook payload for audit
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@index([orderId])
 }
 
 model UserProfile {

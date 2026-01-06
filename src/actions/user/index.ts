@@ -7,7 +7,7 @@ import { createNotification } from "@/actions/notifications";
 import { createUser, findUser, findUserByEmail, updateSubscription } from "./queries";
 import { refreshToken } from "@/lib/fetch";
 import { updateIntegration } from "../integrations/queries";
-import { stripe } from "@/lib/stripe";
+import { getOrderStatus, calculateSubscriptionEndDate } from "@/lib/payments/cashfree/orders";
 
 // Get current authenticated user from Better-Auth session
 export const onCurrentUser = async () => {
@@ -139,27 +139,39 @@ export const onUserInfo = async () => {
   }
 };
 
-export const onSubscribe = async (session_id: string) => {
+/**
+ * Handle subscription after successful Cashfree payment
+ * Called from payment return page with order_id
+ */
+export const onSubscribe = async (order_id: string) => {
   const user = await onCurrentUser();
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session) {
-      const dbUser = await findUserByEmail(user.email);
-      if (!dbUser) return { status: 404 };
-      
-      const subscribed = await updateSubscription(dbUser.id, {
-        customerId: session.customer as string,
-        plan: "PRO",
-      });
-
-      if (subscribed) {
-        createNotification("You have subscribed to pro!", subscribed.id);
-        return { status: 200 };
-      }
-      return { status: 401 };
+    // Verify order status with Cashfree
+    const orderResult = await getOrderStatus(order_id);
+    
+    if (!orderResult.success || orderResult.status !== 'PAID') {
+      console.log('[onSubscribe] Order not paid:', orderResult);
+      return { status: 400, error: 'Payment not completed' };
     }
-    return { status: 404 };
+    
+    const dbUser = await findUserByEmail(user.email);
+    if (!dbUser) return { status: 404 };
+    
+    // Calculate subscription end date (default to monthly if unknown)
+    const periodEnd = calculateSubscriptionEndDate('monthly', 'PRO');
+    
+    const subscribed = await updateSubscription(dbUser.id, {
+      cashfreeCustomerId: dbUser.id,
+      plan: "PRO",
+    });
+
+    if (subscribed) {
+      createNotification("You have subscribed to Pro! Enjoy your premium features.", dbUser.id);
+      return { status: 200 };
+    }
+    return { status: 401 };
   } catch (error) {
+    console.error('[onSubscribe] Error:', error);
     return { status: 500 };
   }
 };
