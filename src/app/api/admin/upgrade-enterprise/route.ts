@@ -19,7 +19,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
  * 
  * Upgrade a user to Enterprise plan (admin only)
  * 
- * Body: { email: string, customerId?: string }
+ * Body: { email: string, cashfreeCustomerId?: string }
  * Headers: x-admin-secret: your-admin-secret OR authenticated as an admin user
  */
 export async function POST(req: NextRequest) {
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { email, customerId, enquiryId, subscriptionDays = 30 } = body;
+    const { email, cashfreeCustomerId, enquiryId, subscriptionDays = 30 } = body;
 
     if (!email) {
       return NextResponse.json(
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         where: { id: user.subscription.id },
         data: {
           plan: "ENTERPRISE",
-          customerId: customerId || user.subscription.customerId,
+          cashfreeCustomerId: cashfreeCustomerId || user.subscription.cashfreeCustomerId,
           cancelAtPeriodEnd: false,
           currentPeriodEnd: subscriptionEndDate,
         },
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           plan: "ENTERPRISE",
-          customerId: customerId || null,
+          cashfreeCustomerId: cashfreeCustomerId || null,
           currentPeriodEnd: subscriptionEndDate,
         },
       });
@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
         subscription: {
           select: {
             plan: true,
-            customerId: true,
+            cashfreeCustomerId: true,
             createdAt: true,
           },
         },

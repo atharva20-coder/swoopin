@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
         subscription: {
           select: {
             plan: true,
-            customerId: true,
+            cashfreeCustomerId: true,
           },
         },
       },
