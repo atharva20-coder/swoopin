@@ -10,7 +10,12 @@
     "lint": "next lint",
     "test": "vitest",
     "test:run": "vitest run",
-    "db:seed": "npx tsx prisma/seed.ts"
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:push:dev": "source .env.development && npx prisma db push",
+    "db:push:prod": "source .env.production && npx prisma db push",
+    "db:migrate:dev": "source .env.development && npx prisma migrate dev",
+    "db:studio:dev": "source .env.development && npx prisma studio",
+    "db:generate": "npx prisma generate"
   },
   "dependencies": {
     "@google/genai": "^1.33.0",
