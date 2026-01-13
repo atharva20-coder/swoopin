@@ -1,0 +1,465 @@
+import { client } from '@/lib/prisma';
+import { deleteCache, getOrSetCache } from '@/lib/cache';
+import {
+  AutomationListResponseSchema,
+  AutomationDetailResponseSchema,
+  AutomationCreatedResponseSchema,
+  AutomationUpdatedResponseSchema,
+  type AutomationListItem,
+  type AutomationDetail,
+  type CreateAutomationRequest,
+  type UpdateAutomationRequest,
+  type SaveListenerRequest,
+  type SaveTriggerRequest,
+  type SaveKeywordRequest,
+  type EditKeywordRequest,
+  type SavePostsRequest,
+  type AutomationCreatedResponse,
+  type AutomationUpdatedResponse,
+  type AutomationsPagination,
+  type PaginatedAutomationsResponse,
+} from '@/schemas/automation.schema';
+
+/**
+ * ============================================
+ * AUTOMATION SERVICE
+ * Business logic - accepts only validated data
+ * IDOR protection via userId ownership checks
+ * ============================================
+ */
+
+class AutomationService {
+  /**
+   * Get paginated automations for a user (IDOR: userId is from session)
+   */
+  async listByUser(
+    userId: string,
+    pagination: AutomationsPagination
+  ): Promise<PaginatedAutomationsResponse> {
+    const { cursor, limit } = pagination;
+
+    const automations = await client.automation.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit + 1, // Fetch one extra to check if there's more
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1, // Skip the cursor itself
+      }),
+      include: {
+        keywords: true,
+        listener: true,
+      },
+    });
+
+    const hasMore = automations.length > limit;
+    const data = hasMore ? automations.slice(0, limit) : automations;
+    const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
+
+    // Get total count
+    const total = await client.automation.count({ where: { userId } });
+
+    // Validate response
+    const validatedData = AutomationListResponseSchema.safeParse(data);
+    if (!validatedData.success) {
+      console.error('Automation list validation failed:', validatedData.error.format());
+      return { data: [], meta: { nextCursor: null, hasMore: false, total: 0 } };
+    }
+
+    return {
+      data: validatedData.data,
+      meta: { nextCursor, hasMore, total },
+    };
+  }
+
+  /**
+   * Get all automations for user (cached, no pagination)
+   */
+  async getAllByUser(userId: string): Promise<AutomationListItem[]> {
+    const result = await getOrSetCache(
+      `user:${userId}:automations`,
+      async () => {
+        const user = await client.user.findUnique({
+          where: { id: userId },
+          select: {
+            automations: {
+              orderBy: { createdAt: 'asc' },
+              include: {
+                keywords: true,
+                listener: true,
+              },
+            },
+          },
+        });
+        return user?.automations ?? [];
+      },
+      300
+    );
+
+    const validated = AutomationListResponseSchema.safeParse(result);
+    return validated.success ? validated.data : [];
+  }
+
+  /**
+   * Get automation by ID with ownership check
+   */
+  async getById(automationId: string, userId: string): Promise<AutomationDetail | null> {
+    const automation = await client.automation.findUnique({
+      where: { id: automationId },
+      include: {
+        keywords: true,
+        trigger: true,
+        posts: true,
+        listener: true,
+        carouselTemplates: {
+          include: {
+            elements: {
+              include: { buttons: true },
+              orderBy: { order: 'asc' },
+            },
+          },
+        },
+        User: {
+          select: {
+            subscription: true,
+            integrations: true,
+          },
+        },
+      },
+    });
+
+    // IDOR check: verify ownership
+    if (!automation || automation.userId !== userId) {
+      return null;
+    }
+
+    // Build response with extra computed fields
+    const rawData = {
+      id: automation.id,
+      name: automation.name,
+      active: automation.active,
+      createdAt: automation.createdAt,
+      keywords: automation.keywords,
+      trigger: automation.trigger,
+      posts: automation.posts,
+      listener: automation.listener,
+      carouselTemplates: automation.carouselTemplates,
+      hasProPlan: automation.User?.subscription?.plan === 'PRO',
+      hasIntegration: (automation.User?.integrations?.length ?? 0) > 0,
+    };
+
+    const validated = AutomationDetailResponseSchema.safeParse(rawData);
+    if (!validated.success) {
+      console.error('Automation detail validation failed:', validated.error.format());
+      return null;
+    }
+
+    return validated.data;
+  }
+
+  /**
+   * Create new automation
+   */
+  async create(userId: string, input: CreateAutomationRequest): Promise<AutomationCreatedResponse | null> {
+    const result = await client.automation.create({
+      data: {
+        ...(input.id && { id: input.id }),
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+
+    // Invalidate cache
+    await deleteCache(`user:${userId}:automations`);
+
+    const validated = AutomationCreatedResponseSchema.safeParse(result);
+    return validated.success ? validated.data : null;
+  }
+
+  /**
+   * Update automation with ownership check
+   */
+  async update(
+    automationId: string,
+    userId: string,
+    input: UpdateAutomationRequest
+  ): Promise<AutomationUpdatedResponse | null> {
+    // IDOR check first
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return null;
+    }
+
+    const result = await client.automation.update({
+      where: { id: automationId },
+      data: {
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.active !== undefined && { active: input.active }),
+      },
+      select: {
+        id: true,
+        name: true,
+        active: true,
+        createdAt: true,
+      },
+    });
+
+    // Invalidate cache
+    await deleteCache(`user:${userId}:automations`);
+
+    const validated = AutomationUpdatedResponseSchema.safeParse(result);
+    return validated.success ? validated.data : null;
+  }
+
+  /**
+   * Delete automation with ownership check
+   */
+  async delete(automationId: string, userId: string): Promise<boolean> {
+    // IDOR check first
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+
+    await client.automation.delete({ where: { id: automationId } });
+    await deleteCache(`user:${userId}:automations`);
+
+    return true;
+  }
+
+  /**
+   * Add listener to automation
+   */
+  async saveListener(
+    automationId: string,
+    userId: string,
+    input: SaveListenerRequest
+  ): Promise<boolean> {
+    // IDOR check
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+
+    await client.automation.update({
+      where: { id: automationId },
+      data: {
+        listener: {
+          upsert: {
+            create: {
+              listener: input.listener,
+              prompt: input.prompt,
+              commentReply: input.reply,
+              ...(input.listener === 'CAROUSEL' && { carouselTemplateId: input.carouselTemplateId }),
+            },
+            update: {
+              listener: input.listener,
+              prompt: input.prompt,
+              commentReply: input.reply,
+              ...(input.listener === 'CAROUSEL' && { carouselTemplateId: input.carouselTemplateId }),
+            },
+          },
+        },
+      },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Sync triggers for automation
+   */
+  async syncTriggers(
+    automationId: string,
+    userId: string,
+    input: SaveTriggerRequest
+  ): Promise<{ added: string[]; deleted: string[] } | null> {
+    // IDOR check
+    const automation = await client.automation.findUnique({
+      where: { id: automationId },
+      include: { trigger: true },
+    });
+
+    if (!automation || automation.userId !== userId) {
+      return null;
+    }
+
+    const existingTypes = automation.trigger.map((t) => t.type);
+    const newTypes = input.triggers as string[];
+
+    const toAdd = newTypes.filter((t) => !existingTypes.includes(t));
+    const toDelete = automation.trigger.filter((t) => !newTypes.includes(t.type));
+
+    if (toDelete.length > 0) {
+      await client.trigger.deleteMany({
+        where: { id: { in: toDelete.map((t) => t.id) } },
+      });
+    }
+
+    if (toAdd.length > 0) {
+      await client.trigger.createMany({
+        data: toAdd.map((type) => ({ automationId, type })),
+      });
+    }
+
+    await deleteCache(`user:${userId}:automations`);
+
+    return {
+      added: toAdd,
+      deleted: toDelete.map((t) => t.type),
+    };
+  }
+
+  /**
+   * Add keyword to automation
+   */
+  async addKeyword(
+    automationId: string,
+    userId: string,
+    input: SaveKeywordRequest
+  ): Promise<boolean> {
+    // IDOR check
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+
+    await client.automation.update({
+      where: { id: automationId },
+      data: {
+        keywords: {
+          create: { word: input.keyword },
+        },
+      },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Edit keyword
+   */
+  async editKeyword(
+    automationId: string,
+    userId: string,
+    input: EditKeywordRequest
+  ): Promise<boolean> {
+    // IDOR check
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+
+    await client.automation.update({
+      where: { id: automationId },
+      data: {
+        keywords: {
+          update: {
+            where: { id: input.keywordId },
+            data: { word: input.keyword },
+          },
+        },
+      },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Delete keyword
+   */
+  async deleteKeyword(keywordId: string, userId: string): Promise<boolean> {
+    // First find the keyword and its automation to check ownership
+    const keyword = await client.keyword.findUnique({
+      where: { id: keywordId },
+      include: { Automation: { select: { userId: true } } },
+    });
+
+    if (!keyword || keyword.Automation?.userId !== userId) {
+      return false;
+    }
+
+    await client.keyword.delete({ where: { id: keywordId } });
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Save posts to automation
+   */
+  async savePosts(
+    automationId: string,
+    userId: string,
+    input: SavePostsRequest
+  ): Promise<boolean> {
+    // IDOR check
+    const existing = await client.automation.findUnique({
+      where: { id: automationId },
+      select: { userId: true },
+    });
+
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+
+    await client.automation.update({
+      where: { id: automationId },
+      data: {
+        posts: {
+          createMany: {
+            data: input.posts.map((post) => ({
+              postid: post.postid,
+              caption: post.caption,
+              media: post.media,
+              mediaType: post.mediaType,
+            })),
+          },
+        },
+      },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Toggle automation active state
+   */
+  async setActive(
+    automationId: string,
+    userId: string,
+    active: boolean
+  ): Promise<AutomationUpdatedResponse | null> {
+    return this.update(automationId, userId, { active });
+  }
+}
+
+// Export singleton instance
+export const automationService = new AutomationService();
