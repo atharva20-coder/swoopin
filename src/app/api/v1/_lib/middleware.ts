@@ -21,8 +21,9 @@ export interface AuthenticatedUser {
  */
 export async function getAuthUser(): Promise<AuthenticatedUser | null> {
   try {
+    const headersList = await headers();
     const session = await auth.api.getSession({
-      headers: await headers(),
+      headers: headersList,
     });
 
     if (!session?.user) {
@@ -32,11 +33,14 @@ export async function getAuthUser(): Promise<AuthenticatedUser | null> {
     return {
       id: session.user.id,
       email: session.user.email,
-      name: session.user.name,
-      image: session.user.image,
+      name: session.user.name ?? null,
+      image: session.user.image ?? null,
       emailVerified: session.user.emailVerified,
     };
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Auth error:', error.message);
+    }
     return null;
   }
 }
@@ -57,13 +61,15 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
  * Get the full database user with relations
  */
 export async function getDbUser(userId: string) {
-  return client.user.findUnique({
+  const user = await client.user.findUnique({
     where: { id: userId },
     include: {
       subscription: true,
       integrations: true,
     },
   });
+  
+  return user;
 }
 
 /**
@@ -88,10 +94,23 @@ export async function hasSubscription(
 /**
  * Check if user is an admin
  */
-export async function isAdmin(email: string): Promise<boolean> {
+export function isAdmin(email: string): boolean {
   const adminEmails = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase());
   
   return adminEmails.includes(email.toLowerCase());
+}
+
+/**
+ * Verify resource ownership (IDOR protection)
+ * Throws if user doesn't own the resource
+ */
+export async function verifyOwnership(
+  resourceUserId: string,
+  currentUserId: string
+): Promise<void> {
+  if (resourceUserId !== currentUserId) {
+    throw new Error('FORBIDDEN');
+  }
 }

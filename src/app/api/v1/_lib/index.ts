@@ -34,6 +34,7 @@ export {
   getDbUser,
   hasSubscription,
   isAdmin,
+  verifyOwnership,
 } from './middleware';
 export type { AuthenticatedUser } from './middleware';
 
