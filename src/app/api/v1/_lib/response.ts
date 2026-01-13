@@ -83,7 +83,7 @@ export function notFound(resource: string = 'Resource') {
 }
 
 export function validationError(message: string, details?: Record<string, unknown>) {
-  return error(ErrorCodes.VALIDATION_ERROR, message, 400, details);
+  return error(ErrorCodes.VALIDATION_ERROR, message, 422, details);
 }
 
 export function conflict(message: string) {

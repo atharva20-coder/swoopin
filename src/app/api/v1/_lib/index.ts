@@ -41,5 +41,16 @@ export type { AuthenticatedUser } from './middleware';
 export {
   validateBody,
   validateQuery,
+  validateResponse,
   CommonSchemas,
+  createPaginatedSchema,
 } from './validation';
+export type { CursorPagination } from './validation';
+
+// Rate Limiting
+export {
+  checkRateLimit,
+  rateLimitByUser,
+  rateLimitByIp,
+  RateLimitConfigs,
+} from './rate-limit';
