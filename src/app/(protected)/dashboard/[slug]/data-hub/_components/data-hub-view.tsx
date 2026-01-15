@@ -19,17 +19,72 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import SheetPicker from "@/components/global/sheet-picker";
-import {
-  getUserCollections,
-  createCollection,
-  deleteCollection,
-  updateCollectionStatus,
-  exportResponsesToSheet,
-  demoExportToSheet,
-  getCollectionResponses,
-} from "@/actions/data-hub";
-import { isGoogleConnected } from "@/actions/google";
 import { toast } from "sonner";
+
+// REST API calls
+async function getUserCollections() {
+  const res = await fetch("/api/v1/data-hub/collections");
+  return res.json();
+}
+
+async function createCollection(data: {
+  name: string;
+  source: string;
+  sheetsConfig?: {
+    spreadsheetId: string;
+    spreadsheetName: string;
+    sheetName: string;
+  } | null;
+  triggerConfig?: { keyword: string };
+}) {
+  const res = await fetch("/api/v1/data-hub/collections", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+async function deleteCollection(id: string) {
+  const res = await fetch(`/api/v1/data-hub/collections/${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
+
+async function updateCollectionStatus(id: string, status: string) {
+  const res = await fetch(`/api/v1/data-hub/collections/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  return res.json();
+}
+
+async function exportResponsesToSheet(id: string) {
+  const res = await fetch(`/api/v1/data-hub/collections/${id}/export`, {
+    method: "POST",
+  });
+  return res.json();
+}
+
+async function demoExportToSheet(sheetConfig: {
+  spreadsheetId: string;
+  spreadsheetName: string;
+  sheetName: string;
+}) {
+  const res = await fetch("/api/v1/data-hub/demo-export", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sheetConfig),
+  });
+  return res.json();
+}
+
+async function isGoogleConnected() {
+  const res = await fetch("/api/v1/google/status");
+  return res.json();
+}
 
 type Tab = "collections" | "responses" | "demo";
 
@@ -44,10 +99,30 @@ interface DataHubViewProps {
 }
 
 const SOURCE_OPTIONS = [
-  { id: "STORY_POLL", label: "Story Polls", icon: "📊", desc: "Collect poll responses" },
-  { id: "STORY_QUESTION", label: "Story Questions", icon: "❓", desc: "Collect question answers" },
-  { id: "DM_KEYWORD", label: "DM Keyword", icon: "💬", desc: "Collect DMs with keywords" },
-  { id: "COMMENT_KEYWORD", label: "Comment Keyword", icon: "💭", desc: "Collect matching comments" },
+  {
+    id: "STORY_POLL",
+    label: "Story Polls",
+    icon: "📊",
+    desc: "Collect poll responses",
+  },
+  {
+    id: "STORY_QUESTION",
+    label: "Story Questions",
+    icon: "❓",
+    desc: "Collect question answers",
+  },
+  {
+    id: "DM_KEYWORD",
+    label: "DM Keyword",
+    icon: "💬",
+    desc: "Collect DMs with keywords",
+  },
+  {
+    id: "COMMENT_KEYWORD",
+    label: "Comment Keyword",
+    icon: "💭",
+    desc: "Collect matching comments",
+  },
 ] as const;
 
 export default function DataHubView({ slug }: DataHubViewProps) {
@@ -64,7 +139,9 @@ export default function DataHubView({ slug }: DataHubViewProps) {
   const [keyword, setKeyword] = useState("");
 
   // Demo state
-  const [demoSheetConfig, setDemoSheetConfig] = useState<SheetConfig | null>(null);
+  const [demoSheetConfig, setDemoSheetConfig] = useState<SheetConfig | null>(
+    null
+  );
   const [isDemoExporting, setIsDemoExporting] = useState(false);
   const [demoSuccess, setDemoSuccess] = useState(false);
 
@@ -161,14 +238,29 @@ export default function DataHubView({ slug }: DataHubViewProps) {
   };
 
   const tabs = [
-    { id: "collections" as Tab, label: "Collections", icon: <Database className="w-4 h-4" /> },
-    { id: "responses" as Tab, label: "Responses", icon: <MessageCircle className="w-4 h-4" /> },
-    { id: "demo" as Tab, label: "Demo Export", icon: <FileSpreadsheet className="w-4 h-4" /> },
+    {
+      id: "collections" as Tab,
+      label: "Collections",
+      icon: <Database className="w-4 h-4" />,
+    },
+    {
+      id: "responses" as Tab,
+      label: "Responses",
+      icon: <MessageCircle className="w-4 h-4" />,
+    },
+    {
+      id: "demo" as Tab,
+      label: "Demo Export",
+      icon: <FileSpreadsheet className="w-4 h-4" />,
+    },
   ];
 
   const stats = {
     collections: collections.length,
-    responses: collections.reduce((acc, c) => acc + (c._count?.responses || 0), 0),
+    responses: collections.reduce(
+      (acc, c) => acc + (c._count?.responses || 0),
+      0
+    ),
     active: collections.filter((c) => c.status === "ACTIVE").length,
   };
 
@@ -177,11 +269,16 @@ export default function DataHubView({ slug }: DataHubViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800">
         <div className="flex items-center gap-2 text-sm">
-          <a href={`/dashboard/${slug}`} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <a
+            href={`/dashboard/${slug}`}
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">Data Hub</span>
+          <span className="text-gray-900 dark:text-white font-medium">
+            Data Hub
+          </span>
         </div>
         <Button onClick={() => setShowCreateModal(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -192,11 +289,15 @@ export default function DataHubView({ slug }: DataHubViewProps) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 p-6">
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.collections}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {stats.collections}
+          </p>
           <p className="text-sm text-gray-500">Collections</p>
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.responses}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {stats.responses}
+          </p>
           <p className="text-sm text-gray-500">Total Responses</p>
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-100 dark:border-neutral-800">
@@ -234,7 +335,9 @@ export default function DataHubView({ slug }: DataHubViewProps) {
               <div className="text-center py-12">
                 <Database className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 mb-4">No collections yet</p>
-                <Button onClick={() => setShowCreateModal(true)}>Create Collection</Button>
+                <Button onClick={() => setShowCreateModal(true)}>
+                  Create Collection
+                </Button>
               </div>
             ) : (
               collections.map((collection) => (
@@ -244,10 +347,13 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-2xl">
-                      {SOURCE_OPTIONS.find((s) => s.id === collection.source)?.icon || "📋"}
+                      {SOURCE_OPTIONS.find((s) => s.id === collection.source)
+                        ?.icon || "📋"}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{collection.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {collection.name}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {collection._count?.responses || 0} responses
                         {collection.sheetsConfig && " • Sheets connected"}
@@ -268,16 +374,30 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleToggleStatus(collection.id, collection.status)}
+                      onClick={() =>
+                        handleToggleStatus(collection.id, collection.status)
+                      }
                     >
-                      {collection.status === "ACTIVE" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      {collection.status === "ACTIVE" ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
                     </Button>
                     {collection.sheetsConfig && (
-                      <Button size="sm" variant="ghost" onClick={() => handleExport(collection.id)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleExport(collection.id)}
+                      >
                         <Download className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(collection.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(collection.id)}
+                    >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
@@ -290,14 +410,18 @@ export default function DataHubView({ slug }: DataHubViewProps) {
         {activeTab === "responses" && (
           <div className="text-center py-12">
             <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Responses will appear as data is collected</p>
+            <p className="text-gray-500">
+              Responses will appear as data is collected
+            </p>
           </div>
         )}
 
         {activeTab === "demo" && (
           <div className="max-w-md mx-auto">
             <div className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-100 dark:border-neutral-800">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Demo: Export to Sheets</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+                Demo: Export to Sheets
+              </h3>
               <p className="text-sm text-gray-500 mb-4">
                 Test the Google Sheets integration by exporting sample data.
               </p>
@@ -312,7 +436,10 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Select Sheet
                     </label>
-                    <SheetPicker value={demoSheetConfig} onChange={setDemoSheetConfig} />
+                    <SheetPicker
+                      value={demoSheetConfig}
+                      onChange={setDemoSheetConfig}
+                    />
                   </div>
 
                   <Button
@@ -327,7 +454,11 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     ) : (
                       <Download className="w-4 h-4" />
                     )}
-                    {isDemoExporting ? "Exporting..." : demoSuccess ? "Exported!" : "Export Demo Data"}
+                    {isDemoExporting
+                      ? "Exporting..."
+                      : demoSuccess
+                      ? "Exported!"
+                      : "Export Demo Data"}
                   </Button>
 
                   {demoSuccess && (
@@ -353,20 +484,33 @@ export default function DataHubView({ slug }: DataHubViewProps) {
             className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create Collection</h2>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Create Collection
+              </h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Name</label>
-                <Input placeholder="My Collection" value={name} onChange={(e) => setName(e.target.value)} />
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Name
+                </label>
+                <Input
+                  placeholder="My Collection"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Source</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Source
+                </label>
                 <div className="grid grid-cols-2 gap-3">
                   {SOURCE_OPTIONS.map((source) => (
                     <button
@@ -380,16 +524,25 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                       )}
                     >
                       <span className="text-2xl mb-2 block">{source.icon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">{source.label}</span>
+                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                        {source.label}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {(selectedSource === "DM_KEYWORD" || selectedSource === "COMMENT_KEYWORD") && (
+              {(selectedSource === "DM_KEYWORD" ||
+                selectedSource === "COMMENT_KEYWORD") && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">Keyword</label>
-                  <Input placeholder="Enter trigger keyword" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Keyword
+                  </label>
+                  <Input
+                    placeholder="Enter trigger keyword"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                  />
                 </div>
               )}
 
@@ -404,7 +557,9 @@ export default function DataHubView({ slug }: DataHubViewProps) {
             </div>
 
             <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-100 dark:border-neutral-800">
-              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
               <Button onClick={handleCreate}>Create Collection</Button>
             </div>
           </div>

@@ -1,7 +1,26 @@
 import { client } from "@/lib/prisma";
-import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage, checkIfFollower, getMediaHashtags, sendButtonTemplate, setIceBreakers, setPersistentMenu, sendSenderAction, sendProductTemplate, sendQuickReplies } from "@/lib/fetch";
-import { trackResponses } from "@/actions/webhook/queries";
-import { trackAnalytics } from "@/actions/analytics";
+import {
+  sendDM,
+  sendPrivateMessage,
+  replyToComment,
+  sendCarouselMessage,
+  checkIfFollower,
+  getMediaHashtags,
+  sendButtonTemplate,
+  setIceBreakers,
+  setPersistentMenu,
+  sendSenderAction,
+  sendProductTemplate,
+  sendQuickReplies,
+} from "@/lib/fetch";
+import { webhookService } from "@/services/webhook.service";
+import { analyticsService } from "@/services/analytics.service";
+
+// Re-export for backward compatibility
+const trackResponses = webhookService.trackResponses.bind(webhookService);
+const trackAnalytics = async (userId: string, type: "dm" | "comment") => {
+  return analyticsService.trackEvent(userId, type);
+};
 
 type FlowNode = {
   nodeId: string;
@@ -20,7 +39,7 @@ type ExecutionContext = {
   messageText?: string;
   commentId?: string;
   mediaId?: string;
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY";
+  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION";
   isStoryReply?: boolean;
   userSubscription?: string;
   userOpenAiKey?: string;
@@ -28,7 +47,9 @@ type ExecutionContext = {
 };
 
 // Build adjacency list from edges
-const buildAdjacencyList = (edges: { sourceNodeId: string; targetNodeId: string }[]) => {
+const buildAdjacencyList = (
+  edges: { sourceNodeId: string; targetNodeId: string }[]
+) => {
   const adjacencyList = new Map<string, string[]>();
   edges.forEach((edge) => {
     const current = adjacencyList.get(edge.sourceNodeId) || [];
@@ -65,12 +86,9 @@ const getExecutionPath = (
 };
 
 // Check if message matches any keyword in the flow
-const checkKeywordMatch = (
-  messageText: string,
-  nodes: FlowNode[]
-): boolean => {
+const checkKeywordMatch = (messageText: string, nodes: FlowNode[]): boolean => {
   const keywordNodes = nodes.filter((n) => n.subType === "KEYWORDS");
-  
+
   for (const node of keywordNodes) {
     const keywords = node.config?.keywords || [];
     for (const keyword of keywords) {
@@ -79,7 +97,7 @@ const checkKeywordMatch = (
       }
     }
   }
-  
+
   // If no keyword nodes, allow all messages
   return keywordNodes.length === 0;
 };
@@ -99,23 +117,27 @@ const evaluateCondition = async (
       }
 
       case "HAS_TAG": {
-        const requiredTags = node.config?.hashtags || node.config?.keywords || [];
+        const requiredTags =
+          node.config?.hashtags || node.config?.keywords || [];
         if (requiredTags.length === 0) return true;
 
         let foundTags: string[] = [];
-        
+
         if (mediaId) {
           const mediaTags = await getMediaHashtags(mediaId, token);
-          foundTags = [...foundTags, ...mediaTags.map(t => t.toLowerCase())];
-        }
-        
-        if (messageText) {
-          const messageHashtags = messageText.match(/#(\w+)/g) || [];
-          foundTags = [...foundTags, ...messageHashtags.map(t => t.toLowerCase().replace('#', ''))];
+          foundTags = [...foundTags, ...mediaTags.map((t) => t.toLowerCase())];
         }
 
-        return requiredTags.some((tag: string) => 
-          foundTags.includes(tag.toLowerCase().replace('#', ''))
+        if (messageText) {
+          const messageHashtags = messageText.match(/#(\w+)/g) || [];
+          foundTags = [
+            ...foundTags,
+            ...messageHashtags.map((t) => t.toLowerCase().replace("#", "")),
+          ];
+        }
+
+        return requiredTags.some((tag: string) =>
+          foundTags.includes(tag.toLowerCase().replace("#", ""))
         );
       }
 
@@ -147,65 +169,92 @@ const executeActionNode = async (
   try {
     switch (node.subType) {
       case "MESSAGE": {
-        console.log("MESSAGE node: context.aiResponse =", context.aiResponse ? context.aiResponse.substring(0, 30) + "..." : "none");
+        console.log(
+          "MESSAGE node: context.aiResponse =",
+          context.aiResponse
+            ? context.aiResponse.substring(0, 30) + "..."
+            : "none"
+        );
         const messageText = context.aiResponse || node.config?.message || "";
-        if (!messageText) return { success: false, message: "No message configured" };
-        
+        if (!messageText)
+          return { success: false, message: "No message configured" };
+
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
-        
+
         // Show typing indicator before sending
         try {
           await sendSenderAction(pageId, senderId, "mark_seen", token);
           await sendSenderAction(pageId, senderId, "typing_on", token);
           // Brief delay to show typing animation (1 second)
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         } catch (e) {
           console.log("Could not show typing indicator:", e);
         }
-        
-        console.log("MESSAGE node: Sending DM with text:", messageText.substring(0, 50) + "...");
+
+        console.log(
+          "MESSAGE node: Sending DM with text:",
+          messageText.substring(0, 50) + "..."
+        );
         const result = await sendDM(pageId, senderId, messageText, token);
-        
+
         // Turn off typing indicator
         try {
           await sendSenderAction(pageId, senderId, "typing_off", token);
         } catch (e) {}
-        
+
         if (result.status === 200) {
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
-          return { success: true, message: usedAiResponse ? "DM sent with AI response" : "DM sent" };
+          return {
+            success: true,
+            message: usedAiResponse ? "DM sent with AI response" : "DM sent",
+          };
         }
         return { success: false, message: "Failed to send DM" };
       }
 
       case "REPLY_COMMENT": {
-        if (!commentId) return { success: false, message: "No comment to reply to" };
-        
+        if (!commentId)
+          return { success: false, message: "No comment to reply to" };
+
         const replyText = context.aiResponse || node.config?.commentReply || "";
-        if (!replyText) return { success: false, message: "No reply text configured" };
-        
+        if (!replyText)
+          return { success: false, message: "No reply text configured" };
+
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
-        
+
         const result = await replyToComment(commentId, replyText, token);
         if (result.status === 200) {
           await trackResponses(automationId, "COMMENT");
           await trackAnalytics(userId, "comment").catch(console.error);
-          return { success: true, message: usedAiResponse ? "Comment reply sent with AI response" : "Comment reply sent" };
+          return {
+            success: true,
+            message: usedAiResponse
+              ? "Comment reply sent with AI response"
+              : "Comment reply sent",
+          };
         }
         return { success: false, message: "Failed to reply to comment" };
       }
 
       case "SMARTAI": {
-        if (context.userSubscription !== "PRO" && context.userSubscription !== "ENTERPRISE") {
-          return { success: false, message: "Smart AI requires PRO or ENTERPRISE subscription" };
+        if (
+          context.userSubscription !== "PRO" &&
+          context.userSubscription !== "ENTERPRISE"
+        ) {
+          return {
+            success: false,
+            message: "Smart AI requires PRO or ENTERPRISE subscription",
+          };
         }
 
         const { checkRateLimit } = await import("@/lib/rate-limiter");
         const { generatePersonifiedResponse } = await import("@/lib/gemini");
-        const { getChatHistory, createChatHistory } = await import("@/actions/webhook/queries");
+        const { getChatHistory, createChatHistory } = await import(
+          "@/actions/webhook/queries"
+        );
 
         const rateLimitResult = await checkRateLimit(`ai:${senderId}`, "AI");
         if (!rateLimitResult.success) {
@@ -218,8 +267,12 @@ const executeActionNode = async (
         }
 
         // Show typing indicator
-        try { await sendSenderAction(pageId, senderId, "mark_seen", token); } catch (e) {}
-        try { await sendSenderAction(pageId, senderId, "typing_on", token); } catch (e) {}
+        try {
+          await sendSenderAction(pageId, senderId, "mark_seen", token);
+        } catch (e) {}
+        try {
+          await sendSenderAction(pageId, senderId, "typing_on", token);
+        } catch (e) {}
 
         // Fetch chat history
         let chatHistory: { role: "user" | "model"; text: string }[] = [];
@@ -227,7 +280,8 @@ const executeActionNode = async (
           const historyResult = await getChatHistory(pageId, senderId);
           if (historyResult.history && historyResult.history.length > 0) {
             chatHistory = historyResult.history.slice(-10).map((msg) => ({
-              role: msg.role === "user" ? "user" as const : "model" as const,
+              role:
+                msg.role === "user" ? ("user" as const) : ("model" as const),
               text: msg.content,
             }));
           }
@@ -244,7 +298,9 @@ const executeActionNode = async (
           console.error("SmartAI: Gemini failed to generate response");
         }
 
-        try { await sendSenderAction(pageId, senderId, "typing_off", token); } catch (e) {}
+        try {
+          await sendSenderAction(pageId, senderId, "typing_off", token);
+        } catch (e) {}
 
         if (!generatedResponse) {
           return { success: false, message: "No AI response generated" };
@@ -252,15 +308,31 @@ const executeActionNode = async (
 
         // Store chat history
         try {
-          await createChatHistory(automationId, senderId, pageId, context.messageText || "");
-          await createChatHistory(automationId, pageId, senderId, generatedResponse);
+          await createChatHistory(
+            automationId,
+            senderId,
+            pageId,
+            context.messageText || ""
+          );
+          await createChatHistory(
+            automationId,
+            pageId,
+            senderId,
+            generatedResponse
+          );
         } catch (e) {}
 
         // Store AI response for downstream nodes (MESSAGE or REPLY_COMMENT)
         context.aiResponse = generatedResponse;
-        console.log("SmartAI: Generated response, passing to downstream node:", generatedResponse.substring(0, 50) + "...");
-        
-        return { success: true, message: "AI response generated - will be sent by downstream action" };
+        console.log(
+          "SmartAI: Generated response, passing to downstream node:",
+          generatedResponse.substring(0, 50) + "..."
+        );
+
+        return {
+          success: true,
+          message: "AI response generated - will be sent by downstream action",
+        };
       }
 
       case "CAROUSEL": {
@@ -288,20 +360,45 @@ const executeActionNode = async (
           return { success: false, message: "No carousel template found" };
         }
 
-        const carouselElements = template.elements.map((element: { title: string; subtitle?: string | null; imageUrl?: string | null; defaultAction?: string | null; buttons: { type: string; title: string; url?: string | null; payload?: string | null }[] }) => ({
-          title: element.title,
-          subtitle: element.subtitle || undefined,
-          imageUrl: element.imageUrl || undefined,
-          defaultAction: element.defaultAction || undefined,
-          buttons: element.buttons.map((button: { type: string; title: string; url?: string | null; payload?: string | null }) => ({
-            type: button.type.toLowerCase() as "web_url" | "postback",
-            title: button.title,
-            url: button.url || undefined,
-            payload: button.payload || undefined,
-          })),
-        }));
+        const carouselElements = template.elements.map(
+          (element: {
+            title: string;
+            subtitle?: string | null;
+            imageUrl?: string | null;
+            defaultAction?: string | null;
+            buttons: {
+              type: string;
+              title: string;
+              url?: string | null;
+              payload?: string | null;
+            }[];
+          }) => ({
+            title: element.title,
+            subtitle: element.subtitle || undefined,
+            imageUrl: element.imageUrl || undefined,
+            defaultAction: element.defaultAction || undefined,
+            buttons: element.buttons.map(
+              (button: {
+                type: string;
+                title: string;
+                url?: string | null;
+                payload?: string | null;
+              }) => ({
+                type: button.type.toLowerCase() as "web_url" | "postback",
+                title: button.title,
+                url: button.url || undefined,
+                payload: button.payload || undefined,
+              })
+            ),
+          })
+        );
 
-        const result = await sendCarouselMessage(pageId, senderId, carouselElements, token);
+        const result = await sendCarouselMessage(
+          pageId,
+          senderId,
+          carouselElements,
+          token
+        );
         if (result) {
           await trackResponses(automationId, "CAROUSEL");
           await trackAnalytics(userId, "dm").catch(console.error);
@@ -310,13 +407,56 @@ const executeActionNode = async (
         return { success: false, message: "Failed to send carousel" };
       }
 
+      case "REPLY_MENTION": {
+        // Reply to a mention (comment on their media)
+        const mediaId = context.mediaId;
+        if (!mediaId)
+          return { success: false, message: "No media to reply to" };
+
+        const replyText = context.aiResponse || node.config?.message || "";
+        if (!replyText)
+          return { success: false, message: "No reply text configured" };
+
+        const usedAiResponse = !!context.aiResponse;
+        if (context.aiResponse) delete context.aiResponse;
+
+        const { replyToMention } = await import("@/lib/instagram/mentions");
+        const result = await replyToMention(
+          pageId,
+          mediaId,
+          replyText,
+          token,
+          commentId
+        );
+
+        if (result.success) {
+          await trackResponses(automationId, "MENTION");
+          await trackAnalytics(userId, "comment").catch(console.error);
+          return {
+            success: true,
+            message: usedAiResponse
+              ? "Mention reply sent with AI response"
+              : "Mention reply sent",
+          };
+        }
+        return {
+          success: false,
+          message: result.error || "Failed to reply to mention",
+        };
+      }
+
       case "BUTTON_TEMPLATE": {
         // Get button template config from node
         const text = node.config?.text || node.config?.message || "";
         const buttons = node.config?.buttons || [];
-        
-        if (!text) return { success: false, message: "No text configured for button template" };
-        if (buttons.length === 0) return { success: false, message: "No buttons configured" };
+
+        if (!text)
+          return {
+            success: false,
+            message: "No text configured for button template",
+          };
+        if (buttons.length === 0)
+          return { success: false, message: "No buttons configured" };
 
         const result = await sendButtonTemplate(
           pageId,
@@ -331,32 +471,43 @@ const executeActionNode = async (
           await trackAnalytics(userId, "dm").catch(console.error);
           return { success: true, message: "Button template sent" };
         }
-        return { success: false, message: result.error || "Failed to send button template" };
+        return {
+          success: false,
+          message: result.error || "Failed to send button template",
+        };
       }
 
       case "PRODUCT_TEMPLATE": {
         // Send product(s) from Facebook catalog
         const productIds = node.config?.productIds || [];
-        
+
         if (productIds.length === 0) {
           return { success: false, message: "No product IDs configured" };
         }
 
-        const result = await sendProductTemplate(pageId, senderId, productIds, token);
+        const result = await sendProductTemplate(
+          pageId,
+          senderId,
+          productIds,
+          token
+        );
 
         if (result.success) {
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
           return { success: true, message: "Product template sent" };
         }
-        return { success: false, message: result.error || "Failed to send product template" };
+        return {
+          success: false,
+          message: result.error || "Failed to send product template",
+        };
       }
 
       case "QUICK_REPLIES": {
         // Send message with quick reply buttons
         const text = node.config?.text || "";
         const quickReplies = node.config?.quickReplies || [];
-        
+
         if (!text) {
           return { success: false, message: "No message text configured" };
         }
@@ -364,20 +515,29 @@ const executeActionNode = async (
           return { success: false, message: "No quick replies configured" };
         }
 
-        const result = await sendQuickReplies(pageId, senderId, text, quickReplies, token);
+        const result = await sendQuickReplies(
+          pageId,
+          senderId,
+          text,
+          quickReplies,
+          token
+        );
 
         if (result.success) {
           await trackResponses(automationId, "DM");
           await trackAnalytics(userId, "dm").catch(console.error);
           return { success: true, message: "Quick replies sent" };
         }
-        return { success: false, message: result.error || "Failed to send quick replies" };
+        return {
+          success: false,
+          message: result.error || "Failed to send quick replies",
+        };
       }
 
       case "ICE_BREAKERS": {
         // Ice Breakers are profile-level FAQ questions
         const iceBreakers = node.config?.iceBreakers || [];
-        
+
         if (iceBreakers.length === 0) {
           return { success: false, message: "No ice breakers configured" };
         }
@@ -387,13 +547,16 @@ const executeActionNode = async (
         if (result.success) {
           return { success: true, message: "Ice breakers set successfully" };
         }
-        return { success: false, message: result.error || "Failed to set ice breakers" };
+        return {
+          success: false,
+          message: result.error || "Failed to set ice breakers",
+        };
       }
 
       case "PERSISTENT_MENU": {
         // Persistent Menu is a profile-level always-visible menu
         const menuItems = node.config?.menuItems || [];
-        
+
         if (menuItems.length === 0) {
           return { success: false, message: "No menu items configured" };
         }
@@ -403,41 +566,68 @@ const executeActionNode = async (
         if (result.success) {
           return { success: true, message: "Persistent menu set successfully" };
         }
-        return { success: false, message: result.error || "Failed to set persistent menu" };
+        return {
+          success: false,
+          message: result.error || "Failed to set persistent menu",
+        };
       }
 
       case "TYPING_ON": {
-        const result = await sendSenderAction(pageId, senderId, "typing_on", token);
+        const result = await sendSenderAction(
+          pageId,
+          senderId,
+          "typing_on",
+          token
+        );
         if (result.success) {
           return { success: true, message: "Typing indicator shown" };
         }
-        return { success: false, message: result.error || "Failed to show typing indicator" };
+        return {
+          success: false,
+          message: result.error || "Failed to show typing indicator",
+        };
       }
 
       case "TYPING_OFF": {
-        const result = await sendSenderAction(pageId, senderId, "typing_off", token);
+        const result = await sendSenderAction(
+          pageId,
+          senderId,
+          "typing_off",
+          token
+        );
         if (result.success) {
           return { success: true, message: "Typing indicator hidden" };
         }
-        return { success: false, message: result.error || "Failed to hide typing indicator" };
+        return {
+          success: false,
+          message: result.error || "Failed to hide typing indicator",
+        };
       }
 
       case "MARK_SEEN": {
-        const result = await sendSenderAction(pageId, senderId, "mark_seen", token);
+        const result = await sendSenderAction(
+          pageId,
+          senderId,
+          "mark_seen",
+          token
+        );
         if (result.success) {
           return { success: true, message: "Message marked as seen" };
         }
-        return { success: false, message: result.error || "Failed to mark message as seen" };
+        return {
+          success: false,
+          message: result.error || "Failed to mark message as seen",
+        };
       }
 
       case "DELAY": {
         // Delay execution for specified duration
         const delaySeconds = node.config?.delay || node.config?.seconds || 0;
         const delayMs = delaySeconds * 1000;
-        
+
         if (delayMs > 0) {
           console.log(`DELAY: Waiting for ${delaySeconds} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
           console.log(`DELAY: Completed ${delaySeconds} second delay`);
           return { success: true, message: `Delayed ${delaySeconds} seconds` };
         }
@@ -454,25 +644,39 @@ const executeActionNode = async (
 
         try {
           // Import dynamically to avoid circular deps
-          const { exportToSheet } = await import("@/actions/google");
-          
-          const timestamp = new Date().toISOString();
-          const senderInfo = context.senderId || "Unknown";
-          const messageContent = context.messageText || context.commentId || "N/A";
-          const triggerType = context.triggerType;
-
-          const result = await exportToSheet(
-            sheetsConfig.spreadsheetId,
-            sheetsConfig.sheetName,
-            ["Timestamp", "Sender ID", "Message/Comment", "Trigger Type"],
-            [[timestamp, senderInfo, messageContent, triggerType]]
+          const { googleSheetsService } = await import(
+            "@/services/google-sheets.service"
           );
 
-          if (result.status === 200) {
+          const timestamp = new Date().toISOString();
+          const senderInfo = context.senderId || "Unknown";
+          const messageContent =
+            context.messageText || context.commentId || "N/A";
+          const triggerType = context.triggerType;
+
+          const result = await googleSheetsService.exportToSheet(
+            context.userId,
+            {
+              spreadsheetId: sheetsConfig.spreadsheetId,
+              sheetName: sheetsConfig.sheetName,
+              columnHeaders: [
+                "Timestamp",
+                "Sender ID",
+                "Message/Comment",
+                "Trigger Type",
+              ],
+              rows: [[timestamp, senderInfo, messageContent, triggerType]],
+            }
+          );
+
+          if ("exported" in result && result.exported) {
             console.log("LOG_TO_SHEETS: Data logged successfully");
             return { success: true, message: "Data logged to sheets" };
           }
-          return { success: false, message: result.data as string };
+          return {
+            success: false,
+            message: "error" in result ? result.error : "Export failed",
+          };
         } catch (error) {
           console.error("LOG_TO_SHEETS error:", error);
           return { success: false, message: "Failed to log to sheets" };
@@ -480,7 +684,10 @@ const executeActionNode = async (
       }
 
       default:
-        return { success: false, message: `Unknown action type: ${node.subType}` };
+        return {
+          success: false,
+          message: `Unknown action type: ${node.subType}`,
+        };
     }
   } catch (error) {
     console.error(`Error executing action ${node.subType}:`, error);
@@ -504,18 +711,32 @@ export const executeFlow = async (
     });
 
     if (nodes.length === 0) {
-      return { success: false, message: "No flow nodes found - using legacy execution" };
+      return {
+        success: false,
+        message: "No flow nodes found - using legacy execution",
+      };
     }
 
-    const flowNodes: FlowNode[] = nodes.map((n: { nodeId: string; type: string; subType: string; label: string; config: unknown }) => ({
-      nodeId: n.nodeId,
-      type: n.type,
-      subType: n.subType,
-      label: n.label,
-      config: (n.config as Record<string, unknown>) || {},
-    }));
+    const flowNodes: FlowNode[] = nodes.map(
+      (n: {
+        nodeId: string;
+        type: string;
+        subType: string;
+        label: string;
+        config: unknown;
+      }) => ({
+        nodeId: n.nodeId,
+        type: n.type,
+        subType: n.subType,
+        label: n.label,
+        config: (n.config as Record<string, unknown>) || {},
+      })
+    );
 
-    if (context.messageText && !checkKeywordMatch(context.messageText, flowNodes)) {
+    if (
+      context.messageText &&
+      !checkKeywordMatch(context.messageText, flowNodes)
+    ) {
       return { success: false, message: "Message does not match keywords" };
     }
 
@@ -524,12 +745,15 @@ export const executeFlow = async (
     );
 
     if (!triggerNode) {
-      return { success: false, message: `No ${context.triggerType} trigger found in flow` };
+      return {
+        success: false,
+        message: `No ${context.triggerType} trigger found in flow`,
+      };
     }
 
     const adjacencyList = buildAdjacencyList(edges);
     const nodeMap = new Map<string, FlowNode>();
-    flowNodes.forEach(node => nodeMap.set(node.nodeId, node));
+    flowNodes.forEach((node) => nodeMap.set(node.nodeId, node));
 
     const results: { node: string; success: boolean; message: string }[] = [];
     const visited = new Set<string>();
@@ -553,7 +777,7 @@ export const executeFlow = async (
       // Handle condition nodes
       if (node.type === "condition") {
         const children = adjacencyList.get(nodeId) || [];
-        
+
         // YES/NO nodes are pass-through
         if (node.subType === "YES" || node.subType === "NO") {
           for (const childId of children) {
@@ -599,17 +823,23 @@ export const executeFlow = async (
       // Handle action nodes
       if (node.type === "action") {
         console.log(`[Flow] Executing action: ${node.subType} (${node.label})`);
-        console.log(`[Flow] context.aiResponse before:`, context.aiResponse ? "present" : "none");
-        
+        console.log(
+          `[Flow] context.aiResponse before:`,
+          context.aiResponse ? "present" : "none"
+        );
+
         const result = await executeActionNode(node, context);
         results.push({
           node: node.label,
           success: result.success,
           message: result.message,
         });
-        
+
         console.log(`[Flow] Action result:`, result.message);
-        console.log(`[Flow] context.aiResponse after:`, context.aiResponse ? "present" : "none");
+        console.log(
+          `[Flow] context.aiResponse after:`,
+          context.aiResponse ? "present" : "none"
+        );
 
         const children = adjacencyList.get(nodeId) || [];
         console.log(`[Flow] ${node.label} has ${children.length} child nodes`);
@@ -632,7 +862,10 @@ export const executeFlow = async (
     const successCount = results.filter((r) => r.success).length;
     return {
       success: successCount > 0 || results.length === 0,
-      message: results.length > 0 ? `Executed ${successCount}/${results.length} actions` : "Flow completed",
+      message:
+        results.length > 0
+          ? `Executed ${successCount}/${results.length} actions`
+          : "Flow completed",
     };
   } catch (error) {
     console.error("Flow execution error:", error);

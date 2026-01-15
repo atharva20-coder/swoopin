@@ -16,12 +16,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  approvePartnership,
-  rejectPartnership,
-  removePartnership,
-  syncPartnerships,
-} from "@/actions/collabs";
+
+// REST API calls
+async function syncPartnerships() {
+  const res = await fetch("/api/v1/collabs/sync", { method: "POST" });
+  return res.json();
+}
+
+async function approvePartnership(id: string) {
+  const res = await fetch(`/api/v1/collabs/${id}/approve`, { method: "POST" });
+  return res.json();
+}
+
+async function rejectPartnership(id: string) {
+  const res = await fetch(`/api/v1/collabs/${id}/reject`, { method: "POST" });
+  return res.json();
+}
+
+async function removePartnership(id: string) {
+  const res = await fetch(`/api/v1/collabs/${id}`, { method: "DELETE" });
+  return res.json();
+}
 
 type PartnershipStatus = "PENDING" | "APPROVED" | "REJECTED";
 type PartnershipType = "BRAND_TO_CREATOR" | "CREATOR_TO_BRAND";
@@ -44,8 +59,10 @@ interface CollabsViewProps {
 }
 
 const STATUS_COLORS: Record<PartnershipStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  APPROVED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  PENDING:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  APPROVED:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   REJECTED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
@@ -55,8 +72,12 @@ const STATUS_ICONS: Record<PartnershipStatus, React.ReactNode> = {
   REJECTED: <X className="w-4 h-4" />,
 };
 
-export default function CollabsView({ slug, initialPartnerships }: CollabsViewProps) {
-  const [partnerships, setPartnerships] = useState<BrandPartnership[]>(initialPartnerships);
+export default function CollabsView({
+  slug,
+  initialPartnerships,
+}: CollabsViewProps) {
+  const [partnerships, setPartnerships] =
+    useState<BrandPartnership[]>(initialPartnerships);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<"all" | PartnershipStatus>("all");
 
@@ -73,7 +94,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
         // Refresh page to get updated data
         window.location.reload();
       } else {
-        toast.error(typeof result.data === "string" ? result.data : "Sync failed");
+        toast.error(
+          typeof result.data === "string" ? result.data : "Sync failed"
+        );
       }
     } catch {
       toast.error("Failed to sync");
@@ -87,7 +110,11 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
     try {
       const result = await approvePartnership(id);
       if (result.status === 200) {
-        setPartnerships(partnerships.map((p) => (p.id === id ? { ...p, status: "APPROVED" as PartnershipStatus } : p)));
+        setPartnerships(
+          partnerships.map((p) =>
+            p.id === id ? { ...p, status: "APPROVED" as PartnershipStatus } : p
+          )
+        );
         toast.success("Partnership approved");
       }
     } catch {
@@ -102,7 +129,11 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
     try {
       const result = await rejectPartnership(id);
       if (result.status === 200) {
-        setPartnerships(partnerships.map((p) => (p.id === id ? { ...p, status: "REJECTED" as PartnershipStatus } : p)));
+        setPartnerships(
+          partnerships.map((p) =>
+            p.id === id ? { ...p, status: "REJECTED" as PartnershipStatus } : p
+          )
+        );
         toast.success("Partnership rejected");
       }
     } catch {
@@ -127,7 +158,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
     }
   };
 
-  const pendingCount = partnerships.filter((p) => p.status === "PENDING").length;
+  const pendingCount = partnerships.filter(
+    (p) => p.status === "PENDING"
+  ).length;
 
   return (
     <div className="flex flex-col h-full">
@@ -141,9 +174,16 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">Collabs</span>
+          <span className="text-gray-900 dark:text-white font-medium">
+            Collabs
+          </span>
         </div>
-        <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2">
+        <Button
+          variant="outline"
+          onClick={handleSync}
+          disabled={isLoading}
+          className="gap-2"
+        >
           <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
           Sync
         </Button>
@@ -157,7 +197,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
               <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{partnerships.length}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {partnerships.length}
+              </p>
               <p className="text-sm text-gray-500">Total Partners</p>
             </div>
           </div>
@@ -168,7 +210,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
               <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{pendingCount}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {pendingCount}
+              </p>
               <p className="text-sm text-gray-500">Pending</p>
             </div>
           </div>
@@ -201,7 +245,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                 : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700"
             )}
           >
-            {status === "all" ? "All" : status.charAt(0) + status.slice(1).toLowerCase()}
+            {status === "all"
+              ? "All"
+              : status.charAt(0) + status.slice(1).toLowerCase()}
           </button>
         ))}
       </div>
@@ -212,7 +258,9 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Users className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-lg font-medium">No partnerships found</p>
-            <p className="text-sm">Sync with Instagram to load your brand partners</p>
+            <p className="text-sm">
+              Sync with Instagram to load your brand partners
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -232,12 +280,18 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                     </div>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">{partnership.partnerName}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {partnership.partnerName}
+                    </p>
                     {partnership.partnerUsername && (
-                      <p className="text-sm text-gray-500">@{partnership.partnerUsername}</p>
+                      <p className="text-sm text-gray-500">
+                        @{partnership.partnerUsername}
+                      </p>
                     )}
                     <p className="text-xs text-gray-400">
-                      {partnership.type === "BRAND_TO_CREATOR" ? "Brand Partner" : "Creator Partner"}
+                      {partnership.type === "BRAND_TO_CREATOR"
+                        ? "Brand Partner"
+                        : "Creator Partner"}
                     </p>
                   </div>
                 </div>
@@ -250,7 +304,8 @@ export default function CollabsView({ slug, initialPartnerships }: CollabsViewPr
                     )}
                   >
                     {STATUS_ICONS[partnership.status]}
-                    {partnership.status.charAt(0) + partnership.status.slice(1).toLowerCase()}
+                    {partnership.status.charAt(0) +
+                      partnership.status.slice(1).toLowerCase()}
                   </span>
 
                   {partnership.status === "PENDING" && (

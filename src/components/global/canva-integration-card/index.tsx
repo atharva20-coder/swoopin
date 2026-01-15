@@ -4,8 +4,23 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Loader2, Palette, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { isCanvaConnected, disconnectCanva, getCanvaConnectUrl } from "@/actions/canva";
 import { toast } from "sonner";
+
+// REST API calls
+async function isCanvaConnected() {
+  const res = await fetch("/api/v1/canva/status");
+  return res.json();
+}
+
+async function getCanvaConnectUrl() {
+  const res = await fetch("/api/v1/canva/oauth");
+  return res.json();
+}
+
+async function disconnectCanva() {
+  const res = await fetch("/api/v1/canva", { method: "DELETE" });
+  return res.json();
+}
 
 export default function CanvaIntegrationCard() {
   const [isConnected, setIsConnected] = useState(false);
@@ -76,7 +91,8 @@ export default function CanvaIntegrationCard() {
         "flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group border h-full",
         "bg-white dark:bg-[#222222] border-gray-200 dark:border-neutral-800",
         "hover:shadow-lg hover:-translate-y-0.5 dark:hover:bg-[#262626] dark:hover:border-neutral-700",
-        isConnected && "bg-purple-50/30 dark:bg-purple-900/10 border-purple-200 dark:border-purple-500/20",
+        isConnected &&
+          "bg-purple-50/30 dark:bg-purple-900/10 border-purple-200 dark:border-purple-500/20",
         !isConnected && "cursor-pointer"
       )}
       onClick={!isConnected ? handleConnect : undefined}
@@ -92,12 +108,12 @@ export default function CanvaIntegrationCard() {
           <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
             Canva
           </h3>
-          {isConnected && (
-            <Check className="w-4 h-4 text-green-500 shrink-0" />
-          )}
+          {isConnected && <Check className="w-4 h-4 text-green-500 shrink-0" />}
         </div>
         <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
-          {isConnected ? "Import designs to scheduler" : "Connect to import designs"}
+          {isConnected
+            ? "Import designs to scheduler"
+            : "Connect to import designs"}
         </p>
       </div>
 

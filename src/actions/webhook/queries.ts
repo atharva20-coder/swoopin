@@ -1,11 +1,13 @@
-"use server"
+"use server";
 
 import { client } from "@/lib/prisma";
 
 // Find automation by keyword match or catch-all trigger
 // Optimized: Only select fields needed for matching
-export const matchKeyword = async (messageText: string, triggerType: "DM" | "COMMENT" = "DM") => {
-  
+export const matchKeyword = async (
+  messageText: string,
+  triggerType: "DM" | "COMMENT" = "DM"
+) => {
   // First, try legacy keyword table - check if message contains any keyword
   // Only select id, word, automationId - skip other fields
   const legacyKeywords = await client.keyword.findMany({
@@ -20,13 +22,13 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
       automationId: true,
     },
   });
-  
+
   for (const kw of legacyKeywords) {
     if (messageText.toLowerCase().includes(kw.word.toLowerCase())) {
       return kw;
     }
   }
-  
+
   // Search FlowNode KEYWORDS nodes - only select needed fields
   const keywordNodes = await client.flowNode.findMany({
     where: {
@@ -40,19 +42,22 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
       config: true,
     },
   });
-  
+
   // Check each KEYWORDS node's config for matching keyword
   for (const node of keywordNodes) {
-    const config = node.config as Record<string, any> || {};
+    const config = (node.config as Record<string, any>) || {};
     const keywords = config.keywords || [];
-    
+
     for (const kw of keywords) {
-      if (typeof kw === "string" && messageText.toLowerCase().includes(kw.toLowerCase())) {
+      if (
+        typeof kw === "string" &&
+        messageText.toLowerCase().includes(kw.toLowerCase())
+      ) {
         return { automationId: node.automationId };
       }
     }
   }
-  
+
   // No keyword match - look for CATCH-ALL automations (trigger without keywords)
   // Only select minimal fields needed
   const catchAllFlows = await client.flowNode.findMany({
@@ -76,16 +81,16 @@ export const matchKeyword = async (messageText: string, triggerType: "DM" | "COM
       },
     },
   });
-  
+
   for (const triggerNode of catchAllFlows) {
     // Check if this automation has any KEYWORDS node
     const hasKeywords = (triggerNode.Automation?.flowNodes?.length || 0) > 0;
-    
+
     if (!hasKeywords) {
       return { automationId: triggerNode.automationId };
     }
   }
-  
+
   return null;
 };
 
@@ -113,15 +118,15 @@ export const getKeywordAutomation = async (
             include: {
               elements: {
                 include: {
-                  buttons: true
+                  buttons: true,
                 },
                 orderBy: {
-                  order: 'asc'
-                }
-              }
-            }
-          }
-        }
+                  order: "asc",
+                },
+              },
+            },
+          },
+        },
       },
       User: {
         select: {
@@ -143,9 +148,9 @@ export const getKeywordAutomation = async (
 };
 export const trackResponses = async (
   automationId: string,
-  type: "COMMENT" | "DM" | "CAROUSEL"
+  type: "COMMENT" | "DM" | "CAROUSEL" | "MENTION"
 ) => {
-  if (type === "COMMENT") {
+  if (type === "COMMENT" || type === "MENTION") {
     return await client.listener.update({
       where: { automationId },
       data: {
@@ -222,7 +227,10 @@ export const getChatHistory = async (sender: string, reciever: string) => {
   };
 };
 
-export const replyToComment = async (automationId: string, commentId: string) => {
+export const replyToComment = async (
+  automationId: string,
+  commentId: string
+) => {
   const automation = await client.automation.findUnique({
     where: { id: automationId },
     include: {
@@ -240,7 +248,10 @@ export const replyToComment = async (automationId: string, commentId: string) =>
     },
   });
 
-  if (!automation?.listener?.commentReply || !automation.User?.integrations[0]?.token) {
+  if (
+    !automation?.listener?.commentReply ||
+    !automation.User?.integrations[0]?.token
+  ) {
     throw new Error("No comment reply template or Instagram token found");
   }
 
@@ -289,29 +300,28 @@ export const getCarouselAutomation = async (automationId: string) => {
         include: {
           elements: {
             include: {
-              buttons: true
+              buttons: true,
             },
             orderBy: {
-              order: 'asc'
-            }
-          }
-        }
+              order: "asc",
+            },
+          },
+        },
       },
       User: {
         select: {
           subscription: {
             select: {
-              plan: true
-            }
+              plan: true,
+            },
           },
           integrations: {
             select: {
-              token: true
-            }
-          }
-        }
-      }
-    }
+              token: true,
+            },
+          },
+        },
+      },
+    },
   });
 };
-

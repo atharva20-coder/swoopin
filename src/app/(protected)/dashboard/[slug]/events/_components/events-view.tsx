@@ -20,12 +20,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  createUserEvent,
-  updateUserEvent,
-  cancelUserEvent,
-  deleteUserEvent,
-} from "@/actions/events";
+// REST API calls
+async function createUserEvent(data: {
+  title: string;
+  description?: string;
+  startTime: Date;
+  endTime?: Date;
+  syncToInstagram?: boolean;
+}) {
+  const res = await fetch("/api/v1/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+async function updateUserEvent(
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    startTime?: Date;
+    endTime?: Date;
+  }
+) {
+  const res = await fetch(`/api/v1/events/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+async function cancelUserEvent(id: string) {
+  const res = await fetch(`/api/v1/events/${id}/cancel`, {
+    method: "POST",
+  });
+  return res.json();
+}
+
+async function deleteUserEvent(id: string) {
+  const res = await fetch(`/api/v1/events/${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
 
 type EventStatus = "SCHEDULED" | "LIVE" | "COMPLETED" | "CANCELLED";
 
@@ -170,7 +210,9 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
 
     try {
       const startDateTime = new Date(`${startDate}T${startTime}`);
-      const endDateTime = endDate ? new Date(`${endDate}T${endTime}`) : undefined;
+      const endDateTime = endDate
+        ? new Date(`${endDate}T${endTime}`)
+        : undefined;
 
       if (editingEvent) {
         const result = await updateUserEvent(editingEvent.id, {
@@ -181,10 +223,16 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
         });
 
         if (result.status === 200 && typeof result.data !== "string") {
-          setEvents(events.map((e) => (e.id === editingEvent.id ? result.data as InstagramEvent : e)));
+          setEvents(
+            events.map((e) =>
+              e.id === editingEvent.id ? (result.data as InstagramEvent) : e
+            )
+          );
           toast.success("Event updated!");
         } else {
-          toast.error(typeof result.data === "string" ? result.data : "Failed to update");
+          toast.error(
+            typeof result.data === "string" ? result.data : "Failed to update"
+          );
         }
       } else {
         const result = await createUserEvent({
@@ -199,7 +247,9 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
           setEvents([...events, result.data as InstagramEvent]);
           toast.success("Event created!");
         } else {
-          toast.error(typeof result.data === "string" ? result.data : "Failed to create");
+          toast.error(
+            typeof result.data === "string" ? result.data : "Failed to create"
+          );
         }
       }
 
@@ -217,7 +267,11 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
     try {
       const result = await cancelUserEvent(eventId);
       if (result.status === 200) {
-        setEvents(events.map((e) => (e.id === eventId ? { ...e, status: "CANCELLED" as EventStatus } : e)));
+        setEvents(
+          events.map((e) =>
+            e.id === eventId ? { ...e, status: "CANCELLED" as EventStatus } : e
+          )
+        );
         toast.success("Event cancelled");
       }
     } catch (error) {
@@ -248,7 +302,8 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear();
 
-  const isCurrentMonth = (date: Date) => date.getMonth() === currentDate.getMonth();
+  const isCurrentMonth = (date: Date) =>
+    date.getMonth() === currentDate.getMonth();
 
   return (
     <div className="flex flex-col h-full">
@@ -262,7 +317,9 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">Events</span>
+          <span className="text-gray-900 dark:text-white font-medium">
+            Events
+          </span>
         </div>
         <Button onClick={() => openCreateModal()} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -275,14 +332,24 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
         {/* Month Navigation */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-neutral-800">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
           </h2>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
+              onClick={() =>
+                setCurrentDate(
+                  new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() - 1
+                  )
+                )
+              }
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -297,7 +364,14 @@ export default function EventsView({ slug, initialEvents }: EventsViewProps) {
               variant="outline"
               size="icon"
               className="h-8 w-8"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+              onClick={() =>
+                setCurrentDate(
+                  new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() + 1
+                  )
+                )
+              }
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

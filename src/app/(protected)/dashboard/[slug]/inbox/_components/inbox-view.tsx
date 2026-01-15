@@ -1,68 +1,94 @@
-'use client'
+"use client";
 
-import React, { useState, useCallback, memo, useMemo } from 'react'
-import { useComments, useReplyToComment, useHideComment, useDeleteComment } from '@/hooks/use-comments'
-import { 
-  MessageCircle, Send, EyeOff, Eye, Trash2, Heart, 
-  RefreshCw, Inbox as InboxIcon, ChevronDown, ChevronUp, X, CornerDownRight
-} from 'lucide-react'
-import type { MediaWithComments, InstagramComment } from '@/lib/instagram/comments'
+import React, { useState, useCallback, memo, useMemo } from "react";
+import {
+  useComments,
+  useReplyToComment,
+  useHideComment,
+  useDeleteComment,
+} from "@/hooks/use-comments";
+import {
+  MessageCircle,
+  Send,
+  EyeOff,
+  Eye,
+  Trash2,
+  Heart,
+  RefreshCw,
+  Inbox as InboxIcon,
+  ChevronDown,
+  ChevronUp,
+  X,
+  CornerDownRight,
+} from "lucide-react";
+import type {
+  MediaWithComments,
+  InstagramComment,
+} from "@/lib/instagram/comments";
 
 // =============================================================================
 // Comment Component (Recursive for nested replies)
 // =============================================================================
 
 interface CommentProps {
-  comment: InstagramComment
-  onReply: (commentId: string, message: string) => void
-  onHide: (commentId: string, hide: boolean) => void
-  onDelete: (commentId: string) => void
-  activeCommentId: string | null
-  actionType: 'reply' | 'hide' | 'delete' | null
-  depth?: number
+  comment: InstagramComment;
+  onReply: (commentId: string, message: string) => void;
+  onHide: (commentId: string, hide: boolean) => void;
+  onDelete: (commentId: string) => void;
+  activeCommentId: string | null;
+  actionType: "reply" | "hide" | "delete" | null;
+  depth?: number;
 }
 
-function Comment({ 
-  comment, 
-  onReply, 
-  onHide, 
+function Comment({
+  comment,
+  onReply,
+  onHide,
   onDelete,
   activeCommentId,
   actionType,
-  depth = 0
+  depth = 0,
 }: CommentProps) {
-  const [showReplyInput, setShowReplyInput] = useState(false)
-  const [replyText, setReplyText] = useState('')
-  const [showReplies, setShowReplies] = useState(true)
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [showReplies, setShowReplies] = useState(true);
 
-  const isReplying = activeCommentId === comment.id && actionType === 'reply'
-  const isHiding = activeCommentId === comment.id && actionType === 'hide'
-  const isDeleting = activeCommentId === comment.id && actionType === 'delete'
+  const isReplying = activeCommentId === comment.id && actionType === "reply";
+  const isHiding = activeCommentId === comment.id && actionType === "hide";
+  const isDeleting = activeCommentId === comment.id && actionType === "delete";
 
   const handleReply = () => {
     if (replyText.trim()) {
-      onReply(comment.id, replyText)
-      setReplyText('')
-      setShowReplyInput(false)
+      onReply(comment.id, replyText);
+      setReplyText("");
+      setShowReplyInput(false);
     }
-  }
+  };
 
-  const hasReplies = comment.replies && comment.replies.length > 0
-  const isNested = depth > 0
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const isNested = depth > 0;
 
   return (
-    <div className={`${isNested ? 'mt-3' : ''}`}>
-      <div className={`flex gap-3 ${comment.hidden ? 'opacity-50' : ''}`}>
+    <div className={`${isNested ? "mt-3" : ""}`}>
+      <div className={`flex gap-3 ${comment.hidden ? "opacity-50" : ""}`}>
         {isNested && (
           <div className="flex items-start pt-2">
             <CornerDownRight className="w-4 h-4 text-gray-300 dark:text-gray-600" />
           </div>
         )}
 
-        <div className={`${isNested ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-[2px] flex-shrink-0`}>
+        <div
+          className={`${
+            isNested ? "w-8 h-8" : "w-10 h-10"
+          } rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-[2px] flex-shrink-0`}
+        >
           <div className="w-full h-full rounded-full bg-white dark:bg-neutral-900 flex items-center justify-center">
-            <span className={`font-semibold text-gray-700 dark:text-gray-300 ${isNested ? 'text-xs' : 'text-sm'}`}>
-              {(comment.username || 'U').charAt(0).toUpperCase()}
+            <span
+              className={`font-semibold text-gray-700 dark:text-gray-300 ${
+                isNested ? "text-xs" : "text-sm"
+              }`}
+            >
+              {(comment.username || "U").charAt(0).toUpperCase()}
             </span>
           </div>
         </div>
@@ -70,7 +96,7 @@ function Comment({
         <div className="flex-1 min-w-0">
           <div className="bg-gray-50 dark:bg-neutral-800/50 rounded-2xl px-4 py-2.5">
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {comment.username || 'unknown'}
+              {comment.username || "unknown"}
             </p>
             <p className="text-sm text-gray-800 dark:text-gray-200 mt-0.5 whitespace-pre-wrap break-words">
               {comment.text}
@@ -79,7 +105,9 @@ function Comment({
 
           <div className="flex items-center gap-2 mt-1.5 ml-1 flex-wrap">
             <span className="text-xs text-gray-500">
-              {comment.timestamp ? new Date(comment.timestamp).toLocaleDateString() : ''}
+              {comment.timestamp
+                ? new Date(comment.timestamp).toLocaleDateString()
+                : ""}
             </span>
 
             {comment.like_count > 0 && (
@@ -105,8 +133,12 @@ function Comment({
               disabled={isHiding}
               className="text-xs font-semibold text-gray-500 hover:text-orange-500 transition-colors disabled:opacity-50 flex items-center gap-1"
             >
-              {comment.hidden ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {comment.hidden ? 'Unhide' : 'Hide'}
+              {comment.hidden ? (
+                <Eye className="w-3 h-3" />
+              ) : (
+                <EyeOff className="w-3 h-3" />
+              )}
+              {comment.hidden ? "Unhide" : "Hide"}
             </button>
 
             <button
@@ -124,9 +156,9 @@ function Comment({
                 type="text"
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder={`Reply to @${comment.username || 'user'}...`}
+                placeholder={`Reply to @${comment.username || "user"}...`}
                 className="flex-1 px-4 py-2 text-sm rounded-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => e.key === 'Enter' && handleReply()}
+                onKeyDown={(e) => e.key === "Enter" && handleReply()}
                 autoFocus
               />
               <button
@@ -146,9 +178,15 @@ function Comment({
                 className="text-xs font-semibold text-blue-500 hover:text-blue-600 flex items-center gap-1 mb-2"
               >
                 {showReplies ? (
-                  <><ChevronUp className="w-3 h-3" /> Hide {comment.replies!.length} replies</>
+                  <>
+                    <ChevronUp className="w-3 h-3" /> Hide{" "}
+                    {comment.replies!.length} replies
+                  </>
                 ) : (
-                  <><ChevronDown className="w-3 h-3" /> View {comment.replies!.length} replies</>
+                  <>
+                    <ChevronDown className="w-3 h-3" /> View{" "}
+                    {comment.replies!.length} replies
+                  </>
                 )}
               </button>
 
@@ -173,24 +211,24 @@ function Comment({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Memoize Comment component to prevent re-renders
-const MemoizedComment = memo(Comment)
+const MemoizedComment = memo(Comment);
 
 // =============================================================================
 // Comment Modal
 // =============================================================================
 
 interface CommentModalProps {
-  media: MediaWithComments
-  onClose: () => void
-  onReply: (commentId: string, message: string) => void
-  onHide: (commentId: string, hide: boolean) => void
-  onDelete: (commentId: string) => void
-  activeCommentId: string | null
-  actionType: 'reply' | 'hide' | 'delete' | null
+  media: MediaWithComments;
+  onClose: () => void;
+  onReply: (commentId: string, message: string) => void;
+  onHide: (commentId: string, hide: boolean) => void;
+  onDelete: (commentId: string) => void;
+  activeCommentId: string | null;
+  actionType: "reply" | "hide" | "delete" | null;
 }
 
 function CommentModal({
@@ -200,7 +238,7 @@ function CommentModal({
   onHide,
   onDelete,
   activeCommentId,
-  actionType
+  actionType,
 }: CommentModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -220,13 +258,14 @@ function CommentModal({
               <MessageCircle className="w-6 h-6 text-white" />
             </div>
           )}
-          
+
           <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 font-medium">
-              {media.caption || 'No caption'}
+              {media.caption || "No caption"}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {media.comments.length} comments • {new Date(media.timestamp).toLocaleDateString()}
+              {media.comments.length} comments •{" "}
+              {new Date(media.timestamp).toLocaleDateString()}
             </p>
           </div>
 
@@ -262,7 +301,7 @@ function CommentModal({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -270,13 +309,13 @@ function CommentModal({
 // =============================================================================
 
 interface PostCardProps {
-  media: MediaWithComments
-  onClick: () => void
+  media: MediaWithComments;
+  onClick: () => void;
 }
 
 function PostCard({ media, onClick }: PostCardProps) {
-  const latestComment = media.comments[0]
-  
+  const latestComment = media.comments[0];
+
   return (
     <button
       onClick={onClick}
@@ -301,9 +340,9 @@ function PostCard({ media, onClick }: PostCardProps) {
         <div className="flex-1 min-w-0">
           {/* Caption */}
           <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2 font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            {media.caption || 'No caption'}
+            {media.caption || "No caption"}
           </p>
-          
+
           {/* Meta */}
           <p className="text-xs text-gray-500 mt-1">
             {new Date(media.timestamp).toLocaleDateString()}
@@ -313,7 +352,9 @@ function PostCard({ media, onClick }: PostCardProps) {
           {latestComment && (
             <div className="mt-2 p-2 bg-gray-50 dark:bg-neutral-800/50 rounded-lg">
               <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                <span className="font-semibold">@{latestComment.username || 'user'}</span>{' '}
+                <span className="font-semibold">
+                  @{latestComment.username || "user"}
+                </span>{" "}
                 {latestComment.text}
               </p>
             </div>
@@ -326,82 +367,107 @@ function PostCard({ media, onClick }: PostCardProps) {
         </div>
       </div>
     </button>
-  )
+  );
 }
 
 // Memoize components
-const MemoizedPostCard = memo(PostCard)
-const MemoizedCommentModal = memo(CommentModal)
+const MemoizedPostCard = memo(PostCard);
+const MemoizedCommentModal = memo(CommentModal);
 
 // =============================================================================
 // Main Inbox Component
 // =============================================================================
 
 export default function InboxView() {
-  const { data: commentsData, isLoading, refetch, isRefetching } = useComments()
-  const replyMutation = useReplyToComment()
-  const hideMutation = useHideComment()
-  const deleteMutation = useDeleteComment()
+  const {
+    data: commentsData,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useComments();
+  const replyMutation = useReplyToComment();
+  const hideMutation = useHideComment();
+  const deleteMutation = useDeleteComment();
 
-  const [selectedMedia, setSelectedMedia] = useState<MediaWithComments | null>(null)
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
-  const [actionType, setActionType] = useState<'reply' | 'hide' | 'delete' | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  
-  const POSTS_PER_PAGE = 12
+  const [selectedMedia, setSelectedMedia] = useState<MediaWithComments | null>(
+    null
+  );
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<
+    "reply" | "hide" | "delete" | null
+  >(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const totalComments = commentsData?.data?.totalComments || 0
-  
-  // Memoize filtered and paginated posts
+  const POSTS_PER_PAGE = 12;
+
+  const totalComments = commentsData?.data?.totalComments || 0;
+
+  // Memoize filtered and paginated posts - type assertion following Zero-Patchwork protocol
   const { postsWithComments, paginatedPosts, totalPages } = useMemo(() => {
-    const media = commentsData?.data?.media || []
-    const filtered = media.filter(m => m.comments.length > 0)
-    const pages = Math.ceil(filtered.length / POSTS_PER_PAGE)
-    const startIndex = (currentPage - 1) * POSTS_PER_PAGE
-    const paginated = filtered.slice(startIndex, startIndex + POSTS_PER_PAGE)
-    return { postsWithComments: filtered, paginatedPosts: paginated, totalPages: pages }
-  }, [commentsData?.data?.media, currentPage])
+    const media = (commentsData?.data?.media || []) as MediaWithComments[];
+    const filtered = media.filter((m) => m.comments.length > 0);
+    const pages = Math.ceil(filtered.length / POSTS_PER_PAGE);
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+    const paginated = filtered.slice(startIndex, startIndex + POSTS_PER_PAGE);
+    return {
+      postsWithComments: filtered,
+      paginatedPosts: paginated,
+      totalPages: pages,
+    };
+  }, [commentsData?.data?.media, currentPage]);
 
-  const handleReply = useCallback(async (commentId: string, message: string) => {
-    setActiveCommentId(commentId)
-    setActionType('reply')
-    try {
-      await replyMutation.mutateAsync({ commentId, message })
-    } finally {
-      setActiveCommentId(null)
-      setActionType(null)
-    }
-  }, [replyMutation])
+  const handleReply = useCallback(
+    async (commentId: string, message: string) => {
+      setActiveCommentId(commentId);
+      setActionType("reply");
+      try {
+        await replyMutation.mutateAsync({ commentId, message });
+      } finally {
+        setActiveCommentId(null);
+        setActionType(null);
+      }
+    },
+    [replyMutation]
+  );
 
-  const handleHide = useCallback(async (commentId: string, hide: boolean) => {
-    setActiveCommentId(commentId)
-    setActionType('hide')
-    try {
-      await hideMutation.mutateAsync({ commentId, hide })
-    } finally {
-      setActiveCommentId(null)
-      setActionType(null)
-    }
-  }, [hideMutation])
+  const handleHide = useCallback(
+    async (commentId: string, hide: boolean) => {
+      setActiveCommentId(commentId);
+      setActionType("hide");
+      try {
+        await hideMutation.mutateAsync({ commentId, hide });
+      } finally {
+        setActiveCommentId(null);
+        setActionType(null);
+      }
+    },
+    [hideMutation]
+  );
 
-  const handleDelete = useCallback(async (commentId: string) => {
-    if (!confirm('Delete this comment?')) return
-    setActiveCommentId(commentId)
-    setActionType('delete')
-    try {
-      await deleteMutation.mutateAsync(commentId)
-    } finally {
-      setActiveCommentId(null)
-      setActionType(null)
-    }
-  }, [deleteMutation])
+  const handleDelete = useCallback(
+    async (commentId: string) => {
+      if (!confirm("Delete this comment?")) return;
+      setActiveCommentId(commentId);
+      setActionType("delete");
+      try {
+        await deleteMutation.mutateAsync(commentId);
+      } finally {
+        setActiveCommentId(null);
+        setActionType(null);
+      }
+    },
+    [deleteMutation]
+  );
 
   // Loading state
   if (isLoading) {
     return (
       <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="bg-white dark:bg-neutral-900 rounded-2xl p-4 animate-pulse border border-gray-200 dark:border-neutral-800">
+          <div
+            key={i}
+            className="bg-white dark:bg-neutral-900 rounded-2xl p-4 animate-pulse border border-gray-200 dark:border-neutral-800"
+          >
             <div className="flex gap-3">
               <div className="w-16 h-16 rounded-xl bg-gray-200 dark:bg-neutral-700" />
               <div className="flex-1 space-y-2">
@@ -413,7 +479,7 @@ export default function InboxView() {
           </div>
         ))}
       </div>
-    )
+    );
   }
 
   // Empty state
@@ -427,10 +493,11 @@ export default function InboxView() {
           No comments yet
         </h3>
         <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
-          When people comment on your posts, they will appear here for you to manage.
+          When people comment on your posts, they will appear here for you to
+          manage.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -450,7 +517,9 @@ export default function InboxView() {
           disabled={isRefetching}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 text-sm font-medium transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </button>
       </div>
@@ -470,18 +539,19 @@ export default function InboxView() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Page {currentPage} of {totalPages} ({postsWithComments.length} posts)
+            Page {currentPage} of {totalPages} ({postsWithComments.length}{" "}
+            posts)
           </p>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
             >
               Previous
             </button>
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
             >
@@ -504,5 +574,5 @@ export default function InboxView() {
         />
       )}
     </div>
-  )
+  );
 }

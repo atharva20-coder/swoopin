@@ -1,40 +1,52 @@
-'use client'
-import React from 'react'
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
-import { useAnalytics } from '@/hooks/use-analytics'
-import { useParams } from 'next/navigation'
-import { TrendingUp } from 'lucide-react'
-import { usePlatform } from '@/context/platform-context'
+"use client";
+import React from "react";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+import { useAnalytics } from "@/hooks/use-analytics";
+import { useParams } from "next/navigation";
+import { TrendingUp } from "lucide-react";
+import { usePlatform } from "@/context/platform-context";
+
+/**
+ * Data is properly typed from Zod parsing in the hook layer
+ * No local type definitions needed - Zero-Patchwork Protocol
+ */
 
 const PLATFORM_COLORS: Record<string, string> = {
-  all: '#6366F1',
-  instagram: '#E1306C',
-  facebook: '#1877F2',
-  twitter: '#1DA1F2',
-  linkedin: '#0A66C2',
-  youtube: '#FF0000',
-  whatsapp: '#25D366',
-  gmail: '#EA4335',
-}
+  all: "#6366F1",
+  instagram: "#E1306C",
+  facebook: "#1877F2",
+  twitter: "#1DA1F2",
+  linkedin: "#0A66C2",
+  youtube: "#FF0000",
+  whatsapp: "#25D366",
+  gmail: "#EA4335",
+};
 
 const PLATFORM_NAMES: Record<string, string> = {
-  all: 'All Platforms',
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-  twitter: 'Twitter',
-  linkedin: 'LinkedIn',
-  youtube: 'YouTube',
-  whatsapp: 'WhatsApp',
-  gmail: 'Gmail',
-}
+  all: "All Platforms",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  twitter: "Twitter",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  whatsapp: "WhatsApp",
+  gmail: "Gmail",
+};
 
 const Chart = () => {
-  const params = useParams()
-  const { data: analytics, isLoading } = useAnalytics(params.slug as string)
-  const { activePlatform } = usePlatform()
+  const params = useParams();
+  const { data: analytics, isLoading } = useAnalytics(params.slug as string);
+  const { activePlatform } = usePlatform();
 
-  const platformColor = PLATFORM_COLORS[activePlatform] || PLATFORM_COLORS.all
-  const platformName = PLATFORM_NAMES[activePlatform] || 'All Platforms'
+  const platformColor = PLATFORM_COLORS[activePlatform] || PLATFORM_COLORS.all;
+  const platformName = PLATFORM_NAMES[activePlatform] || "All Platforms";
 
   if (isLoading) {
     return (
@@ -44,37 +56,49 @@ const Chart = () => {
         </div>
         <div className="h-[300px] bg-gradient-to-b from-neutral-50 to-transparent dark:from-neutral-800/50 rounded-xl animate-pulse" />
       </div>
-    )
+    );
   }
 
-  const chartData = analytics?.data?.chartData?.map((item) => ({
-    ...item,
-    date: new Date(item.date).toLocaleDateString('default', { month: 'short', day: 'numeric' }),
-  })) || []
+  // Data is properly typed from Zod parsing in hook - no type assertions needed
+  const chartData =
+    analytics?.data?.chartData?.map((item) => ({
+      ...item,
+      date: new Date(item.date).toLocaleDateString("default", {
+        month: "short",
+        day: "numeric",
+      }),
+    })) ?? [];
 
-  const totalDms = analytics?.data?.totalDms || 0
-  const totalComments = analytics?.data?.totalComments || 0
+  const totalDms = analytics?.data?.totalDms || 0;
+  const totalComments = analytics?.data?.totalComments || 0;
 
   return (
     <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Overview</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Activity Overview
+          </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {activePlatform === 'all' ? 'Cross-platform analytics' : `${platformName} analytics`}
+            {activePlatform === "all"
+              ? "Cross-platform analytics"
+              : `${platformName} analytics`}
           </p>
         </div>
-        
+
         {/* Platform Badge */}
-        <div 
+        <div
           className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium"
-          style={{ 
+          style={{
             backgroundColor: `${platformColor}15`,
-            color: platformColor 
+            color: platformColor,
           }}
         >
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: platformColor }} />
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: platformColor }}
+          />
           {platformName}
         </div>
       </div>
@@ -82,58 +106,80 @@ const Chart = () => {
       {/* Legend */}
       <div className="flex items-center gap-6 mb-6">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: platformColor }} />
-          <span className="text-sm text-gray-600 dark:text-gray-400">Messages ({totalDms})</span>
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: platformColor }}
+          />
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Messages ({totalDms})
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span className="text-sm text-gray-600 dark:text-gray-400">Responses ({totalComments})</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Responses ({totalComments})
+          </span>
         </div>
       </div>
-      
+
       {/* Chart */}
       {chartData.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[300px] text-gray-400">
           <TrendingUp className="w-12 h-12 mb-3 opacity-20" />
           <p className="text-sm">No activity data yet</p>
-          <p className="text-xs mt-1 text-gray-400">Connect a platform and create automations to start tracking</p>
+          <p className="text-xs mt-1 text-gray-400">
+            Connect a platform and create automations to start tracking
+          </p>
         </div>
       ) : (
         <ResponsiveContainer height={300} width="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+          >
             <defs>
               <linearGradient id="primaryGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={platformColor} stopOpacity={0.3}/>
-                <stop offset="100%" stopColor={platformColor} stopOpacity={0}/>
+                <stop offset="0%" stopColor={platformColor} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={platformColor} stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="secondaryGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.2}/>
-                <stop offset="100%" stopColor="#10B981" stopOpacity={0}/>
+              <linearGradient
+                id="secondaryGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="0%" stopColor="#10B981" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              tick={{ fill: "#9CA3AF", fontSize: 12 }}
               dy={10}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              tick={{ fill: "#9CA3AF", fontSize: 12 }}
               width={40}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-                padding: '12px 16px'
+                backgroundColor: "white",
+                border: "none",
+                borderRadius: "12px",
+                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                padding: "12px 16px",
               }}
-              labelStyle={{ color: '#111', fontWeight: 600, marginBottom: '8px' }}
-              itemStyle={{ color: '#666', padding: '2px 0' }}
+              labelStyle={{
+                color: "#111",
+                fontWeight: 600,
+                marginBottom: "8px",
+              }}
+              itemStyle={{ color: "#666", padding: "2px 0" }}
             />
             <Area
               type="monotone"
@@ -155,7 +201,7 @@ const Chart = () => {
         </ResponsiveContainer>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Chart
+export default Chart;

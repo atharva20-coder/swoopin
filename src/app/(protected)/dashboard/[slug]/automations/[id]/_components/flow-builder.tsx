@@ -10,8 +10,17 @@ import { FlowNodeData } from "@/components/global/automations/flow-node";
 import { Button } from "@/components/ui/button";
 import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { saveAutomationFlowBatch, getFlowData, deleteFlowNode } from "@/actions/automations/flow";
-import { saveFlowToCache, loadFlowFromCache, clearFlowCache } from "@/lib/flow-cache";
+import {
+  saveAutomationFlowBatch,
+  getFlowData,
+  deleteFlowNode,
+} from "@/actions/automations/flow";
+import { saveFlowToCache, loadFlowFromCache } from "@/lib/flow-cache";
+
+/**
+ * Data is properly typed from Zod parsing in the hook layer
+ * No local type definitions needed - Zero-Patchwork Protocol
+ */
 
 type Props = {
   automationId: string;
@@ -19,21 +28,24 @@ type Props = {
 };
 
 // Validate the flow before saving
-const validateFlow = (nodes: Node<FlowNodeData>[], edges: Edge[]): { valid: boolean; errors: string[] } => {
+const validateFlow = (
+  nodes: Node<FlowNodeData>[],
+  edges: Edge[]
+): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   // Check for at least one trigger
-  const triggers = nodes.filter(n => n.data.type === "trigger");
+  const triggers = nodes.filter((n) => n.data.type === "trigger");
   if (triggers.length === 0 && nodes.length > 0) {
     errors.push("Flow must have at least one trigger");
   }
-  
+
   // Check for at least one action
-  const actions = nodes.filter(n => n.data.type === "action");
+  const actions = nodes.filter((n) => n.data.type === "action");
   if (actions.length === 0 && nodes.length > 0) {
     errors.push("Flow must have at least one action");
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
@@ -42,12 +54,17 @@ const validateFlow = (nodes: Node<FlowNodeData>[], edges: Edge[]): { valid: bool
 
 const FlowManager = ({ automationId, slug }: Props) => {
   const { data, refetch } = useQueryAutomation(automationId);
-  const [selectedNode, setSelectedNode] = useState<Node<FlowNodeData> | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node<FlowNodeData> | null>(
+    null
+  );
   const [nodes, setNodes] = useState<Node<FlowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
+  const [validationResult, setValidationResult] = useState<{
+    valid: boolean;
+    errors: string[];
+  }>({ valid: true, errors: [] });
   const hasInitialized = React.useRef(false);
 
   // Load flow - try localStorage cache first, then FlowNode/FlowEdge tables
@@ -55,9 +72,9 @@ const FlowManager = ({ automationId, slug }: Props) => {
     const loadFlow = async () => {
       if (hasInitialized.current) return;
       if (!data?.data) return;
-      
+
       hasInitialized.current = true;
-      
+
       // 1. Try localStorage cache first (instant load)
       const cached = loadFlowFromCache(automationId);
       if (cached && cached.nodes.length > 0) {
@@ -66,17 +83,22 @@ const FlowManager = ({ automationId, slug }: Props) => {
         setIsLoading(false);
         // Continue to sync from DB in background
       }
-      
+
       // 2. Try to load from FlowNode/FlowEdge tables
       try {
         const result = await Promise.race([
           getFlowData(automationId),
-          new Promise<null>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          )
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout")), 5000)
+          ),
         ]);
-        
-        if (result && result.status === 200 && result.data && result.data.nodes.length > 0) {
+
+        if (
+          result &&
+          result.status === 200 &&
+          result.data &&
+          result.data.nodes.length > 0
+        ) {
           setNodes(result.data.nodes as Node<FlowNodeData>[]);
           setEdges(result.data.edges);
           // Update cache with fresh data
@@ -90,13 +112,13 @@ const FlowManager = ({ automationId, slug }: Props) => {
           return;
         }
       }
-      
+
       // 3. Fall back to generating from legacy data
       if (!cached || cached.nodes.length === 0) {
         generateLegacyFlow();
       }
     };
-    
+
     loadFlow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.data, automationId]);
@@ -104,20 +126,21 @@ const FlowManager = ({ automationId, slug }: Props) => {
   // Generate flow from legacy automation data (triggers, listener, keywords)
   const generateLegacyFlow = () => {
     if (!data?.data) return;
-    
+
     const initialNodes: Node<FlowNodeData>[] = [];
     const initialEdges: Edge[] = [];
     const xCenter = 400;
     let currentY = 100;
     const ySpacing = 180;
     const xSpacing = 280;
-    
+
     const triggerNodeIds: string[] = [];
     let keywordNodeId: string | null = null;
     const actionNodeIds: string[] = [];
 
-    // Add DM trigger if exists
-    const dmTrigger = data.data.trigger?.find(t => t.type === "DM");
+    // Data is properly typed from Zod parsing in hook - no type assertions needed
+    const triggers = data.data?.trigger ?? [];
+    const dmTrigger = triggers.find((t) => t.type === "DM");
     if (dmTrigger) {
       const nodeId = `trigger-dm-${Date.now()}`;
       triggerNodeIds.push(nodeId);
@@ -136,7 +159,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
     }
 
     // Add Comment trigger if exists
-    const commentTrigger = data.data.trigger?.find(t => t.type === "COMMENT");
+    const commentTrigger = triggers?.find((t) => t.type === "COMMENT");
     if (commentTrigger) {
       const nodeId = `trigger-comment-${Date.now()}`;
       triggerNodeIds.push(nodeId);
@@ -156,8 +179,9 @@ const FlowManager = ({ automationId, slug }: Props) => {
 
     currentY += ySpacing;
 
-    // Add keywords if exist
-    if (data.data.keywords && data.data.keywords.length > 0) {
+    // Data is properly typed from Zod parsing in hook
+    const keywords = data.data?.keywords ?? [];
+    if (keywords.length > 0) {
       keywordNodeId = `keywords-${Date.now()}`;
       initialNodes.push({
         id: keywordNodeId,
@@ -167,13 +191,13 @@ const FlowManager = ({ automationId, slug }: Props) => {
           label: "Keywords",
           type: "trigger",
           subType: "KEYWORDS",
-          description: data.data.keywords.map(k => k.word).join(", "),
-          config: { keywords: data.data.keywords.map(k => k.word) },
+          description: keywords.map((k) => k.word).join(", "),
+          config: { keywords: keywords.map((k) => k.word) },
         },
       });
 
       // Connect triggers to keywords
-      triggerNodeIds.forEach(triggerId => {
+      triggerNodeIds.forEach((triggerId) => {
         initialEdges.push({
           id: `edge-${triggerId}-${keywordNodeId}`,
           source: triggerId,
@@ -214,7 +238,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
         const nodeId = `action-dm-${Date.now()}`;
         actionNodeIds.push(nodeId);
         const isSmartAI = listener.listener === "SMARTAI";
-        
+
         initialNodes.push({
           id: nodeId,
           type: "custom",
@@ -230,9 +254,10 @@ const FlowManager = ({ automationId, slug }: Props) => {
       }
 
       // Connect to actions
-      const sourceNode = keywordNodeId || triggerNodeIds[triggerNodeIds.length - 1];
+      const sourceNode =
+        keywordNodeId || triggerNodeIds[triggerNodeIds.length - 1];
       if (sourceNode) {
-        actionNodeIds.forEach(actionId => {
+        actionNodeIds.forEach((actionId) => {
           initialEdges.push({
             id: `edge-${sourceNode}-${actionId}`,
             source: sourceNode,
@@ -245,8 +270,9 @@ const FlowManager = ({ automationId, slug }: Props) => {
       }
     }
 
-    // Add posts if exist
-    if (data.data.posts && data.data.posts.length > 0) {
+    // Data is properly typed from Zod parsing in hook
+    const posts = data.data?.posts ?? [];
+    if (posts.length > 0) {
       const postsNodeId = `posts-${Date.now()}`;
       initialNodes.push({
         id: postsNodeId,
@@ -256,10 +282,13 @@ const FlowManager = ({ automationId, slug }: Props) => {
           label: "Selected Posts",
           type: "trigger",
           subType: "SELECT_POSTS",
-          description: `${data.data.posts.length} post(s) attached`,
-          config: { 
-            posts: data.data.posts.map(p => ({ id: p.postid, media: p.media })),
-            postCount: data.data.posts.length 
+          description: `${posts.length} post(s) attached`,
+          config: {
+            posts: posts.map((p) => ({
+              id: p.postid,
+              media: p.media,
+            })),
+            postCount: posts.length,
           },
         },
       });
@@ -293,58 +322,72 @@ const FlowManager = ({ automationId, slug }: Props) => {
     setSelectedNode(node);
   }, []);
 
-  const handleSelectionChange = useCallback((nodeId: string | null) => {
-    if (nodeId === null) {
-      setSelectedNode(null);
-    } else {
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-        setSelectedNode(node);
+  const handleSelectionChange = useCallback(
+    (nodeId: string | null) => {
+      if (nodeId === null) {
+        setSelectedNode(null);
+      } else {
+        const node = nodes.find((n) => n.id === nodeId);
+        if (node) {
+          setSelectedNode(node);
+        }
       }
-    }
-  }, [nodes]);
+    },
+    [nodes]
+  );
 
-  const handleNodesChange = useCallback((updatedNodes: Node<FlowNodeData>[]) => {
-    setNodes(updatedNodes);
-  }, []);
+  const handleNodesChange = useCallback(
+    (updatedNodes: Node<FlowNodeData>[]) => {
+      setNodes(updatedNodes);
+    },
+    []
+  );
 
   const handleEdgesChange = useCallback((updatedEdges: Edge[]) => {
     setEdges(updatedEdges);
   }, []);
 
-  const handleUpdateNode = useCallback((nodeId: string, config: Record<string, any>) => {
-    setNodes(prevNodes => 
-      prevNodes.map(node => 
-        node.id === nodeId 
-          ? { ...node, data: { ...node.data, config } }
-          : node
-      )
-    );
-    // Also update selectedNode if it's the one being updated
-    setSelectedNode(prev => 
-      prev && prev.id === nodeId 
-        ? { ...prev, data: { ...prev.data, config } }
-        : prev
-    );
-  }, []);
+  const handleUpdateNode = useCallback(
+    (nodeId: string, config: Record<string, any>) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...node.data, config } }
+            : node
+        )
+      );
+      // Also update selectedNode if it's the one being updated
+      setSelectedNode((prev) =>
+        prev && prev.id === nodeId
+          ? { ...prev, data: { ...prev.data, config } }
+          : prev
+      );
+    },
+    []
+  );
 
   // Delete node from canvas and database
-  const handleDeleteNode = useCallback(async (nodeId: string) => {
-    setNodes(prevNodes => prevNodes.filter(n => n.id !== nodeId));
-    setEdges(prevEdges => prevEdges.filter(e => e.source !== nodeId && e.target !== nodeId));
-    setSelectedNode(null);
-    
-    // Delete from database
-    await deleteFlowNode(automationId, nodeId);
-    toast.success("Node deleted");
-  }, [automationId]);
+  const handleDeleteNode = useCallback(
+    async (nodeId: string) => {
+      setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeId));
+      setEdges((prevEdges) =>
+        prevEdges.filter((e) => e.source !== nodeId && e.target !== nodeId)
+      );
+      setSelectedNode(null);
+
+      // Delete from database
+      await deleteFlowNode(automationId, nodeId);
+      toast.success("Node deleted");
+    },
+    [automationId]
+  );
 
   // Save entire flow to database - BATCHED to single server call
   const handleSaveFlow = async () => {
     setIsSaving(true);
     try {
       // Prepare all data for batch save
-      const flowNodes = nodes.map(n => ({
+      const flowNodes = nodes.map((n) => ({
         nodeId: n.id,
         type: n.data.type,
         subType: n.data.subType,
@@ -355,7 +398,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
         config: n.data.config,
       }));
 
-      const flowEdges = edges.map(e => ({
+      const flowEdges = edges.map((e) => ({
         edgeId: e.id,
         sourceNodeId: e.source,
         targetNodeId: e.target,
@@ -364,14 +407,15 @@ const FlowManager = ({ automationId, slug }: Props) => {
       }));
 
       // Extract triggers
-      const triggerNodes = nodes.filter(n => 
-        n.data.type === "trigger" && 
-        (n.data.subType === "DM" || n.data.subType === "COMMENT")
+      const triggerNodes = nodes.filter(
+        (n) =>
+          n.data.type === "trigger" &&
+          (n.data.subType === "DM" || n.data.subType === "COMMENT")
       );
-      const triggers = triggerNodes.map(n => n.data.subType);
+      const triggers = triggerNodes.map((n) => n.data.subType);
 
       // Extract keywords
-      const keywordNodes = nodes.filter(n => n.data.subType === "KEYWORDS");
+      const keywordNodes = nodes.filter((n) => n.data.subType === "KEYWORDS");
       const keywords: string[] = [];
       for (const kn of keywordNodes) {
         const nodeKeywords = kn.data.config?.keywords || [];
@@ -379,8 +423,14 @@ const FlowManager = ({ automationId, slug }: Props) => {
       }
 
       // Extract listener from action node
-      let listener: { type: "MESSAGE" | "SMARTAI" | "CAROUSEL"; prompt: string; reply: string } | undefined;
-      const actionNode = nodes.find(n => n.data.type === "action");
+      let listener:
+        | {
+            type: "MESSAGE" | "SMARTAI" | "CAROUSEL";
+            prompt: string;
+            reply: string;
+          }
+        | undefined;
+      const actionNode = nodes.find((n) => n.data.type === "action");
       if (actionNode) {
         let listenerType: "MESSAGE" | "SMARTAI" | "CAROUSEL" = "MESSAGE";
         let prompt = "";
@@ -388,14 +438,17 @@ const FlowManager = ({ automationId, slug }: Props) => {
 
         if (actionNode.data.subType === "SMARTAI") {
           listenerType = "SMARTAI";
-          prompt = actionNode.data.config?.message || actionNode.data.config?.prompt || "";
+          prompt =
+            actionNode.data.config?.message ||
+            actionNode.data.config?.prompt ||
+            "";
         } else if (actionNode.data.subType === "CAROUSEL") {
           listenerType = "CAROUSEL";
           prompt = "Carousel response";
         } else if (actionNode.data.subType === "REPLY_COMMENT") {
           listenerType = "MESSAGE";
           reply = actionNode.data.config?.commentReply || "";
-          const dmAction = nodes.find(n => n.data.subType === "MESSAGE");
+          const dmAction = nodes.find((n) => n.data.subType === "MESSAGE");
           prompt = dmAction?.data.config?.message || "";
         } else {
           prompt = actionNode.data.config?.message || "";
@@ -491,8 +544,8 @@ const FlowManager = ({ automationId, slug }: Props) => {
         </div>
 
         {/* Right panel - Configuration */}
-        <ConfigPanel 
-          id={automationId} 
+        <ConfigPanel
+          id={automationId}
           selectedNode={selectedNode}
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}

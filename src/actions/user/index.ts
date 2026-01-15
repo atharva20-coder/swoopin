@@ -3,11 +3,34 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { createNotification } from "@/actions/notifications";
-import { createUser, findUser, findUserByEmail, updateSubscription } from "./queries";
+import { notificationService } from "@/services/notification.service";
+import {
+  createUser,
+  findUser,
+  findUserByEmail,
+  updateSubscription,
+} from "./queries";
 import { refreshToken } from "@/lib/fetch";
-import { updateIntegration } from "../integrations/queries";
-import { stripe } from "@/lib/stripe";
+import { client } from "@/lib/prisma";
+
+// Inline helper for creating notification (uses service)
+const createNotification = (content: string, userId: string) =>
+  notificationService.create(content, userId);
+
+// Inline helper for updating integration
+const updateIntegration = async (
+  token: string,
+  expiresAt: Date,
+  id: string
+) => {
+  return client.integrations.update({
+    where: { id },
+    data: {
+      token,
+      expiresAt,
+    },
+  });
+};
 
 // Get current authenticated user from Better-Auth session
 export const onCurrentUser = async () => {
@@ -18,7 +41,7 @@ export const onCurrentUser = async () => {
   if (!session?.user) {
     return redirect("/sign-in");
   }
-  
+
   return session.user;
 };
 
@@ -26,11 +49,11 @@ export const onCurrentUser = async () => {
 export const getDbUser = async () => {
   const authUser = await onCurrentUser();
   const dbUser = await findUserByEmail(authUser.email);
-  
+
   if (!dbUser) {
     return redirect("/sign-in");
   }
-  
+
   return dbUser;
 };
 
@@ -50,7 +73,7 @@ export const onBoardUser = async () => {
       .split(",")
       .map((email) => email.trim().toLowerCase())
       .filter((email) => email.length > 0);
-      
+
     // Find user by email instead of clerkId
     const found = await findUserByEmail(user.email);
     if (found) {
@@ -61,10 +84,7 @@ export const onBoardUser = async () => {
 
         const days = Math.round(time_left / (1000 * 3600 * 24));
         if (days < 5) {
-
-
           const refresh = await refreshToken(found.integrations[0].token);
-
 
           const today = new Date();
           const expire_date = today.setDate(today.getDate() + 60);
@@ -75,7 +95,6 @@ export const onBoardUser = async () => {
             found.integrations[0].id
           );
           if (!update_token) {
-
           } else if (update_token.userId) {
             createNotification(
               "You have been reintegrated!",
@@ -95,7 +114,7 @@ export const onBoardUser = async () => {
         },
       };
     }
-    
+
     // Create new user if not found
     const nameParts = user.name?.split(" ") || [];
     const created = await createUser(
@@ -104,12 +123,11 @@ export const onBoardUser = async () => {
       nameParts.slice(1).join(" ") || "",
       user.email
     );
-    
+
     // Check if new user is admin
     const isAdmin = adminEmails.includes(user.email.toLowerCase());
     return { status: 201, data: { ...created, isAdmin } };
   } catch (error) {
-
     return { status: 500 };
   }
 };
@@ -124,12 +142,12 @@ export const onUserInfo = async () => {
         .split(",")
         .map((email) => email.trim().toLowerCase())
         .filter((email) => email.length > 0);
-        
+
       const isAdmin = adminEmails.includes(user.email.toLowerCase());
-      
-      return { 
-        status: 200, 
-        data: { ...profile, isAdmin } 
+
+      return {
+        status: 200,
+        data: { ...profile, isAdmin },
       };
     }
 
@@ -139,30 +157,8 @@ export const onUserInfo = async () => {
   }
 };
 
-export const onSubscribe = async (session_id: string) => {
-  const user = await onCurrentUser();
-  try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session) {
-      const dbUser = await findUserByEmail(user.email);
-      if (!dbUser) return { status: 404 };
-      
-      const subscribed = await updateSubscription(dbUser.id, {
-        customerId: session.customer as string,
-        plan: "PRO",
-      });
-
-      if (subscribed) {
-        createNotification("You have subscribed to pro!", subscribed.id);
-        return { status: 200 };
-      }
-      return { status: 401 };
-    }
-    return { status: 404 };
-  } catch (error) {
-    return { status: 500 };
-  }
-};
+// Note: Subscription handling is now done via Cashfree payment gateway
+// See /api/cashfree/* endpoints for payment processing
 
 export const getInstagramProfile = async () => {
   const user = await onCurrentUser();
@@ -177,12 +173,12 @@ export const getInstagramProfile = async () => {
     const result = await getInstagramUserProfile(token);
 
     if (result.success && result.data) {
-      return { 
-        status: 200, 
+      return {
+        status: 200,
         data: {
           ...result.data,
           instagramId: profile.integrations[0].instagramId,
-        }
+        },
       };
     }
 

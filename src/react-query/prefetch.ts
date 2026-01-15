@@ -1,9 +1,35 @@
-import { onUserInfo } from "@/actions/user";
-import { getAllAutomations, getAutomationInfo } from "@/actions/automations";
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getNotification } from "@/actions/notifications";
-import { getUserAnalytics } from "@/actions/analytics";
 
+// REST API fetchers
+async function fetchUserProfile() {
+  const res = await fetch("/api/v1/user/profile");
+  return res.json();
+}
+
+async function fetchAllAutomations() {
+  const res = await fetch("/api/v1/automations");
+  return res.json();
+}
+
+async function fetchNotifications(cursor?: string) {
+  const url = cursor
+    ? `/api/v1/notifications?cursor=${encodeURIComponent(cursor)}`
+    : "/api/v1/notifications";
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function fetchAutomationInfo(automationId: string) {
+  const res = await fetch(`/api/v1/automations/${automationId}`);
+  return res.json();
+}
+
+async function fetchUserAnalytics(slug: string) {
+  const res = await fetch(`/api/v1/analytics?slug=${encodeURIComponent(slug)}`);
+  return res.json();
+}
+
+// Prefetch helpers
 const prefetch = async (
   client: QueryClient,
   action: QueryFunction,
@@ -31,17 +57,17 @@ const prefetchInfinite = async (
 };
 
 export const PrefetchUserProfile = async (client: QueryClient) => {
-  return await prefetch(client, onUserInfo, "user-profile");
+  return await prefetch(client, fetchUserProfile, "user-profile");
 };
 
 export const PrefetchUserAutomations = async (client: QueryClient) => {
-  return await prefetch(client, getAllAutomations, "user-automations");
+  return await prefetch(client, fetchAllAutomations, "user-automations");
 };
 
 export const PrefetchUserNotifications = async (client: QueryClient) => {
   return await prefetchInfinite(
     client,
-    () => getNotification(undefined),
+    () => fetchNotifications(undefined),
     "user-notifications"
   );
 };
@@ -52,7 +78,7 @@ export const PrefetchUserAutomation = async (
 ) => {
   return await prefetch(
     client,
-    () => getAutomationInfo(automationId),
+    () => fetchAutomationInfo(automationId),
     "automation-info"
   );
 };
@@ -61,5 +87,9 @@ export const PrefetchUserAnalytics = async (
   client: QueryClient,
   slug: string
 ) => {
-  return await prefetch(client, () => getUserAnalytics(slug), "user-analytics");
+  return await prefetch(
+    client,
+    () => fetchUserAnalytics(slug),
+    "user-analytics"
+  );
 };

@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { getInstagramInsights } from "@/actions/insights";
+
+// REST API fetch
+async function fetchInstagramInsights() {
+  const res = await fetch("/api/v1/insights");
+  return res.json();
+}
 
 /**
  * React Query hook for Instagram Insights
@@ -8,7 +13,7 @@ import { getInstagramInsights } from "@/actions/insights";
 export function useInstagramInsights() {
   return useQuery({
     queryKey: ["instagram-insights"],
-    queryFn: () => getInstagramInsights(),
+    queryFn: fetchInstagramInsights,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     refetchOnWindowFocus: false, // Don't refetch on focus to save API calls

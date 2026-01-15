@@ -1,61 +1,68 @@
-import { getAllAutomations } from "@/actions/automations";
-import { getScheduledPosts, getContentDrafts } from "@/actions/scheduler";
+import { automationService } from "@/services/automation.service";
+import { schedulerService } from "@/services/scheduler.service";
+import { getDbUser } from "@/actions/user";
 import SchedulerView from "./_components/scheduler-view";
+import { redirect } from "next/navigation";
 
 export default async function SchedulerPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  // Fetch automations
-  const automationsResult = await getAllAutomations();
-  const automations = automationsResult.status === 200 && automationsResult.data
-    ? automationsResult.data.map((a: any) => ({
-        id: a.id,
-        name: a.name,
-        active: a.active,
-      }))
-    : [];
+  const { slug } = await params;
 
-  // Fetch scheduled posts
-  const postsResult = await getScheduledPosts();
-  const scheduledPosts = postsResult.status === 200 && postsResult.data
-    ? postsResult.data.map((p: any) => ({
-        id: p.id,
-        caption: p.caption,
-        mediaUrl: p.mediaUrl,
-        mediaUrls: p.carouselItems ? (p.carouselItems as any[]).map(item => item.imageUrl || item.videoUrl) : undefined,
-        mediaType: p.mediaType,
-        postType: p.postType,
-        scheduledFor: new Date(p.scheduledFor),
-        hashtags: p.hashtags,
-        status: p.status,
-        automationId: p.automationId,
-        location: p.location,
-        music: p.music,
-        taggedUsers: p.taggedUsers,
-        collaborators: p.collaborators,
-        altText: p.altText,
-      }))
-    : [];
+  // Get current user
+  const dbUser = await getDbUser();
+  if (!dbUser) {
+    return redirect("/sign-in");
+  }
 
-  // Fetch drafts
-  const draftsResult = await getContentDrafts();
-  const drafts = draftsResult.status === 200 && draftsResult.data
-    ? draftsResult.data.map((d: any) => ({
-        id: d.id,
-        title: d.title || "Untitled",
-        type: (d.mediaType === "VIDEO" ? "REEL" : "POST") as "POST" | "REEL" | "STORY",
-        status: "draft" as const,
-        updatedAt: new Date(d.updatedAt),
-      }))
-    : [];
+  // Fetch automations using service
+  const automationsResult = await automationService.listByUser(dbUser.id, {
+    limit: 100,
+  });
+  const automations = automationsResult.data.map((a) => ({
+    id: a.id,
+    name: a.name,
+    active: a.active,
+  }));
+
+  // Fetch scheduled posts using service
+  const postsResult = await schedulerService.listPosts(dbUser.id, {
+    limit: 100,
+  });
+  const scheduledPosts = postsResult.data.map((p) => ({
+    id: p.id,
+    caption: p.caption ?? undefined,
+    mediaUrl: p.mediaUrl ?? undefined,
+    mediaType: p.mediaType,
+    postType: p.postType,
+    scheduledFor: new Date(p.scheduledFor),
+    hashtags: p.hashtags ?? undefined,
+    status: p.status,
+    automationId: p.automationId ?? undefined,
+    location: p.location ?? undefined,
+    altText: p.altText ?? undefined,
+  }));
+
+  // Fetch drafts using service
+  const draftsResult = await schedulerService.getDrafts(dbUser.id);
+  const drafts = draftsResult.map((d) => ({
+    id: d.id,
+    title: d.title || "Untitled",
+    type: (d.mediaType === "VIDEO" ? "REEL" : "POST") as
+      | "POST"
+      | "REEL"
+      | "STORY",
+    status: "draft" as const,
+    updatedAt: new Date(d.updatedAt),
+  }));
 
   return (
     <div className="h-full overflow-hidden">
-      <SchedulerView 
-        slug={params.slug} 
-        automations={automations} 
+      <SchedulerView
+        slug={slug}
+        automations={automations}
         initialScheduledPosts={scheduledPosts}
         initialDrafts={drafts}
       />

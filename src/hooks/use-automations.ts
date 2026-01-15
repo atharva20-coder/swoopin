@@ -1,23 +1,94 @@
-import {
-  createAutomations,
-  deleteAutomations,
-  deleteKeyword,
-  saveKeyword,
-  saveListener,
-  savePosts,
-  saveTrigger,
-  updateAutomationName,
-} from "@/actions/automations";
 import { z } from "zod";
 import { useMutationData } from "./use-mutation-data";
-import { useEffect } from "react";
-import { useRef } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TRIGGER } from "@/redux/slices/automation";
-import { AppDispatch } from "@/redux/store";
-import { useAppSelector } from "@/redux/store";
+import { AppDispatch, useAppSelector } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import useZodForm from "./use-zod-form";
+
+// REST API helpers
+async function createAutomations(id?: string) {
+  const res = await fetch("/api/v1/automations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+async function deleteAutomations(id: string) {
+  const res = await fetch(`/api/v1/automations/${id}`, { method: "DELETE" });
+  return res.json();
+}
+
+async function deleteKeyword(id: string) {
+  const res = await fetch(`/api/v1/automations/keywords/${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
+
+async function saveKeyword(automationId: string, keyword: string) {
+  const res = await fetch(`/api/v1/automations/${automationId}/keywords`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ keyword }),
+  });
+  return res.json();
+}
+
+async function saveListener(
+  automationId: string,
+  listener: string,
+  prompt: string,
+  reply: string,
+  carouselTemplateId?: string
+) {
+  const res = await fetch(`/api/v1/automations/${automationId}/listener`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ listener, prompt, reply, carouselTemplateId }),
+  });
+  return res.json();
+}
+
+async function savePosts(
+  automationId: string,
+  posts: Array<{
+    postid: string;
+    caption?: string;
+    media: string;
+    mediaType: string;
+  }>
+) {
+  const res = await fetch(`/api/v1/automations/${automationId}/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ posts }),
+  });
+  return res.json();
+}
+
+async function saveTrigger(automationId: string, types: string[]) {
+  const res = await fetch(`/api/v1/automations/${automationId}/triggers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ types }),
+  });
+  return res.json();
+}
+
+async function updateAutomationName(
+  automationId: string,
+  data: { name: string }
+) {
+  const res = await fetch(`/api/v1/automations/${automationId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
 
 export const useCreateAutomation = (id?: string) => {
   const { isPending, mutate } = useMutationData(
@@ -162,12 +233,14 @@ export const useKeywords = (id: string) => {
 };
 
 export const useListener = (id: string) => {
-  const [listener, setListener] = useState<"MESSAGE" | "SMARTAI" | "CAROUSEL" | null>(null);
+  const [listener, setListener] = useState<
+    "MESSAGE" | "SMARTAI" | "CAROUSEL" | null
+  >(null);
 
   const promptSchema = z.object({
     prompt: z.string().min(1),
     reply: z.string(),
-    carouselTemplateId: z.string().optional()
+    carouselTemplateId: z.string().optional(),
   });
 
   const { isPending, mutate } = useMutationData(
@@ -188,6 +261,7 @@ export const useListener = (id: string) => {
     mutate
   );
 
-  const onSetListener = (type: "SMARTAI" | "MESSAGE" | "CAROUSEL") => setListener(type);
+  const onSetListener = (type: "SMARTAI" | "MESSAGE" | "CAROUSEL") =>
+    setListener(type);
   return { onSetListener, register, onFormSubmit, listener, isPending };
 };

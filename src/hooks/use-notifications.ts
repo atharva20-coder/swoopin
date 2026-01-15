@@ -1,11 +1,9 @@
-import { onUserInfo } from "@/actions/user";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { useMutationData } from "./use-mutation-data";
 import {
-  deleteNotification,
-  markNotificationAsRead,
-  getNotification,
-} from "@/actions/notifications";
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 type Notification = {
   id: string;
@@ -27,10 +25,59 @@ type PaginatedNotificationResponse = {
   pageParams: (string | null)[];
 };
 
+// === API Functions ===
+
+async function fetchUserProfile() {
+  const res = await fetch("/api/v1/user/profile");
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error?.message ?? "Failed to fetch user profile");
+  }
+  return res.json();
+}
+
+async function fetchNotifications(cursor?: string) {
+  const url = cursor
+    ? `/api/v1/notifications?cursor=${encodeURIComponent(cursor)}`
+    : "/api/v1/notifications";
+  const res = await fetch(url);
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error?.message ?? "Failed to fetch notifications");
+  }
+  return res.json();
+}
+
+async function apiDeleteNotification(notificationId: string) {
+  const res = await fetch(`/api/v1/notifications/${notificationId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error?.message ?? "Failed to delete notification");
+  }
+  return res.json();
+}
+
+async function apiMarkNotificationAsRead(notificationId: string) {
+  const res = await fetch(`/api/v1/notifications/${notificationId}/read`, {
+    method: "PATCH",
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(
+      error.error?.message ?? "Failed to mark notification as read"
+    );
+  }
+  return res.json();
+}
+
+// === Hooks ===
+
 export const useUserUnseenNotifications = () => {
   const { data } = useQuery({
     queryKey: ["user-profile"],
-    queryFn: onUserInfo,
+    queryFn: fetchUserProfile,
   });
   return {
     notifications: (data?.data?.notification ?? []) as Notification[],
@@ -46,12 +93,16 @@ export const useNotifications = () => {
     isFetchingNextPage,
     isLoading,
     error,
-  } = useInfiniteQuery<NotificationResponse, Error, PaginatedNotificationResponse>({
+  } = useInfiniteQuery<
+    NotificationResponse,
+    Error,
+    PaginatedNotificationResponse
+  >({
     queryKey: ["user-notifications"],
     queryFn: async ({ pageParam }) => {
-      const response = await getNotification(pageParam as string | undefined);
-
-      // Ensure `data` is always an array, even if the API returns undefined
+      const response = await fetchNotifications(
+        pageParam as string | undefined
+      );
       const notifications = response.data ?? [];
       const nextCursor = response.nextCursor ?? null;
 
@@ -65,7 +116,6 @@ export const useNotifications = () => {
     initialPageParam: null,
   });
 
-  // Flatten the pages into a single array of notifications
   const notifications = data?.pages.flatMap((page) => page.data) ?? [];
 
   return {
@@ -79,21 +129,23 @@ export const useNotifications = () => {
 };
 
 export const useNotificationsMutation = (notificationId: string) => {
-  const { isPending: isDeleting, mutate: deleteMutation } = useMutationData(
-    ["delete-notification"],
-    () => deleteNotification(notificationId),
-    "user-notifications",
-    () => {},
-    false
-  );
+  const queryClient = useQueryClient();
 
-  const { isPending: isMarking, mutate: markAsSeen } = useMutationData(
-    ["read-notification"],
-    () => markNotificationAsRead(notificationId),
-    "user-notifications",
-    () => {},
-    false
-  );
+  const { isPending: isDeleting, mutate: deleteMutation } = useMutation({
+    mutationKey: ["delete-notification"],
+    mutationFn: () => apiDeleteNotification(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+    },
+  });
+
+  const { isPending: isMarking, mutate: markAsSeen } = useMutation({
+    mutationKey: ["read-notification"],
+    mutationFn: () => apiMarkNotificationAsRead(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+    },
+  });
 
   return {
     markAsSeen,

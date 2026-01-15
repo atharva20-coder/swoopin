@@ -1,15 +1,37 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sheet, RefreshCw, Plus, ChevronDown, FileSpreadsheet, Check } from "lucide-react";
+import {
+  Sheet,
+  RefreshCw,
+  Plus,
+  ChevronDown,
+  FileSpreadsheet,
+  Check,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  getUserSpreadsheets,
-  createNewSpreadsheet,
-  getSpreadsheetTabs,
-} from "@/actions/google";
 import { cn } from "@/lib/utils";
+
+// REST API calls
+async function getUserSpreadsheets() {
+  const res = await fetch("/api/v1/google/spreadsheets");
+  return res.json();
+}
+
+async function createNewSpreadsheet(name: string) {
+  const res = await fetch("/api/v1/google/spreadsheets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return res.json();
+}
+
+async function getSpreadsheetTabs(spreadsheetId: string) {
+  const res = await fetch(`/api/v1/google/spreadsheets/${spreadsheetId}/tabs`);
+  return res.json();
+}
 
 interface SheetConfig {
   spreadsheetId: string;
@@ -23,13 +45,22 @@ interface SheetPickerProps {
   disabled?: boolean;
 }
 
-export default function SheetPicker({ value, onChange, disabled }: SheetPickerProps) {
+export default function SheetPicker({
+  value,
+  onChange,
+  disabled,
+}: SheetPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [spreadsheets, setSpreadsheets] = useState<Array<{ id: string; name: string }>>([]);
+  const [spreadsheets, setSpreadsheets] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [tabs, setTabs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<"spreadsheet" | "tab">("spreadsheet");
-  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<{ id: string; name: string } | null>(null);
+  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
 
@@ -64,7 +95,10 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
     }
   };
 
-  const handleSelectSpreadsheet = async (sheet: { id: string; name: string }) => {
+  const handleSelectSpreadsheet = async (sheet: {
+    id: string;
+    name: string;
+  }) => {
     setSelectedSpreadsheet(sheet);
     await loadTabs(sheet.id);
     setStep("tab");
@@ -117,10 +151,14 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
         <div className="flex items-center gap-3">
           <FileSpreadsheet className="w-5 h-5 text-green-600" />
           <span className="text-sm text-gray-700 dark:text-gray-300">
-            {value ? `${value.spreadsheetName} → ${value.sheetName}` : "Select spreadsheet..."}
+            {value
+              ? `${value.spreadsheetName} → ${value.sheetName}`
+              : "Select spreadsheet..."}
           </span>
         </div>
-        <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown
+          className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")}
+        />
       </button>
 
       {value && (
@@ -138,7 +176,9 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-neutral-800">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {step === "spreadsheet" ? "Select Spreadsheet" : "Select Sheet Tab"}
+              {step === "spreadsheet"
+                ? "Select Spreadsheet"
+                : "Select Sheet Tab"}
             </span>
             <div className="flex items-center gap-2">
               {step === "tab" && (
@@ -150,7 +190,12 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
                 </button>
               )}
               <button onClick={loadSpreadsheets} disabled={isLoading}>
-                <RefreshCw className={cn("w-4 h-4 text-gray-400", isLoading && "animate-spin")} />
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4 text-gray-400",
+                    isLoading && "animate-spin"
+                  )}
+                />
               </button>
             </div>
           </div>
@@ -170,11 +215,15 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
                     className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-neutral-800 text-left"
                   >
                     <FileSpreadsheet className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{sheet.name}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {sheet.name}
+                    </span>
                   </button>
                 ))}
                 {spreadsheets.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No spreadsheets found</p>
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No spreadsheets found
+                  </p>
                 )}
               </>
             ) : (
@@ -185,7 +234,9 @@ export default function SheetPicker({ value, onChange, disabled }: SheetPickerPr
                   className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-neutral-800 text-left"
                 >
                   <Sheet className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{tab}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {tab}
+                  </span>
                 </button>
               ))
             )}

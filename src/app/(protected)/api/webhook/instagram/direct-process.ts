@@ -3,27 +3,36 @@
  * Used for local development and testing
  */
 
-import { findAutomation } from "@/actions/automations/queries";
-import {
-  createChatHistory,
-  getChatHistory,
-  getKeywordAutomation,
-  getKeywordPost,
-  matchKeyword,
-  trackResponses,
-} from "@/actions/webhook/queries";
+import { webhookService } from "@/services/webhook.service";
+import { analyticsService } from "@/services/analytics.service";
+import { automationService } from "@/services/automation.service";
 import { sendDM, sendCarouselMessage } from "@/lib/fetch";
 import { generateGeminiResponse } from "@/lib/gemini";
 import { client } from "@/lib/prisma";
-import { trackAnalytics } from "@/actions/analytics";
 import { executeFlow, hasFlowNodes } from "@/lib/flow-executor";
 
-export async function processWebhookDirectly(webhook_payload: any): Promise<{ message: string; success?: boolean }> {
+// Service method aliases for compatibility
+const matchKeyword = webhookService.matchKeyword.bind(webhookService);
+const getKeywordAutomation =
+  webhookService.getKeywordAutomation.bind(webhookService);
+const getKeywordPost = webhookService.getKeywordPost.bind(webhookService);
+const getChatHistory = webhookService.getChatHistory.bind(webhookService);
+const createChatHistory = webhookService.createChatHistory.bind(webhookService);
+const trackResponses = webhookService.trackResponses.bind(webhookService);
+const trackAnalytics = async (userId: string, type: "dm" | "comment") => {
+  return analyticsService.trackEvent(userId, type);
+};
+const findAutomation = (automationId: string) =>
+  automationService.getByIdForWebhook(automationId);
+
+export async function processWebhookDirectly(
+  webhook_payload: any
+): Promise<{ message: string; success?: boolean }> {
   let matcher;
 
   try {
     const messaging = webhook_payload.entry[0].messaging?.[0];
-    
+
     // Check for postback event (button click)
     if (messaging?.postback?.payload) {
       console.log("Postback received:", messaging.postback.payload);
@@ -34,10 +43,7 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
     }
     // Match keywords for DM
     else if (messaging?.message?.text) {
-      matcher = await matchKeyword(
-        messaging.message.text,
-        "DM"
-      );
+      matcher = await matchKeyword(messaging.message.text, "DM");
     }
 
     // Match keywords for Comment
@@ -57,7 +63,10 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
       if (useFlowExecution) {
         console.log("Using flow-based execution");
 
-        const automation = await getKeywordAutomation(matcher.automationId, true);
+        const automation = await getKeywordAutomation(
+          matcher.automationId,
+          true
+        );
         if (!automation || !automation.active) {
           return { message: "Automation inactive" };
         }
@@ -65,6 +74,9 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
         const isMessage = !!webhook_payload.entry[0].messaging;
         const isComment = !!webhook_payload.entry[0].changes?.find(
           (c: any) => c.field === "comments"
+        );
+        const isMention = !!webhook_payload.entry[0].changes?.find(
+          (c: any) => c.field === "mentions"
         );
 
         // Check post attachment for comments
@@ -80,7 +92,23 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
 
         // Detect if this is a story reply (message has replied_to property referencing a story)
         const messagePayload = webhook_payload.entry[0].messaging?.[0]?.message;
-        const isStoryReply = !!(messagePayload?.reply_to?.story || messagePayload?.is_echo === false && messagePayload?.attachments?.[0]?.type === "story_mention");
+        const isStoryReply = !!(
+          messagePayload?.reply_to?.story ||
+          (messagePayload?.is_echo === false &&
+            messagePayload?.attachments?.[0]?.type === "story_mention")
+        );
+
+        // Get mention data if this is a mention webhook
+        let mentionData: { commentId?: string; mediaId?: string } | undefined;
+        if (isMention) {
+          const mentionChange = webhook_payload.entry[0].changes.find(
+            (c: any) => c.field === "mentions"
+          );
+          mentionData = {
+            commentId: mentionChange?.value?.comment_id,
+            mediaId: mentionChange?.value?.media_id,
+          };
+        }
 
         const context = {
           automationId: matcher.automationId,
@@ -89,13 +117,32 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
           pageId: webhook_payload.entry[0].id,
           senderId: isMessage
             ? webhook_payload.entry[0].messaging[0].sender.id
+            : isMention
+            ? webhook_payload.entry[0].changes[0].value.sender?.id ||
+              webhook_payload.entry[0].id
             : webhook_payload.entry[0].changes[0].value.from.id,
           messageText: isMessage
             ? webhook_payload.entry[0].messaging[0].message.text
+            : isMention
+            ? webhook_payload.entry[0].changes[0].value.text
             : webhook_payload.entry[0].changes[0].value.text,
-          commentId: isComment ? webhook_payload.entry[0].changes[0].value.id : undefined,
-          mediaId: isComment ? webhook_payload.entry[0].changes[0].value.media?.id : undefined,
-          triggerType: (isStoryReply ? "STORY_REPLY" : isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT" | "STORY_REPLY",
+          commentId: isMention
+            ? mentionData?.commentId
+            : isComment
+            ? webhook_payload.entry[0].changes[0].value.id
+            : undefined,
+          mediaId: isMention
+            ? mentionData?.mediaId
+            : isComment
+            ? webhook_payload.entry[0].changes[0].value.media?.id
+            : undefined,
+          triggerType: (isMention
+            ? "MENTION"
+            : isStoryReply
+            ? "STORY_REPLY"
+            : isMessage
+            ? "DM"
+            : "COMMENT") as "DM" | "COMMENT" | "STORY_REPLY" | "MENTION",
           isStoryReply,
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
@@ -110,7 +157,10 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
       // Legacy: basic message sending
       const automation = await getKeywordAutomation(matcher.automationId, true);
       if (automation && automation.active && automation.listener) {
-        if (automation.listener.listener === "MESSAGE" && webhook_payload.entry[0].messaging) {
+        if (
+          automation.listener.listener === "MESSAGE" &&
+          webhook_payload.entry[0].messaging
+        ) {
           const result = await sendDM(
             webhook_payload.entry[0].id,
             webhook_payload.entry[0].messaging[0].sender.id,
@@ -133,7 +183,10 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
         webhook_payload.entry[0].messaging[0].sender.id
       );
 
-      if (customer_history.history.length > 0 && customer_history.automationId) {
+      if (
+        customer_history.history.length > 0 &&
+        customer_history.automationId
+      ) {
         const automation = await findAutomation(customer_history.automationId);
 
         if (
@@ -141,13 +194,17 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
           automation.listener?.listener === "SMARTAI" &&
           automation.active
         ) {
-          const chatHistory = customer_history.history.map((msg: { role: string; content: string }) => ({
-            role: msg.role === "user" ? "user" as const : "model" as const,
-            text: msg.content,
-          }));
+          const chatHistory = customer_history.history.map(
+            (msg: { role: string; content: string }) => ({
+              role:
+                msg.role === "user" ? ("user" as const) : ("model" as const),
+              text: msg.content,
+            })
+          );
 
           const systemPrompt = `${automation.listener?.prompt}: keep responses under 2 sentences`;
-          const userMessage = webhook_payload.entry[0].messaging[0].message.text;
+          const userMessage =
+            webhook_payload.entry[0].messaging[0].message.text;
 
           const smart_ai_message = await generateGeminiResponse(
             systemPrompt,
@@ -156,21 +213,19 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
           );
 
           if (smart_ai_message) {
-            const reciever = createChatHistory(
+            await createChatHistory(
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               webhook_payload.entry[0].messaging[0].message.text
             );
 
-            const sender = createChatHistory(
+            await createChatHistory(
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               smart_ai_message
             );
-
-            await client.$transaction([reciever, sender]);
 
             const direct_message = await sendDM(
               webhook_payload.entry[0].id,
@@ -180,7 +235,9 @@ export async function processWebhookDirectly(webhook_payload: any): Promise<{ me
             );
 
             if (direct_message.status === 200) {
-              await trackAnalytics(automation.userId!, "dm").catch(console.error);
+              await trackAnalytics(automation.userId!, "dm").catch(
+                console.error
+              );
               return { message: "Chat continued", success: true };
             }
           }

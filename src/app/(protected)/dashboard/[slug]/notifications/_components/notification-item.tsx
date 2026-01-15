@@ -18,26 +18,22 @@ const NotificationItem = ({ notification }: Props) => {
     useNotificationsMutation(notification.id);
 
   const handleMarkAsRead = () => {
-    markAsSeen(
-      { id: notification.id },
-      {
-        onSuccess: () => {
-          router.refresh();
-        },
-      }
-    );
+    // The hook already captures notificationId, no need to pass it
+    markAsSeen(undefined, {
+      onSuccess: () => {
+        router.refresh();
+      },
+    });
   };
 
   const handleDelete = () => {
-    deleteMutation(
-      { id: notification.id },
-      {
-        onSuccess: () => {
-          router.refresh();
-          toast.success("Notification deleted");
-        },
-      }
-    );
+    // The hook already captures notificationId, no need to pass it
+    deleteMutation(undefined, {
+      onSuccess: () => {
+        router.refresh();
+        toast.success("Notification deleted");
+      },
+    });
   };
 
   const handleCopy = () => {

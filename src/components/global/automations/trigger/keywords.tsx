@@ -12,8 +12,16 @@ type Props = {
   id: string;
 };
 
-type KeywordChangeEvent = CustomEvent<{ keyword: string; hasKeywords: boolean }>;
+type KeywordChangeEvent = CustomEvent<{
+  keyword: string;
+  hasKeywords: boolean;
+}>;
 
+/**
+ * Keywords component for automation trigger configuration
+ * Data is already validated by Zod in the hook layer
+ * No type assertions needed - Zero-Patchwork Protocol
+ */
 export const Keywords = ({ id }: Props) => {
   const { onValueChange, keyword, onKeyPress, deleteMutation } =
     useKeywords(id);
@@ -23,19 +31,20 @@ export const Keywords = ({ id }: Props) => {
   ]);
   const { data } = useQueryAutomation(id);
 
-  // Expose keyword state to parent component
-  React.useEffect(() => {
-    const event = new CustomEvent('keywordChange', { 
-      detail: { 
-        keyword, 
-        hasKeywords: Boolean(data?.data?.keywords && data.data.keywords.length > 0) 
-      } 
-    }) as KeywordChangeEvent;
-    window.dispatchEvent(event);
-  }, [keyword, data?.data?.keywords]);
-
+  // Data is already typed from Zod parsing in the hook
   const keywords = data?.data?.keywords ?? [];
   const hasKeywords = keywords.length > 0;
+
+  // Expose keyword state to parent component
+  React.useEffect(() => {
+    const event = new CustomEvent("keywordChange", {
+      detail: {
+        keyword,
+        hasKeywords,
+      },
+    }) as KeywordChangeEvent;
+    window.dispatchEvent(event);
+  }, [keyword, hasKeywords]);
 
   return (
     <div className="bg-[#F6F7F9] dark:bg-neutral-900 flex flex-col gap-y-3 p-3 rounded-xl">
@@ -65,7 +74,10 @@ export const Keywords = ({ id }: Props) => {
         <Input
           placeholder="Add keyword..."
           style={{
-            width: `${Math.max(Math.min(Math.max(keyword.length || 15, 15), 50), 15)}ch`,
+            width: `${Math.max(
+              Math.min(Math.max(keyword.length || 15, 15), 50),
+              15
+            )}ch`,
           }}
           value={keyword}
           className="p-2 bg-gray-100/50 dark:bg-neutral-700/50 ring-0 border-none outline-none rounded-full dark:text-gray-200 dark:placeholder-gray-400"

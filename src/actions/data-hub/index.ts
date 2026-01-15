@@ -4,9 +4,14 @@ import { client } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { exportToSheet } from "@/actions/google";
+import { googleSheetsService } from "@/services/google-sheets.service";
 
-type CollectionSource = "STORY_POLL" | "STORY_QUESTION" | "DM_KEYWORD" | "COMMENT_KEYWORD" | "BROADCAST_CHANNEL";
+type CollectionSource =
+  | "STORY_POLL"
+  | "STORY_QUESTION"
+  | "DM_KEYWORD"
+  | "COMMENT_KEYWORD"
+  | "BROADCAST_CHANNEL";
 
 interface SheetsConfig {
   spreadsheetId: string;
@@ -61,8 +66,12 @@ export async function createCollection(input: CreateCollectionInput) {
         userId: session.user.id,
         name: input.name,
         source: input.source,
-        sheetsConfig: input.sheetsConfig ? JSON.parse(JSON.stringify(input.sheetsConfig)) : null,
-        triggerConfig: input.triggerConfig ? JSON.parse(JSON.stringify(input.triggerConfig)) : null,
+        sheetsConfig: input.sheetsConfig
+          ? JSON.parse(JSON.stringify(input.sheetsConfig))
+          : null,
+        triggerConfig: input.triggerConfig
+          ? JSON.parse(JSON.stringify(input.triggerConfig))
+          : null,
       },
     });
 
@@ -77,7 +86,10 @@ export async function createCollection(input: CreateCollectionInput) {
 /**
  * Update collection status
  */
-export async function updateCollectionStatus(collectionId: string, status: "ACTIVE" | "PAUSED" | "COMPLETED") {
+export async function updateCollectionStatus(
+  collectionId: string,
+  status: "ACTIVE" | "PAUSED" | "COMPLETED"
+) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
@@ -170,14 +182,20 @@ export async function addCollectionResponse(
       where: { id: collectionId },
     });
 
-    if (collection?.sheetsConfig) {
+    if (collection?.sheetsConfig && collection.userId) {
       const config = collection.sheetsConfig as unknown as SheetsConfig;
-      await exportToSheet(
-        config.spreadsheetId,
-        config.sheetName,
-        ["Timestamp", "Sender", "Content"],
-        [[new Date().toISOString(), data.senderName || "Unknown", data.content]]
-      );
+      await googleSheetsService.exportToSheet(collection.userId, {
+        spreadsheetId: config.spreadsheetId,
+        sheetName: config.sheetName,
+        columnHeaders: ["Timestamp", "Sender", "Content"],
+        rows: [
+          [
+            new Date().toISOString(),
+            data.senderName || "Unknown",
+            data.content,
+          ],
+        ],
+      });
 
       // Mark as exported
       await client.collectionResponse.update({
@@ -227,15 +245,15 @@ export async function exportResponsesToSheet(collectionId: string) {
       return { status: 200, data: "No new responses to export" };
     }
 
-    const result = await exportToSheet(
-      config.spreadsheetId,
-      config.sheetName,
-      ["Timestamp", "Sender", "Content"],
-      rows
-    );
+    const result = await googleSheetsService.exportToSheet(session.user.id, {
+      spreadsheetId: config.spreadsheetId,
+      sheetName: config.sheetName,
+      columnHeaders: ["Timestamp", "Sender", "Content"],
+      rows,
+    });
 
-    if (result.status !== 200) {
-      return result;
+    if ("error" in result) {
+      return { status: 500, data: result.error };
     }
 
     // Mark all as exported
@@ -261,18 +279,40 @@ export async function demoExportToSheet(sheetConfig: SheetsConfig) {
       return { status: 401, data: "Unauthorized" };
     }
 
-    const result = await exportToSheet(
-      sheetConfig.spreadsheetId,
-      sheetConfig.sheetName,
-      ["Timestamp", "Name", "Email", "Response", "Source"],
-      [
-        [new Date().toISOString(), "John Doe", "john@example.com", "Yes, I'm interested!", "Story Poll"],
-        [new Date().toISOString(), "Jane Smith", "jane@example.com", "Great content!", "DM"],
-        [new Date().toISOString(), "Bob Wilson", "bob@example.com", "Count me in", "Comment"],
-      ]
-    );
+    const result = await googleSheetsService.exportToSheet(session.user.id, {
+      spreadsheetId: sheetConfig.spreadsheetId,
+      sheetName: sheetConfig.sheetName,
+      columnHeaders: ["Timestamp", "Name", "Email", "Response", "Source"],
+      rows: [
+        [
+          new Date().toISOString(),
+          "John Doe",
+          "john@example.com",
+          "Yes, I'm interested!",
+          "Story Poll",
+        ],
+        [
+          new Date().toISOString(),
+          "Jane Smith",
+          "jane@example.com",
+          "Great content!",
+          "DM",
+        ],
+        [
+          new Date().toISOString(),
+          "Bob Wilson",
+          "bob@example.com",
+          "Count me in",
+          "Comment",
+        ],
+      ],
+    });
 
-    return result;
+    if ("error" in result) {
+      return { status: 500, data: result.error };
+    }
+
+    return { status: 200, data: "Demo exported successfully" };
   } catch (error) {
     console.error("Error in demo export:", error);
     return { status: 500, data: "Demo export failed" };

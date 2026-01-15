@@ -4,19 +4,27 @@ import { cn, getMonth } from "@/lib/utils";
 import Link from "next/link";
 import React, { useMemo, useEffect, useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
-import { useQueryAutomations } from "@/hooks/user-queries";
+import {
+  useQueryAutomations,
+  type AutomationListItem,
+} from "@/hooks/user-queries";
 import CreateAutomation from "../create-automation";
 import { useMutationDataState } from "@/hooks/use-mutation-data";
-import { ChevronLeft, ChevronRight, Zap, MessageCircle, Sparkles, Calendar, Hash } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  MessageCircle,
+  Sparkles,
+  Calendar,
+  Hash,
+} from "lucide-react";
 
-type Automation = {
-  id: string;
-  name: string;
-  keywords: { id: string; word: string }[];
-  active: boolean;
-  createdAt: Date;
-  listener: { listener: string } | null;
-};
+/**
+ * Using Zod-inferred types from schema
+ * No local type definitions needed - Zero-Patchwork Protocol
+ */
+type Automation = AutomationListItem;
 
 type AutomationCardProps = {
   automation: Automation;
@@ -34,7 +42,7 @@ const AutomationCard = memo(function AutomationCard({
 }: AutomationCardProps) {
   const isLoading = loadingId === automation.id;
 
-  if (automation.id === 'no-results') {
+  if (automation.id === "no-results") {
     return (
       <div className="p-5">
         <div className="flex items-start justify-between gap-4">
@@ -44,8 +52,12 @@ const AutomationCard = memo(function AutomationCard({
                 <Zap className="w-5 h-5 text-gray-400" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{automation.name}</h3>
-                <p className="text-sm text-gray-500">Create a new automation with this name</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {automation.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Create a new automation with this name
+                </p>
               </div>
             </div>
           </div>
@@ -71,12 +83,14 @@ const AutomationCard = memo(function AutomationCard({
         {/* Left Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2">
-            <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-              automation.listener?.listener === "SMARTAI" 
-                ? "bg-gradient-to-br from-indigo-500 to-purple-600" 
-                : "bg-gray-100 dark:bg-neutral-800"
-            )}>
+            <div
+              className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                automation.listener?.listener === "SMARTAI"
+                  ? "bg-gradient-to-br from-indigo-500 to-purple-600"
+                  : "bg-gray-100 dark:bg-neutral-800"
+              )}
+            >
               {automation.listener?.listener === "SMARTAI" ? (
                 <Sparkles className="w-5 h-5 text-white" />
               ) : (
@@ -88,11 +102,13 @@ const AutomationCard = memo(function AutomationCard({
                 {automation.name}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {automation.listener?.listener === "SMARTAI" 
-                  ? "AI-powered responses" 
-                  : automation.keywords.length > 0 
-                    ? `${automation.keywords.length} keyword trigger${automation.keywords.length === 1 ? '' : 's'}` 
-                    : "Standard automation"}
+                {automation.listener?.listener === "SMARTAI"
+                  ? "AI-powered responses"
+                  : automation.keywords.length > 0
+                  ? `${automation.keywords.length} keyword trigger${
+                      automation.keywords.length === 1 ? "" : "s"
+                    }`
+                  : "Standard automation"}
               </p>
             </div>
           </div>
@@ -106,17 +122,23 @@ const AutomationCard = memo(function AutomationCard({
                   key={keyword.id}
                   className={cn(
                     "px-2.5 py-1 rounded-full text-xs font-medium",
-                    key % 4 === 0 && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-                    key % 4 === 1 && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-                    key % 4 === 2 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-                    key % 4 === 3 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                    key % 4 === 0 &&
+                      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                    key % 4 === 1 &&
+                      "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+                    key % 4 === 2 &&
+                      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                    key % 4 === 3 &&
+                      "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                   )}
                 >
                   {keyword.word}
                 </span>
               ))}
               {automation.keywords.length > 5 && (
-                <span className="text-xs text-gray-500">+{automation.keywords.length - 5} more</span>
+                <span className="text-xs text-gray-500">
+                  +{automation.keywords.length - 5} more
+                </span>
               )}
             </div>
           ) : (
@@ -131,12 +153,14 @@ const AutomationCard = memo(function AutomationCard({
         {/* Right Content */}
         <div className="flex flex-col items-end gap-3 shrink-0">
           {/* Status Badge */}
-          <span className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium",
-            automation.active 
-              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" 
-              : "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400"
-          )}>
+          <span
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-medium",
+              automation.active
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400"
+            )}
+          >
             {automation.active ? "Active" : "Inactive"}
           </span>
 
@@ -146,7 +170,9 @@ const AutomationCard = memo(function AutomationCard({
             <span>
               {(() => {
                 const date = new Date(automation.createdAt);
-                return `${getMonth(date.getUTCMonth() + 1)} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+                return `${getMonth(
+                  date.getUTCMonth() + 1
+                )} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
               })()}
             </span>
           </div>
@@ -178,15 +204,21 @@ const AutomationList = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Memoized search handler
-  const handleSearch = useCallback((event: CustomEvent<{ searchTerm: string }>) => {
-    setSearchTerm(event.detail.searchTerm);
-    setCurrentPage(1);
-  }, []);
+  const handleSearch = useCallback(
+    (event: CustomEvent<{ searchTerm: string }>) => {
+      setSearchTerm(event.detail.searchTerm);
+      setCurrentPage(1);
+    },
+    []
+  );
 
   useEffect(() => {
-    window.addEventListener('automationSearch', handleSearch as EventListener);
+    window.addEventListener("automationSearch", handleSearch as EventListener);
     return () => {
-      window.removeEventListener('automationSearch', handleSearch as EventListener);
+      window.removeEventListener(
+        "automationSearch",
+        handleSearch as EventListener
+      );
     };
   }, [handleSearch]);
 
@@ -195,19 +227,23 @@ const AutomationList = () => {
     setLoadingId(id);
   }, []);
 
-  // Memoized data computation
+  // Memoized data computation - data is properly typed from Zod parsing in hook
   const optimisticUiData = useMemo(() => {
-    let automations = [];
+    // Data is already validated by Zod in the hook - no type assertions needed
+    const apiData = data?.data ?? [];
+    let automations: Automation[] = [];
+
     if (latestVariable?.variables && data) {
-      automations = [latestVariable.variables, ...data.data];
+      // Optimistic update: prepend latest variable
+      automations = [latestVariable.variables as Automation, ...apiData];
     } else {
-      automations = data?.data || [];
+      automations = apiData;
     }
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       const filteredAutomations = automations
-        .filter(automation => automation.name.toLowerCase().includes(term))
+        .filter((automation) => automation.name.toLowerCase().includes(term))
         .sort((a, b) => {
           const aStartsWith = a.name.toLowerCase().startsWith(term);
           const bStartsWith = b.name.toLowerCase().startsWith(term);
@@ -217,14 +253,19 @@ const AutomationList = () => {
         });
 
       return {
-        data: filteredAutomations.length > 0 ? filteredAutomations : [{
-          id: 'no-results',
-          name: `${searchTerm}`,
-          keywords: [],
-          active: false,
-          createdAt: new Date(),
-          listener: null
-        }]
+        data:
+          filteredAutomations.length > 0
+            ? filteredAutomations
+            : [
+                {
+                  id: "no-results",
+                  name: `${searchTerm}`,
+                  keywords: [],
+                  active: false,
+                  createdAt: new Date(),
+                  listener: null,
+                },
+              ],
       };
     }
 
@@ -232,29 +273,30 @@ const AutomationList = () => {
   }, [latestVariable, data, searchTerm]);
 
   // Memoized pagination values
-  const { totalItems, totalPages, startIndex, endIndex, paginatedData } = useMemo(() => {
-    const total = optimisticUiData.data?.length || 0;
-    const pages = Math.ceil(total / ITEMS_PER_PAGE);
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const paginated = optimisticUiData.data?.slice(start, end) || [];
-    
-    return {
-      totalItems: total,
-      totalPages: pages,
-      startIndex: start,
-      endIndex: end,
-      paginatedData: paginated,
-    };
-  }, [optimisticUiData.data, currentPage]);
+  const { totalItems, totalPages, startIndex, endIndex, paginatedData } =
+    useMemo(() => {
+      const total = optimisticUiData.data?.length || 0;
+      const pages = Math.ceil(total / ITEMS_PER_PAGE);
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const paginated = optimisticUiData.data?.slice(start, end) || [];
+
+      return {
+        totalItems: total,
+        totalPages: pages,
+        startIndex: start,
+        endIndex: end,
+        paginatedData: paginated,
+      };
+    }, [optimisticUiData.data, currentPage]);
 
   // Memoized page handlers
   const goToPreviousPage = useCallback(() => {
-    setCurrentPage(p => Math.max(1, p - 1));
+    setCurrentPage((p) => Math.max(1, p - 1));
   }, []);
 
   const goToNextPage = useCallback(() => {
-    setCurrentPage(p => Math.min(totalPages, p + 1));
+    setCurrentPage((p) => Math.min(totalPages, p + 1));
   }, [totalPages]);
 
   const goToPage = useCallback((pageNum: number) => {
@@ -273,9 +315,12 @@ const AutomationList = () => {
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center mb-6">
           <Zap className="w-10 h-10 text-indigo-500" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No automations yet</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          No automations yet
+        </h3>
         <p className="text-gray-500 dark:text-gray-400 text-center mb-6 max-w-sm">
-          Create your first automation to start engaging with your audience automatically
+          Create your first automation to start engaging with your audience
+          automatically
         </p>
         <CreateAutomation />
       </div>
@@ -291,7 +336,8 @@ const AutomationList = () => {
             key={automation.id}
             className={cn(
               "group relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden transition-all duration-300",
-              automation.id !== 'no-results' && "hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800"
+              automation.id !== "no-results" &&
+                "hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800"
             )}
           >
             <AutomationCard
@@ -308,7 +354,11 @@ const AutomationList = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4 p-4 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Showing <span className="font-medium">{startIndex + 1}-{Math.min(endIndex, totalItems)}</span> of <span className="font-medium">{totalItems}</span>
+            Showing{" "}
+            <span className="font-medium">
+              {startIndex + 1}-{Math.min(endIndex, totalItems)}
+            </span>{" "}
+            of <span className="font-medium">{totalItems}</span>
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -340,7 +390,8 @@ const AutomationList = () => {
                     onClick={() => goToPage(pageNum)}
                     className={cn(
                       "w-9 h-9",
-                      currentPage === pageNum && "bg-indigo-600 hover:bg-indigo-700"
+                      currentPage === pageNum &&
+                        "bg-indigo-600 hover:bg-indigo-700"
                     )}
                   >
                     {pageNum}

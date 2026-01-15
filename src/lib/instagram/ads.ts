@@ -1,4 +1,7 @@
-"use server";
+/**
+ * Instagram Ads API Library
+ * This is a regular module (not a Server Action file)
+ */
 
 import axios from "axios";
 import { z } from "zod";
@@ -76,10 +79,16 @@ export async function getCampaigns(
   adAccountId: string,
   accessToken: string,
   options?: { limit?: number; after?: string }
-): Promise<{ success: boolean; campaigns?: AdCampaign[]; nextCursor?: string; error?: string }> {
+): Promise<{
+  success: boolean;
+  campaigns?: AdCampaign[];
+  nextCursor?: string;
+  error?: string;
+}> {
   try {
     const params: Record<string, string> = {
-      fields: "id,name,objective,status,effective_status,daily_budget,lifetime_budget,created_time,updated_time",
+      fields:
+        "id,name,objective,status,effective_status,daily_budget,lifetime_budget,created_time,updated_time",
       limit: (options?.limit || 50).toString(),
     };
 
@@ -202,16 +211,13 @@ export async function getCampaignInsights(
   datePreset: string = "last_7d"
 ): Promise<{ success: boolean; insights?: AdInsights; error?: string }> {
   try {
-    const response = await axios.get(
-      `${getBaseUrl()}/${campaignId}/insights`,
-      {
-        params: {
-          fields: "impressions,reach,clicks,spend,cpc,cpm,ctr,actions",
-          date_preset: datePreset,
-        },
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
+    const response = await axios.get(`${getBaseUrl()}/${campaignId}/insights`, {
+      params: {
+        fields: "impressions,reach,clicks,spend,cpc,cpm,ctr,actions",
+        date_preset: datePreset,
+      },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
     const data = response.data.data?.[0];
     if (!data) {
@@ -295,17 +301,18 @@ export async function boostPost(
  */
 export async function getAdAccounts(
   accessToken: string
-): Promise<{ success: boolean; adAccounts?: Array<{ id: string; name: string; currency: string }>; error?: string }> {
+): Promise<{
+  success: boolean;
+  adAccounts?: Array<{ id: string; name: string; currency: string }>;
+  error?: string;
+}> {
   try {
-    const response = await axios.get(
-      `${getBaseUrl()}/me/adaccounts`,
-      {
-        params: {
-          fields: "id,name,currency",
-        },
-        headers: { Authorization: `Bearer ${accessToken}` },
-      }
-    );
+    const response = await axios.get(`${getBaseUrl()}/me/adaccounts`, {
+      params: {
+        fields: "id,name,currency",
+      },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
     return {
       success: true,

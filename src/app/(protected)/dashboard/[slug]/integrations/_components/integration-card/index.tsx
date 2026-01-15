@@ -1,6 +1,19 @@
 "use client";
-import { onOAuthInstagram } from "@/actions/integrations";
-import { onUserInfo } from "@/actions/user";
+// REST API calls
+async function onOAuthInstagram(strategy: string) {
+  const res = await fetch(
+    `/api/v1/integrations/${strategy.toLowerCase()}/oauth`
+  );
+  const data = await res.json();
+  if (data.url) {
+    window.location.href = data.url;
+  }
+}
+
+async function fetchUserInfo() {
+  const res = await fetch("/api/v1/user/profile");
+  return res.json();
+}
 import { Switch } from "@/components/ui/switch";
 import useConfirm from "@/hooks/use-confirm";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +26,7 @@ import Image from "next/image";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), {
   ssr: false,
-  loading: () => null
+  loading: () => null,
 });
 
 type Props = {
@@ -25,12 +38,20 @@ type Props = {
   buttonText?: string;
 };
 
-const IntegrationCard = ({ description, icon, strategy, title, comingSoon, buttonText = "Connect" }: Props) => {
+const IntegrationCard = ({
+  description,
+  icon,
+  strategy,
+  title,
+  comingSoon,
+  buttonText = "Connect",
+}: Props) => {
   const { data: userData, isLoading } = useQuery({
     queryKey: ["user-profile"],
-    queryFn: onUserInfo,
+    queryFn: fetchUserInfo,
   });
-  const { data: instagramProfile, isLoading: isLoadingProfile } = useQueryInstagramProfile();
+  const { data: instagramProfile, isLoading: isLoadingProfile } =
+    useQueryInstagramProfile();
   const [showConfetti, setShowConfetti] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
@@ -39,7 +60,9 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
 
   const [ConfirmDialog, confirm] = useConfirm(
     "Terms of Service & Privacy",
-    `We comply with ${capitalize(strategy)}'s terms of service and protect your privacy. We do not store sensitive information and ensure secure data handling. By proceeding, you agree to our Terms and Conditions. Learn more at /terms`
+    `We comply with ${capitalize(
+      strategy
+    )}'s terms of service and protect your privacy. We do not store sensitive information and ensure secure data handling. By proceeding, you agree to our Terms and Conditions. Learn more at /terms`
   );
 
   const onInstaOAuth = async () => {
@@ -47,13 +70,13 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     if (!ok) return;
     try {
       setIsConnecting(true);
-      if (strategy === 'INSTAGRAM') {
-        await onOAuthInstagram('INSTAGRAM');
+      if (strategy === "INSTAGRAM") {
+        await onOAuthInstagram("INSTAGRAM");
       } else {
-        console.error('Strategy not implemented:', strategy);
+        console.error("Strategy not implemented:", strategy);
       }
     } catch (error) {
-      console.error('OAuth Error:', error);
+      console.error("OAuth Error:", error);
     } finally {
       setIsConnecting(false);
     }
@@ -65,9 +88,9 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
     );
     const storageKey = `integration_${strategy}_connected`;
     const hasShownConfetti = localStorage.getItem(storageKey);
-    
+
     if (integrated?.name === strategy && !hasShownConfetti) {
-      localStorage.setItem(storageKey, 'true');
+      localStorage.setItem(storageKey, "true");
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 5000);
     }
@@ -78,7 +101,8 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
   );
 
   const isConnected = integrated?.name === strategy;
-  const profile = instagramProfile?.status === 200 ? instagramProfile.data : null;
+  const profile =
+    instagramProfile?.status === 200 ? instagramProfile.data : null;
 
   // Format follower count
   const formatFollowers = (count?: number) => {
@@ -113,12 +137,13 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
           gravity={0.3}
         />
       )}
-      <div 
+      <div
         className={cn(
           "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
           "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
           "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
-          isConnected && "ring-2 ring-blue-500/20 border-blue-200 dark:border-blue-500/30",
+          isConnected &&
+            "ring-2 ring-blue-500/20 border-blue-200 dark:border-blue-500/30",
           !isConnected && !comingSoon ? "cursor-pointer" : ""
         )}
         onClick={!isConnected && !comingSoon ? onInstaOAuth : undefined}
@@ -126,10 +151,10 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
         {/* Icon / Profile Picture */}
         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600/50">
           {isConnected && profile?.profile_pic ? (
-            <Image 
-              src={profile.profile_pic} 
-              alt={profile.name || "Profile"} 
-              width={48} 
+            <Image
+              src={profile.profile_pic}
+              alt={profile.name || "Profile"}
+              width={48}
               height={48}
               className="w-full h-full object-cover"
             />
@@ -142,13 +167,17 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-              {isConnected && profile?.username ? `@${profile.username}` : title.replace('Connect ', '')}
+              {isConnected && profile?.username
+                ? `@${profile.username}`
+                : title.replace("Connect ", "")}
             </h3>
             {isConnected && profile?.is_verified_user && (
               <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
             )}
             {comingSoon && (
-              <span className="text-[10px] font-bold text-orange-500 uppercase">NEW</span>
+              <span className="text-[10px] font-bold text-orange-500 uppercase">
+                NEW
+              </span>
             )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
@@ -171,7 +200,7 @@ const IntegrationCard = ({ description, icon, strategy, title, comingSoon, butto
             <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
           ) : (
             <>
-              <Switch 
+              <Switch
                 checked={isConnected}
                 disabled={comingSoon}
                 onCheckedChange={() => {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
-import { syncCatalog } from "@/actions/commerce";
+import { commerceService } from "@/services/commerce.service";
 
 async function handler(req: NextRequest) {
   try {
@@ -11,8 +11,12 @@ async function handler(req: NextRequest) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    // This would need to be modified to accept userId parameter
-    const result = await syncCatalog();
+    // Use the commerce service to sync catalog
+    const result = await commerceService.syncCatalog(userId);
+
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, result });
   } catch (error) {

@@ -1,20 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Receiver } from "@upstash/qstash";
-import { findAutomation } from "@/actions/automations/queries";
+import { webhookService } from "@/services/webhook.service";
+import { analyticsService } from "@/services/analytics.service";
+import { automationService } from "@/services/automation.service";
 import {
-  createChatHistory,
-  getChatHistory,
-  getKeywordAutomation,
-  getKeywordPost,
-  matchKeyword,
-  trackResponses,
-} from "@/actions/webhook/queries";
-import { sendDM, sendPrivateMessage, replyToComment, sendCarouselMessage } from "@/lib/fetch";
+  sendDM,
+  sendPrivateMessage,
+  replyToComment,
+  sendCarouselMessage,
+} from "@/lib/fetch";
 import { generateGeminiResponse } from "@/lib/gemini";
 import { client } from "@/lib/prisma";
-import { trackAnalytics } from "@/actions/analytics";
 import { executeFlow, hasFlowNodes } from "@/lib/flow-executor";
 import type { WebhookJobPayload } from "@/lib/queue";
+
+// Service method aliases for compatibility
+const matchKeyword = webhookService.matchKeyword.bind(webhookService);
+const getKeywordAutomation =
+  webhookService.getKeywordAutomation.bind(webhookService);
+const getKeywordPost = webhookService.getKeywordPost.bind(webhookService);
+const getChatHistory = webhookService.getChatHistory.bind(webhookService);
+const createChatHistory = webhookService.createChatHistory.bind(webhookService);
+const trackResponses = webhookService.trackResponses.bind(webhookService);
+const trackAnalytics = async (userId: string, type: "dm" | "comment") => {
+  return analyticsService.trackEvent(userId, type);
+};
+const findAutomation = (automationId: string) =>
+  automationService.getByIdForWebhook(automationId);
 
 // Initialize QStash receiver for signature verification
 const receiver = new Receiver({
@@ -75,9 +87,15 @@ export async function POST(req: NextRequest) {
       if (useFlowExecution) {
         console.log("Using flow-based execution");
 
-        const automation = await getKeywordAutomation(matcher.automationId, true);
+        const automation = await getKeywordAutomation(
+          matcher.automationId,
+          true
+        );
         if (!automation || !automation.active) {
-          return NextResponse.json({ message: "Automation inactive" }, { status: 200 });
+          return NextResponse.json(
+            { message: "Automation inactive" },
+            { status: 200 }
+          );
         }
 
         const isMessage = !!webhook_payload.entry[0].messaging;
@@ -91,7 +109,10 @@ export async function POST(req: NextRequest) {
           if (mediaId) {
             const postMatch = await getKeywordPost(mediaId, automation.id);
             if (!postMatch) {
-              return NextResponse.json({ message: "Post not attached" }, { status: 200 });
+              return NextResponse.json(
+                { message: "Post not attached" },
+                { status: 200 }
+              );
             }
           }
         }
@@ -107,8 +128,12 @@ export async function POST(req: NextRequest) {
           messageText: isMessage
             ? webhook_payload.entry[0].messaging[0].message.text
             : webhook_payload.entry[0].changes[0].value.text,
-          commentId: isComment ? webhook_payload.entry[0].changes[0].value.id : undefined,
-          mediaId: isComment ? webhook_payload.entry[0].changes[0].value.media?.id : undefined,
+          commentId: isComment
+            ? webhook_payload.entry[0].changes[0].value.id
+            : undefined,
+          mediaId: isComment
+            ? webhook_payload.entry[0].changes[0].value.media?.id
+            : undefined,
           triggerType: (isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT",
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
@@ -126,7 +151,7 @@ export async function POST(req: NextRequest) {
       // Legacy execution path (for automations without flow nodes)
       // ... keeping this simpler for now, the flow executor handles most cases
       console.log("No flow nodes, using legacy path");
-      
+
       return NextResponse.json(
         { message: "Processed (legacy)" },
         { status: 200 }
@@ -140,7 +165,10 @@ export async function POST(req: NextRequest) {
         webhook_payload.entry[0].messaging[0].sender.id
       );
 
-      if (customer_history.history.length > 0 && customer_history.automationId) {
+      if (
+        customer_history.history.length > 0 &&
+        customer_history.automationId
+      ) {
         const automation = await findAutomation(customer_history.automationId);
 
         if (
@@ -148,13 +176,17 @@ export async function POST(req: NextRequest) {
           automation.listener?.listener === "SMARTAI" &&
           automation.active
         ) {
-          const chatHistory = customer_history.history.map((msg: { role: string; content: string }) => ({
-            role: msg.role === "user" ? "user" as const : "model" as const,
-            text: msg.content,
-          }));
+          const chatHistory = customer_history.history.map(
+            (msg: { role: string; content: string }) => ({
+              role:
+                msg.role === "user" ? ("user" as const) : ("model" as const),
+              text: msg.content,
+            })
+          );
 
           const systemPrompt = `${automation.listener?.prompt}: keep responses under 2 sentences`;
-          const userMessage = webhook_payload.entry[0].messaging[0].message.text;
+          const userMessage =
+            webhook_payload.entry[0].messaging[0].message.text;
 
           const smart_ai_message = await generateGeminiResponse(
             systemPrompt,
@@ -163,21 +195,19 @@ export async function POST(req: NextRequest) {
           );
 
           if (smart_ai_message) {
-            const reciever = createChatHistory(
+            await createChatHistory(
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               webhook_payload.entry[0].messaging[0].message.text
             );
 
-            const sender = createChatHistory(
+            await createChatHistory(
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               smart_ai_message
             );
-
-            await client.$transaction([reciever, sender]);
 
             const direct_message = await sendDM(
               webhook_payload.entry[0].id,
@@ -187,15 +217,23 @@ export async function POST(req: NextRequest) {
             );
 
             if (direct_message.status === 200) {
-              await trackAnalytics(automation.userId!, "dm").catch(console.error);
-              return NextResponse.json({ message: "Chat continued" }, { status: 200 });
+              await trackAnalytics(automation.userId!, "dm").catch(
+                console.error
+              );
+              return NextResponse.json(
+                { message: "Chat continued" },
+                { status: 200 }
+              );
             }
           }
         }
       }
     }
 
-    return NextResponse.json({ message: "No matching automation" }, { status: 200 });
+    return NextResponse.json(
+      { message: "No matching automation" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Job processing error:", error);
     // Return 500 so QStash will retry

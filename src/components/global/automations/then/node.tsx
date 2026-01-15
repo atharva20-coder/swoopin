@@ -12,11 +12,22 @@ type Props = {
   id: string;
 };
 
+/**
+ * ThenNode displays automation actions
+ * Data is already validated by Zod in the hook layer
+ * No type assertions needed - Zero-Patchwork Protocol
+ */
 const ThenNode = ({ id }: Props) => {
   const { data } = useQueryAutomation(id);
-  const commentTrigger = data?.data?.trigger.find((t) => t.type === "COMMENT");
 
-  return !data?.data?.listener ? (
+  // Data is already typed from Zod parsing in the hook
+  const triggers = data?.data?.trigger ?? [];
+  const commentTrigger = triggers.find((t) => t.type === "COMMENT");
+  const posts = data?.data?.posts ?? [];
+  const listener = data?.data?.listener;
+  const carouselTemplates = data?.data?.carouselTemplates ?? [];
+
+  return !listener ? (
     <></>
   ) : (
     <div className="w-full lg:w-10/12 relative xl:w-6/12 p-5 rounded-xl flex flex-col bg-[#F6F7F9] dark:bg-neutral-900 gap-y-3">
@@ -34,45 +45,54 @@ const ThenNode = ({ id }: Props) => {
       </div>
       <div className="bg-[#ededef] hover:bg-[#dfdfdf] dark:bg-neutral-800 dark:hover:bg-neutral-800 p-3 rounded-xl flex flex-col gap-y-2">
         <div className="flex gap-x-2 items-center">
-          {data.data.listener.listener === "MESSAGE" ? (
+          {listener.listener === "MESSAGE" ? (
             <PlaneBlue />
-          ) : data.data.listener.listener === "SMARTAI" ? (
+          ) : listener.listener === "SMARTAI" ? (
             <SmartAi />
           ) : (
             <LayoutPanelTop className="text-blue-500" />
           )}
           <p className="text-lg text-black dark:text-white">
-            {data.data.listener.listener === "MESSAGE"
+            {listener.listener === "MESSAGE"
               ? "Send the user a message."
-              : data.data.listener.listener === "SMARTAI"
+              : listener.listener === "SMARTAI"
               ? "Let Smart AI take over"
               : "Send a Generic Template"}
           </p>
         </div>
-        
+
         {/* Display prompt and comment reply for all listener types */}
         <div className="mb-3">
-          <p className={cn(
-            "font-light text-black dark:text-white",
-            data.data.listener.listener === "SMARTAI" && "border border-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.5)] p-3 rounded-xl"
-          )}>
-            {data.data.listener.prompt}
+          <p
+            className={cn(
+              "font-light text-black dark:text-white",
+              listener.listener === "SMARTAI" &&
+                "border border-blue-200 shadow-[0_0_15px_rgba(59,130,246,0.5)] p-3 rounded-xl"
+            )}
+          >
+            {listener.prompt}
           </p>
-          {data.data.listener.commentReply && (
+          {listener.commentReply && (
             <div className="mt-3 bg-white/50 dark:bg-gray-600/50 p-3 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
               <p className="font-light text-black dark:text-white">
-                <span className="font-medium">Reply:</span> {data.data.listener.commentReply}
+                <span className="font-medium">Reply:</span>{" "}
+                {listener.commentReply}
               </p>
             </div>
           )}
         </div>
-        
+
         {/* Display carousel template if available */}
-        {data.data.listener.listener === "CAROUSEL" && data.data.carouselTemplates && data.data.carouselTemplates.length > 0 && (
+        {listener.listener === "CAROUSEL" && carouselTemplates.length > 0 && (
           <div className="space-y-3 mt-4 border-t border-gray-200 pt-4">
-            <p className="font-medium text-black dark:text-white mb-2">Template Preview:</p>
-            {data.data.carouselTemplates[0]?.elements.map((element: any, index: number) => (
-              <div key={index} className="bg-white dark:bg-black p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+            <p className="font-medium text-black dark:text-white mb-2">
+              Template Preview:
+            </p>
+            {carouselTemplates[0]?.elements.map((element, index: number) => (
+              <div
+                key={element.id || index}
+                className="bg-white dark:bg-black p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm"
+              >
                 {element.imageUrl && (
                   <div className="w-full h-48 bg-gray-100 dark:bg-neutral-800 rounded-lg mb-3 overflow-hidden relative">
                     <Image
@@ -84,15 +104,19 @@ const ThenNode = ({ id }: Props) => {
                     />
                   </div>
                 )}
-                <h3 className="text-black dark:text-white font-medium text-lg mb-1">{element.title}</h3>
+                <h3 className="text-black dark:text-white font-medium text-lg mb-1">
+                  {element.title}
+                </h3>
                 {element.subtitle && (
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{element.subtitle}</p>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                    {element.subtitle}
+                  </p>
                 )}
                 {element.buttons?.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {element.buttons.map((button: any, btnIndex: number) => (
+                    {element.buttons.map((button, btnIndex: number) => (
                       <div
-                        key={btnIndex}
+                        key={button.id || btnIndex}
                         className={cn(
                           "px-3 py-1.5 text-sm rounded-lg",
                           button.type === "WEB_URL"
@@ -110,7 +134,7 @@ const ThenNode = ({ id }: Props) => {
           </div>
         )}
       </div>
-      {data.data.posts.length > 0 ? (
+      {posts.length > 0 ? (
         <></>
       ) : commentTrigger ? (
         <PostButton id={id} />

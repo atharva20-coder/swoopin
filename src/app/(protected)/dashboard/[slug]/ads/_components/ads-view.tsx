@@ -25,15 +25,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  createCampaign,
-  updateCampaignStatus,
-  deleteCampaign,
-  syncCampaigns,
-  getCampaignInsights,
-} from "@/actions/ads";
-import type { AdCampaign, CampaignStatus, CampaignObjective } from "@prisma/client";
+import type {
+  AdCampaign,
+  CampaignStatus,
+  CampaignObjective,
+} from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
+
+// REST API calls
+async function updateCampaignStatus(
+  campaignId: string,
+  status: CampaignStatus
+) {
+  const res = await fetch(`/api/v1/ads/campaigns/${campaignId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  return res.json();
+}
+
+async function deleteCampaign(campaignId: string) {
+  const res = await fetch(`/api/v1/ads/campaigns/${campaignId}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
+
+async function getCampaignInsights(campaignId: string) {
+  const res = await fetch(`/api/v1/ads/campaigns/${campaignId}/insights`);
+  return res.json();
+}
 
 interface AdInsights {
   impressions: number;
@@ -51,8 +73,10 @@ interface AdsViewProps {
 }
 
 const STATUS_COLORS: Record<CampaignStatus, string> = {
-  ACTIVE: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  PAUSED: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  ACTIVE:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  PAUSED:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   DELETED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   ARCHIVED: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
 };
@@ -80,7 +104,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
-  const [selectedCampaign, setSelectedCampaign] = useState<AdCampaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<AdCampaign | null>(
+    null
+  );
   const [insights, setInsights] = useState<AdInsights | null>(null);
 
   // Wizard form state
@@ -111,12 +137,17 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
   };
 
   const handleStatusToggle = async (campaign: AdCampaign) => {
-    const newStatus: CampaignStatus = campaign.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    const newStatus: CampaignStatus =
+      campaign.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
     setIsLoading(true);
     try {
       const result = await updateCampaignStatus(campaign.id, newStatus);
       if (result.status === 200) {
-        setCampaigns(campaigns.map((c) => (c.id === campaign.id ? { ...c, status: newStatus } : c)));
+        setCampaigns(
+          campaigns.map((c) =>
+            c.id === campaign.id ? { ...c, status: newStatus } : c
+          )
+        );
         toast.success(`Campaign ${newStatus.toLowerCase()}`);
       }
     } catch {
@@ -196,7 +227,12 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
           <span className="text-gray-900 dark:text-white font-medium">Ads</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleSync} disabled={isLoading} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSync}
+            disabled={isLoading}
+            className="gap-2"
+          >
             <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
             Sync
           </Button>
@@ -215,7 +251,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
               <Megaphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.total}
+              </p>
               <p className="text-sm text-gray-500">Total Campaigns</p>
             </div>
           </div>
@@ -226,7 +264,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
               <Play className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.active}
+              </p>
               <p className="text-sm text-gray-500">Active</p>
             </div>
           </div>
@@ -237,7 +277,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
               <Pause className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.paused}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.paused}
+              </p>
               <p className="text-sm text-gray-500">Paused</p>
             </div>
           </div>
@@ -263,7 +305,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Megaphone className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-lg font-medium">No campaigns yet</p>
-            <p className="text-sm mb-4">Create your first ad campaign to get started</p>
+            <p className="text-sm mb-4">
+              Create your first ad campaign to get started
+            </p>
             <Button onClick={() => setShowWizard(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               Create Campaign
@@ -281,7 +325,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                     {OBJECTIVE_ICONS[campaign.objective]}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{campaign.name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {campaign.name}
+                    </h3>
                     <p className="text-sm text-gray-500 flex items-center gap-2">
                       <Target className="w-3 h-3" />
                       {OBJECTIVE_LABELS[campaign.objective]}
@@ -292,7 +338,12 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className={cn("px-3 py-1 rounded-full text-xs font-medium", STATUS_COLORS[campaign.status])}>
+                  <span
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium",
+                      STATUS_COLORS[campaign.status]
+                    )}
+                  >
                     {campaign.status}
                   </span>
 
@@ -308,11 +359,19 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={campaign.status === "ACTIVE" ? "text-yellow-600" : "text-green-600"}
+                    className={
+                      campaign.status === "ACTIVE"
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                    }
                     onClick={() => handleStatusToggle(campaign)}
                     disabled={isLoading}
                   >
-                    {campaign.status === "ACTIVE" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    {campaign.status === "ACTIVE" ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
                   </Button>
 
                   <Button
@@ -344,7 +403,9 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             {/* Wizard Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create Campaign</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Create Campaign
+                </h2>
                 <p className="text-sm text-gray-500">Step {wizardStep} of 3</p>
               </div>
               <button
@@ -359,40 +420,52 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             <div className="p-6">
               {wizardStep === 1 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Campaign Objective</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Campaign Objective
+                  </h3>
                   <div className="grid grid-cols-2 gap-3">
-                    {(Object.keys(OBJECTIVE_LABELS) as CampaignObjective[]).map((obj) => (
-                      <button
-                        key={obj}
-                        onClick={() => setFormData({ ...formData, objective: obj })}
-                        className={cn(
-                          "p-4 rounded-xl border text-left transition-all",
-                          formData.objective === obj
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                            : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
-                        )}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          {OBJECTIVE_ICONS[obj]}
-                          <span className="font-medium text-gray-900 dark:text-white text-sm">
-                            {OBJECTIVE_LABELS[obj]}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                    {(Object.keys(OBJECTIVE_LABELS) as CampaignObjective[]).map(
+                      (obj) => (
+                        <button
+                          key={obj}
+                          onClick={() =>
+                            setFormData({ ...formData, objective: obj })
+                          }
+                          className={cn(
+                            "p-4 rounded-xl border text-left transition-all",
+                            formData.objective === obj
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                              : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {OBJECTIVE_ICONS[obj]}
+                            <span className="font-medium text-gray-900 dark:text-white text-sm">
+                              {OBJECTIVE_LABELS[obj]}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               )}
 
               {wizardStep === 2 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Campaign Details</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Campaign Details
+                  </h3>
                   <div>
-                    <label className="text-sm text-gray-500 mb-1 block">Campaign Name</label>
+                    <label className="text-sm text-gray-500 mb-1 block">
+                      Campaign Name
+                    </label>
                     <Input
                       placeholder="e.g. Summer Sale 2024"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -400,14 +473,23 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
 
               {wizardStep === 3 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Budget</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Budget
+                  </h3>
                   <div>
-                    <label className="text-sm text-gray-500 mb-1 block">Daily Budget (USD)</label>
+                    <label className="text-sm text-gray-500 mb-1 block">
+                      Daily Budget (USD)
+                    </label>
                     <Input
                       type="number"
                       min={1}
                       value={formData.budget}
-                      onChange={(e) => setFormData({ ...formData, budget: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          budget: parseFloat(e.target.value) || 0,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -424,7 +506,10 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                 Back
               </Button>
               {wizardStep < 3 ? (
-                <Button onClick={() => setWizardStep(wizardStep + 1)} className="gap-2">
+                <Button
+                  onClick={() => setWizardStep(wizardStep + 1)}
+                  className="gap-2"
+                >
                   Next <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
@@ -504,11 +589,15 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                       <DollarSign className="w-4 h-4" />
                       <span className="text-sm">Spend</span>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">${insights.spend}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      ${insights.spend}
+                    </p>
                   </div>
                 </div>
               ) : (
-                <p className="text-center text-gray-500">No insights available yet</p>
+                <p className="text-center text-gray-500">
+                  No insights available yet
+                </p>
               )}
             </div>
           </div>

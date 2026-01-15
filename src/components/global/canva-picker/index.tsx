@@ -2,9 +2,41 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Palette, Loader2, Check, Search, RefreshCw, Download } from "lucide-react";
-import { getCanvaDesigns, exportCanvaDesign, isCanvaConnected } from "@/actions/canva";
+import {
+  Palette,
+  Loader2,
+  Check,
+  Search,
+  RefreshCw,
+  Download,
+} from "lucide-react";
 import Image from "next/image";
+
+// REST API calls
+async function isCanvaConnected() {
+  const res = await fetch("/api/v1/canva/status");
+  return res.json();
+}
+
+async function getCanvaDesigns(options: {
+  limit: number;
+  continuation?: string;
+}) {
+  const params = new URLSearchParams();
+  params.set("limit", options.limit.toString());
+  if (options.continuation) params.set("continuation", options.continuation);
+  const res = await fetch(`/api/v1/canva/designs?${params}`);
+  return res.json();
+}
+
+async function exportCanvaDesign(designId: string, format: string) {
+  const res = await fetch(`/api/v1/canva/designs/${designId}/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ format }),
+  });
+  return res.json();
+}
 
 interface CanvaDesign {
   id: string;
@@ -94,7 +126,7 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
     }
   };
 
-  const filteredDesigns = designs.filter(d =>
+  const filteredDesigns = designs.filter((d) =>
     d.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -185,7 +217,7 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
                       <Palette className="w-8 h-8 text-gray-400" />
                     </div>
                   )}
-                  
+
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2">
                     {exporting === design.id ? (
@@ -193,7 +225,9 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
                     ) : (
                       <>
                         <Download className="w-6 h-6 mb-2" />
-                        <span className="text-xs text-center line-clamp-2">{design.title}</span>
+                        <span className="text-xs text-center line-clamp-2">
+                          {design.title}
+                        </span>
                       </>
                     )}
                   </div>

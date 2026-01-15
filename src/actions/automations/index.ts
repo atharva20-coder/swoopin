@@ -1,8 +1,12 @@
 "use server";
 
-import { createNotification } from "../notifications";
+import { notificationService } from "@/services/notification.service";
 import { getDbUser, onCurrentUser } from "../user";
 import { findUser } from "../user/queries";
+
+// Helper for notifications
+const createNotification = (content: string, userId: string) =>
+  notificationService.create(content, userId);
 import {
   addKeyWord,
   addListener,
@@ -22,13 +26,11 @@ import {
 export const createAutomations = async (id?: string) => {
   const user = await getDbUser();
   try {
-
     const create = await createAutomation(user.id, id);
     if (create) return { status: 200, data: "Automation created", res: create };
 
     return { status: 404, data: "Oops! something went wrong" };
   } catch (error) {
-
     return { status: 500, data: "Internal server error" };
   }
 };
@@ -44,7 +46,6 @@ export const deleteAutomations = async (id: string) => {
       };
     return { status: 404, data: "Automation not found" };
   } catch (error) {
-
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
@@ -101,7 +102,13 @@ export const saveListener = async (
 ) => {
   await onCurrentUser();
   try {
-    const create = await addListener(automationId, listener, prompt, reply, carouselTemplateId);
+    const create = await addListener(
+      automationId,
+      listener,
+      prompt,
+      reply,
+      carouselTemplateId
+    );
     if (create) return { status: 200, data: "Listener created" };
     return { status: 404, data: "Cant save listener" };
   } catch (error) {
@@ -121,7 +128,10 @@ export const saveTrigger = async (automationId: string, trigger: string[]) => {
 };
 
 // Sync triggers - only creates new ones and deletes removed ones
-export const syncTriggersAction = async (automationId: string, triggerTypes: string[]) => {
+export const syncTriggersAction = async (
+  automationId: string,
+  triggerTypes: string[]
+) => {
   await onCurrentUser();
   try {
     const result = await syncTriggers(automationId, triggerTypes);
@@ -156,7 +166,6 @@ export const deleteKeyword = async (id: string) => {
       };
     return { status: 404, data: "Keyword not found" };
   } catch (error) {
-
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
@@ -177,7 +186,6 @@ export const editKeywords = async (
     }
     return { status: 404, data: "Keyword not found" };
   } catch (error) {
-
     return { status: 500, data: "Oops! something went wrong" };
   }
 };
@@ -195,7 +203,6 @@ export const getProfilePosts = async () => {
 
     return { status: 404 };
   } catch (error) {
-
     return { status: 500 };
   }
 };
@@ -242,7 +249,6 @@ export const activateAutomation = async (id: string, state: boolean) => {
   }
 };
 
-
 export const createCarouselTemplate = async (
   automationId: string,
   elements: any[]
@@ -250,18 +256,22 @@ export const createCarouselTemplate = async (
   const user = await onCurrentUser();
   try {
     const userDetails = await findUser(user.id);
-    
+
     if (!userDetails) {
       return { status: 404, data: "User not found" };
     }
-    
-    const create = await addCarouselTemplate(automationId, userDetails.id, elements);
-    
+
+    const create = await addCarouselTemplate(
+      automationId,
+      userDetails.id,
+      elements
+    );
+
     if (create) {
-      return { 
-        status: 200, 
+      return {
+        status: 200,
         data: "Carousel template created successfully",
-        templateId: create.id
+        templateId: create.id,
       };
     }
 
@@ -271,4 +281,3 @@ export const createCarouselTemplate = async (
     return { status: 500, data: "Internal server error" };
   }
 };
-

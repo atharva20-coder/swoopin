@@ -13,16 +13,23 @@ type Props = {
   id: string;
 };
 
+/**
+ * Data is properly typed from Zod parsing in the hook layer
+ * No patchwork needed - Zero-Patchwork Protocol
+ */
 const PostButton = ({ id }: Props) => {
   const { data } = useQueryAutomationPosts();
   const { posts, onSelectPost, mutate, isPending } = useAutomationPosts(id);
 
+  // Data is normalized at Zod schema layer
+  const allPosts = data?.data ?? [];
+
   return (
     <TriggerButton label="Attach a post">
-      {data?.status === 200 && data?.data?.data?.length > 0 ? (
+      {data?.status === 200 && allPosts.length > 0 ? (
         <div className="flex flex-col gap-y-6 w-full max-h-[70vh] overflow-y-auto p-4 dark:bg-neutral-900/95 backdrop-blur-sm">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
-            {data?.data?.data?.map((post: InstagramPostProps) => (
+            {allPosts.map((post: InstagramPostProps) => (
               <div
                 className="relative aspect-square rounded-xl cursor-pointer overflow-hidden bg-gray-50 dark:bg-neutral-800/80 group ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 hover:ring-primary/30 dark:hover:ring-primary/30"
                 key={post.id}
@@ -45,11 +52,16 @@ const PostButton = ({ id }: Props) => {
                       onError={(e) => {
                         const video = e.target as HTMLVideoElement;
                         if (video.src === post.media_url) {
-                          video.src = `/api/instagram-proxy?url=${encodeURIComponent(post.media_url)}`;
+                          video.src = `/api/instagram-proxy?url=${encodeURIComponent(
+                            post.media_url
+                          )}`;
                         }
                       }}
                     />
-                    <Film className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md" size={20} />
+                    <Film
+                      className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md"
+                      size={20}
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full">
@@ -63,12 +75,17 @@ const PostButton = ({ id }: Props) => {
                       onError={(e) => {
                         const img = e.target as HTMLImageElement;
                         if (img.src === post.media_url) {
-                          img.src = `/api/instagram-proxy?url=${encodeURIComponent(post.media_url)}`;
+                          img.src = `/api/instagram-proxy?url=${encodeURIComponent(
+                            post.media_url
+                          )}`;
                         }
                       }}
                     />
                     {post.media_type === "CAROUSEL_ALBUM" && (
-                      <ImageIcon className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md" size={20} />
+                      <ImageIcon
+                        className="absolute top-3 right-3 text-white/90 z-10 drop-shadow-md"
+                        size={20}
+                      />
                     )}
                   </div>
                 )}
@@ -89,13 +106,17 @@ const PostButton = ({ id }: Props) => {
             disabled={posts.length === 0}
             className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <Loader state={isPending}>Attach {posts.length} Post{posts.length !== 1 ? 's' : ''}</Loader>
+            <Loader state={isPending}>
+              Attach {posts.length} Post{posts.length !== 1 ? "s" : ""}
+            </Loader>
           </Button>
         </div>
       ) : (
         <div className="p-8 text-center">
           <p className="text-gray-500">No Instagram posts found</p>
-          <p className="text-sm text-gray-400 mt-1">Connect your Instagram account to see your posts</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Connect your Instagram account to see your posts
+          </p>
         </div>
       )}
     </TriggerButton>

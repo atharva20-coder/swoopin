@@ -4,8 +4,18 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Loader2, FileSpreadsheet, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { isGoogleConnected, disconnectGoogle } from "@/actions/google";
 import { useRouter } from "next/navigation";
+
+// REST API calls
+async function isGoogleConnected() {
+  const res = await fetch("/api/v1/google/status");
+  return res.json();
+}
+
+async function disconnectGoogle() {
+  const res = await fetch("/api/v1/google", { method: "DELETE" });
+  return res.json();
+}
 
 export default function GoogleIntegrationCard() {
   const router = useRouter();
@@ -34,19 +44,23 @@ export default function GoogleIntegrationCard() {
     // Redirect to Google OAuth with Sheets scope
     // We use the same callback as existing Google auth but request additional scopes
     const callbackUrl = `${window.location.origin}/api/auth/callback/google-sheets`;
-    const scope = encodeURIComponent("openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file");
-    
+    const scope = encodeURIComponent(
+      "openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file"
+    );
+
     // Fetch client ID from server to avoid exposing in client bundle
     const res = await fetch("/api/google/client-id");
     const { clientId } = await res.json();
-    
+
     if (!clientId) {
       alert("Google OAuth not configured. Please add GOOGLE_CLIENT_ID to .env");
       setIsConnecting(false);
       return;
     }
-    
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      callbackUrl
+    )}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
   };
 
   const handleDisconnect = async () => {
@@ -79,7 +93,8 @@ export default function GoogleIntegrationCard() {
         "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
         "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
         "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
-        isConnected && "ring-2 ring-green-500/20 border-green-200 dark:border-green-500/30",
+        isConnected &&
+          "ring-2 ring-green-500/20 border-green-200 dark:border-green-500/30",
         !isConnected && "cursor-pointer"
       )}
       onClick={!isConnected ? handleConnect : undefined}
@@ -95,9 +110,7 @@ export default function GoogleIntegrationCard() {
           <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
             Google Sheets
           </h3>
-          {isConnected && (
-            <Check className="w-4 h-4 text-green-500 shrink-0" />
-          )}
+          {isConnected && <Check className="w-4 h-4 text-green-500 shrink-0" />}
         </div>
         <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
           {isConnected && email ? email : "Export data to spreadsheets"}

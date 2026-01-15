@@ -1,5 +1,5 @@
-import { client } from '@/lib/prisma';
-import { deleteCache, getOrSetCache } from '@/lib/cache';
+import { client } from "@/lib/prisma";
+import { deleteCache, getOrSetCache } from "@/lib/cache";
 import {
   AutomationListResponseSchema,
   AutomationDetailResponseSchema,
@@ -18,7 +18,7 @@ import {
   type AutomationUpdatedResponse,
   type AutomationsPagination,
   type PaginatedAutomationsResponse,
-} from '@/schemas/automation.schema';
+} from "@/schemas/automation.schema";
 
 /**
  * ============================================
@@ -40,7 +40,7 @@ class AutomationService {
 
     const automations = await client.automation.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit + 1, // Fetch one extra to check if there's more
       ...(cursor && {
         cursor: { id: cursor },
@@ -62,7 +62,10 @@ class AutomationService {
     // Validate response
     const validatedData = AutomationListResponseSchema.safeParse(data);
     if (!validatedData.success) {
-      console.error('Automation list validation failed:', validatedData.error.format());
+      console.error(
+        "Automation list validation failed:",
+        validatedData.error.format()
+      );
       return { data: [], meta: { nextCursor: null, hasMore: false, total: 0 } };
     }
 
@@ -83,7 +86,7 @@ class AutomationService {
           where: { id: userId },
           select: {
             automations: {
-              orderBy: { createdAt: 'asc' },
+              orderBy: { createdAt: "asc" },
               include: {
                 keywords: true,
                 listener: true,
@@ -103,7 +106,10 @@ class AutomationService {
   /**
    * Get automation by ID with ownership check
    */
-  async getById(automationId: string, userId: string): Promise<AutomationDetail | null> {
+  async getById(
+    automationId: string,
+    userId: string
+  ): Promise<AutomationDetail | null> {
     const automation = await client.automation.findUnique({
       where: { id: automationId },
       include: {
@@ -115,7 +121,7 @@ class AutomationService {
           include: {
             elements: {
               include: { buttons: true },
-              orderBy: { order: 'asc' },
+              orderBy: { order: "asc" },
             },
           },
         },
@@ -144,13 +150,16 @@ class AutomationService {
       posts: automation.posts,
       listener: automation.listener,
       carouselTemplates: automation.carouselTemplates,
-      hasProPlan: automation.User?.subscription?.plan === 'PRO',
+      hasProPlan: automation.User?.subscription?.plan === "PRO",
       hasIntegration: (automation.User?.integrations?.length ?? 0) > 0,
     };
 
     const validated = AutomationDetailResponseSchema.safeParse(rawData);
     if (!validated.success) {
-      console.error('Automation detail validation failed:', validated.error.format());
+      console.error(
+        "Automation detail validation failed:",
+        validated.error.format()
+      );
       return null;
     }
 
@@ -158,9 +167,44 @@ class AutomationService {
   }
 
   /**
+   * Get automation by ID with full user data for internal webhook processing
+   * NOTE: This bypasses IDOR checks - ONLY use for server-to-server webhook processing
+   */
+  async getByIdForWebhook(automationId: string) {
+    return await client.automation.findUnique({
+      where: { id: automationId },
+      include: {
+        keywords: true,
+        trigger: true,
+        posts: true,
+        listener: true,
+        carouselTemplates: {
+          include: {
+            elements: {
+              include: { buttons: true },
+              orderBy: { order: "asc" },
+            },
+          },
+        },
+        User: {
+          select: {
+            id: true,
+            subscription: { select: { plan: true } },
+            integrations: { select: { token: true } },
+            openAiKey: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Create new automation
    */
-  async create(userId: string, input: CreateAutomationRequest): Promise<AutomationCreatedResponse | null> {
+  async create(
+    userId: string,
+    input: CreateAutomationRequest
+  ): Promise<AutomationCreatedResponse | null> {
     const result = await client.automation.create({
       data: {
         ...(input.id && { id: input.id }),
@@ -266,13 +310,17 @@ class AutomationService {
               listener: input.listener,
               prompt: input.prompt,
               commentReply: input.reply,
-              ...(input.listener === 'CAROUSEL' && { carouselTemplateId: input.carouselTemplateId }),
+              ...(input.listener === "CAROUSEL" && {
+                carouselTemplateId: input.carouselTemplateId,
+              }),
             },
             update: {
               listener: input.listener,
               prompt: input.prompt,
               commentReply: input.reply,
-              ...(input.listener === 'CAROUSEL' && { carouselTemplateId: input.carouselTemplateId }),
+              ...(input.listener === "CAROUSEL" && {
+                carouselTemplateId: input.carouselTemplateId,
+              }),
             },
           },
         },
@@ -305,7 +353,9 @@ class AutomationService {
     const newTypes = input.triggers as string[];
 
     const toAdd = newTypes.filter((t) => !existingTypes.includes(t));
-    const toDelete = automation.trigger.filter((t) => !newTypes.includes(t.type));
+    const toDelete = automation.trigger.filter(
+      (t) => !newTypes.includes(t.type)
+    );
 
     if (toDelete.length > 0) {
       await client.trigger.deleteMany({

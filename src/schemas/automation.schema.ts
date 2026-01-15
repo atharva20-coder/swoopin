@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * ============================================
@@ -11,22 +11,28 @@ import { z } from 'zod';
 // TRANSFORMERS (Reusable normalizations)
 // ============================================
 
-const nullishToNull = z.string().nullish().transform((val): string | null => val ?? null);
-const emptyToNull = z.string().nullish().transform((val): string | null => {
-  if (val === undefined || val === null || val.trim() === '') {
-    return null;
-  }
-  return val;
-});
+const nullishToNull = z
+  .string()
+  .nullish()
+  .transform((val): string | null => val ?? null);
+const emptyToNull = z
+  .string()
+  .nullish()
+  .transform((val): string | null => {
+    if (val === undefined || val === null || val.trim() === "") {
+      return null;
+    }
+    return val;
+  });
 
 // ============================================
 // ENUMS
 // ============================================
 
-export const ListenerTypeSchema = z.enum(['SMARTAI', 'MESSAGE', 'CAROUSEL']);
-export const TriggerTypeSchema = z.enum(['COMMENT', 'DM']);
-export const MediaTypeSchema = z.enum(['IMAGE', 'VIDEO', 'CAROUSEL_ALBUM']);
-export const ButtonTypeSchema = z.enum(['WEB_URL', 'POSTBACK']);
+export const ListenerTypeSchema = z.enum(["SMARTAI", "MESSAGE", "CAROUSEL"]);
+export const TriggerTypeSchema = z.enum(["COMMENT", "DM"]);
+export const MediaTypeSchema = z.enum(["IMAGE", "VIDEO", "CAROUSEL_ALBUM"]);
+export const ButtonTypeSchema = z.enum(["WEB_URL", "POSTBACK"]);
 
 // ============================================
 // KEYWORD SCHEMAS
@@ -113,6 +119,53 @@ export const CarouselTemplateSchema = z.object({
   elements: z.array(CarouselElementSchema),
 });
 
+// ============================================
+// FLOW NODE & EDGE SCHEMAS
+// ============================================
+
+export const FlowNodeSchema = z.object({
+  id: z.string().uuid(),
+  nodeId: z.string(),
+  type: z.string(),
+  subType: z.string(),
+  label: z.string(),
+  description: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  positionX: z.number(),
+  positionY: z.number(),
+  config: z
+    .unknown()
+    .nullish()
+    .transform((v) => v ?? null),
+  automationId: z
+    .string()
+    .uuid()
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+export const FlowEdgeSchema = z.object({
+  id: z.string().uuid(),
+  edgeId: z.string(),
+  sourceNodeId: z.string(),
+  targetNodeId: z.string(),
+  sourceHandle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  targetHandle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  automationId: z
+    .string()
+    .uuid()
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
 export const AutomationDetailResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -123,6 +176,9 @@ export const AutomationDetailResponseSchema = z.object({
   posts: z.array(PostSchema),
   listener: ListenerSchema.nullable(),
   carouselTemplates: z.array(CarouselTemplateSchema),
+  // Flow builder nodes and edges
+  flowNodes: z.array(FlowNodeSchema).default([]),
+  flowEdges: z.array(FlowEdgeSchema).default([]),
   // User subscription info for feature gating
   hasProPlan: z.boolean(),
   hasIntegration: z.boolean(),
@@ -136,24 +192,33 @@ export const CreateAutomationRequestSchema = z.object({
   id: z.string().uuid().optional(),
 });
 
-export const UpdateAutomationRequestSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  active: z.boolean().optional(),
-}).refine(
-  (data) => data.name !== undefined || data.active !== undefined,
-  { message: 'At least one field (name or active) must be provided' }
-);
+export const UpdateAutomationRequestSchema = z
+  .object({
+    name: z.string().min(1).max(100).optional(),
+    active: z.boolean().optional(),
+  })
+  .refine((data) => data.name !== undefined || data.active !== undefined, {
+    message: "At least one field (name or active) must be provided",
+  });
 
-export const SaveListenerRequestSchema = z.object({
-  listener: ListenerTypeSchema,
-  prompt: z.string().min(1),
-  reply: z.string().optional().transform((val): string | null => val ?? null),
-  carouselTemplateId: z.string().uuid().optional()
-    .transform((val): string | null => val ?? null),
-}).refine(
-  (data) => data.listener !== 'CAROUSEL' || data.carouselTemplateId !== null,
-  { message: 'carouselTemplateId is required for CAROUSEL listener' }
-);
+export const SaveListenerRequestSchema = z
+  .object({
+    listener: ListenerTypeSchema,
+    prompt: z.string().min(1),
+    reply: z
+      .string()
+      .optional()
+      .transform((val): string | null => val ?? null),
+    carouselTemplateId: z
+      .string()
+      .uuid()
+      .optional()
+      .transform((val): string | null => val ?? null),
+  })
+  .refine(
+    (data) => data.listener !== "CAROUSEL" || data.carouselTemplateId !== null,
+    { message: "carouselTemplateId is required for CAROUSEL listener" }
+  );
 
 export const SaveTriggerRequestSchema = z.object({
   triggers: z.array(TriggerTypeSchema).min(1).max(2),
@@ -169,12 +234,19 @@ export const EditKeywordRequestSchema = z.object({
 });
 
 export const SavePostsRequestSchema = z.object({
-  posts: z.array(z.object({
-    postid: z.string(),
-    caption: z.string().optional().transform((val): string | null => val ?? null),
-    media: z.string().url(),
-    mediaType: MediaTypeSchema,
-  })).min(1),
+  posts: z
+    .array(
+      z.object({
+        postid: z.string(),
+        caption: z
+          .string()
+          .optional()
+          .transform((val): string | null => val ?? null),
+        media: z.string().url(),
+        mediaType: MediaTypeSchema,
+      })
+    )
+    .min(1),
 });
 
 export const ActivateRequestSchema = z.object({
@@ -229,8 +301,12 @@ export type Trigger = z.infer<typeof TriggerSchema>;
 export type Listener = z.infer<typeof ListenerSchema>;
 export type AutomationListItem = z.infer<typeof AutomationListItemSchema>;
 export type AutomationDetail = z.infer<typeof AutomationDetailResponseSchema>;
-export type CreateAutomationRequest = z.infer<typeof CreateAutomationRequestSchema>;
-export type UpdateAutomationRequest = z.infer<typeof UpdateAutomationRequestSchema>;
+export type CreateAutomationRequest = z.infer<
+  typeof CreateAutomationRequestSchema
+>;
+export type UpdateAutomationRequest = z.infer<
+  typeof UpdateAutomationRequestSchema
+>;
 export type SaveListenerRequest = z.infer<typeof SaveListenerRequestSchema>;
 export type SaveTriggerRequest = z.infer<typeof SaveTriggerRequestSchema>;
 export type SaveKeywordRequest = z.infer<typeof SaveKeywordRequestSchema>;
@@ -238,6 +314,12 @@ export type EditKeywordRequest = z.infer<typeof EditKeywordRequestSchema>;
 export type SavePostsRequest = z.infer<typeof SavePostsRequestSchema>;
 export type ActivateRequest = z.infer<typeof ActivateRequestSchema>;
 export type AutomationsPagination = z.infer<typeof AutomationsPaginationSchema>;
-export type PaginatedAutomationsResponse = z.infer<typeof PaginatedAutomationsResponseSchema>;
-export type AutomationCreatedResponse = z.infer<typeof AutomationCreatedResponseSchema>;
-export type AutomationUpdatedResponse = z.infer<typeof AutomationUpdatedResponseSchema>;
+export type PaginatedAutomationsResponse = z.infer<
+  typeof PaginatedAutomationsResponseSchema
+>;
+export type AutomationCreatedResponse = z.infer<
+  typeof AutomationCreatedResponseSchema
+>;
+export type AutomationUpdatedResponse = z.infer<
+  typeof AutomationUpdatedResponseSchema
+>;
