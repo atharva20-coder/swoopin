@@ -23,11 +23,11 @@ const ActivateAutomationButton = ({ id }: Props) => {
   const { mutate, isPending } = useMutationData(
     ["activate"],
     (data: { state: boolean }) => activateAutomationApi(id, data.state),
-    "automation-info"
+    "automation-info",
   );
 
   const [optimisticState, setOptimisticState] = React.useState(
-    data?.data?.active || false
+    data?.data?.active || false,
   );
 
   React.useEffect(() => {
@@ -44,10 +44,10 @@ const ActivateAutomationButton = ({ id }: Props) => {
     if (hasFlowNodes) {
       // Flow-based: need at least one trigger and one action node
       const hasTrigger = data.data.flowNodes.some(
-        (n: any) => n.type === "trigger"
+        (n: any) => n.type === "trigger",
       );
       const hasAction = data.data.flowNodes.some(
-        (n: any) => n.type === "action"
+        (n: any) => n.type === "action",
       );
       return hasTrigger && hasAction;
     }

@@ -97,7 +97,7 @@ const InstagramProfileApiResponseSchema = z.object({
 // Standard API response wrapper for posts
 // Following Zero-Patchwork Protocol: Transform nullish to empty strings at schema layer
 const PostsApiResponseSchema = z.object({
-  status: z.number(),
+  success: z.boolean(),
   data: z
     .array(
       z.object({
@@ -185,7 +185,7 @@ async function fetchProfilePosts(): Promise<PostsApiResponse> {
       "[DEBUG] fetchProfilePosts Zod parse error:",
       parsed.error.format(),
     );
-    return { status: 500, data: [] };
+    return { success: false, data: [] };
   }
   return parsed.data;
 }
