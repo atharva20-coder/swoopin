@@ -16,9 +16,9 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
 
 /**
  * POST /api/admin/upgrade-enterprise
- * 
+ *
  * Upgrade a user to Enterprise plan (admin only)
- * 
+ *
  * Body: { email: string, customerId?: string }
  * Headers: x-admin-secret: your-admin-secret OR authenticated as an admin user
  */
@@ -26,25 +26,25 @@ export async function POST(req: NextRequest) {
   try {
     // Check authentication - either admin secret or authenticated admin user
     const adminSecret = req.headers.get("x-admin-secret");
-    
+
     let isAuthorized = false;
-    
+
     // Method 1: Admin secret in header
     if (adminSecret && ADMIN_SECRET && adminSecret === ADMIN_SECRET) {
       isAuthorized = true;
     }
-    
+
     // Method 2: Authenticated admin user
     if (!isAuthorized) {
       const session = await auth.api.getSession({
         headers: await headers(),
       });
-      
+
       if (session?.user && ADMIN_EMAILS.includes(session.user.email)) {
         isAuthorized = true;
       }
     }
-    
+
     if (!isAuthorized) {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
@@ -53,13 +53,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { email, customerId, enquiryId, subscriptionDays = 30 } = body;
+    const {
+      email,
+      cashfreeCustomerId,
+      enquiryId,
+      subscriptionDays = 30,
+    } = body;
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Find the user
@@ -77,7 +79,9 @@ export async function POST(req: NextRequest) {
 
     // Calculate subscription end date
     const subscriptionEndDate = new Date();
-    subscriptionEndDate.setDate(subscriptionEndDate.getDate() + subscriptionDays);
+    subscriptionEndDate.setDate(
+      subscriptionEndDate.getDate() + subscriptionDays
+    );
 
     // Update or create subscription
     if (user.subscription) {
@@ -85,7 +89,8 @@ export async function POST(req: NextRequest) {
         where: { id: user.subscription.id },
         data: {
           plan: "ENTERPRISE",
-          customerId: customerId || user.subscription.customerId,
+          cashfreeCustomerId:
+            cashfreeCustomerId || user.subscription.cashfreeCustomerId,
           cancelAtPeriodEnd: false,
           currentPeriodEnd: subscriptionEndDate,
         },
@@ -95,7 +100,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           plan: "ENTERPRISE",
-          customerId: customerId || null,
+          cashfreeCustomerId: cashfreeCustomerId || null,
           currentPeriodEnd: subscriptionEndDate,
         },
       });
@@ -143,30 +148,30 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/admin/upgrade-enterprise
- * 
+ *
  * List all enterprise users (admin only)
  */
 export async function GET(req: NextRequest) {
   try {
     // Check authentication
     const adminSecret = req.headers.get("x-admin-secret");
-    
+
     let isAuthorized = false;
-    
+
     if (adminSecret && ADMIN_SECRET && adminSecret === ADMIN_SECRET) {
       isAuthorized = true;
     }
-    
+
     if (!isAuthorized) {
       const session = await auth.api.getSession({
         headers: await headers(),
       });
-      
+
       if (session?.user && ADMIN_EMAILS.includes(session.user.email)) {
         isAuthorized = true;
       }
     }
-    
+
     if (!isAuthorized) {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
@@ -189,7 +194,7 @@ export async function GET(req: NextRequest) {
         subscription: {
           select: {
             plan: true,
-            customerId: true,
+            cashfreeCustomerId: true,
             createdAt: true,
           },
         },
@@ -212,32 +217,32 @@ export async function GET(req: NextRequest) {
 
 /**
  * DELETE /api/admin/upgrade-enterprise
- * 
+ *
  * Downgrade a user from Enterprise to another plan (admin only)
- * 
+ *
  * Body: { email: string, newPlan?: "PRO" | "FREE" }
  */
 export async function DELETE(req: NextRequest) {
   try {
     // Check authentication
     const adminSecret = req.headers.get("x-admin-secret");
-    
+
     let isAuthorized = false;
-    
+
     if (adminSecret && ADMIN_SECRET && adminSecret === ADMIN_SECRET) {
       isAuthorized = true;
     }
-    
+
     if (!isAuthorized) {
       const session = await auth.api.getSession({
         headers: await headers(),
       });
-      
+
       if (session?.user && ADMIN_EMAILS.includes(session.user.email)) {
         isAuthorized = true;
       }
     }
-    
+
     if (!isAuthorized) {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
@@ -249,10 +254,7 @@ export async function DELETE(req: NextRequest) {
     const { email, newPlan = "FREE" } = body;
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     if (!["PRO", "FREE"].includes(newPlan)) {

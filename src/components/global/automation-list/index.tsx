@@ -88,7 +88,7 @@ const AutomationCard = memo(function AutomationCard({
                 "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                 automation.listener?.listener === "SMARTAI"
                   ? "bg-gradient-to-br from-indigo-500 to-purple-600"
-                  : "bg-gray-100 dark:bg-neutral-800"
+                  : "bg-gray-100 dark:bg-neutral-800",
               )}
             >
               {automation.listener?.listener === "SMARTAI" ? (
@@ -105,10 +105,10 @@ const AutomationCard = memo(function AutomationCard({
                 {automation.listener?.listener === "SMARTAI"
                   ? "AI-powered responses"
                   : automation.keywords.length > 0
-                  ? `${automation.keywords.length} keyword trigger${
-                      automation.keywords.length === 1 ? "" : "s"
-                    }`
-                  : "Standard automation"}
+                    ? `${automation.keywords.length} keyword trigger${
+                        automation.keywords.length === 1 ? "" : "s"
+                      }`
+                    : "Standard automation"}
               </p>
             </div>
           </div>
@@ -129,7 +129,7 @@ const AutomationCard = memo(function AutomationCard({
                     key % 4 === 2 &&
                       "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
                     key % 4 === 3 &&
-                      "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                      "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
                   )}
                 >
                   {keyword.word}
@@ -158,7 +158,7 @@ const AutomationCard = memo(function AutomationCard({
               "px-3 py-1 rounded-full text-xs font-medium",
               automation.active
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                : "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400"
+                : "bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400",
             )}
           >
             {automation.active ? "Active" : "Inactive"}
@@ -171,7 +171,7 @@ const AutomationCard = memo(function AutomationCard({
               {(() => {
                 const date = new Date(automation.createdAt);
                 return `${getMonth(
-                  date.getUTCMonth() + 1
+                  date.getUTCMonth() + 1,
                 )} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
               })()}
             </span>
@@ -209,7 +209,7 @@ const AutomationList = () => {
       setSearchTerm(event.detail.searchTerm);
       setCurrentPage(1);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -217,7 +217,7 @@ const AutomationList = () => {
     return () => {
       window.removeEventListener(
         "automationSearch",
-        handleSearch as EventListener
+        handleSearch as EventListener,
       );
     };
   }, [handleSearch]);
@@ -309,7 +309,7 @@ const AutomationList = () => {
     }
   }, [totalPages, currentPage]);
 
-  if (data?.status !== 200 || data.data.length <= 0) {
+  if (!data?.success || data.data.length <= 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-6">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center mb-6">
@@ -337,7 +337,7 @@ const AutomationList = () => {
             className={cn(
               "group relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden transition-all duration-300",
               automation.id !== "no-results" &&
-                "hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800"
+                "hover:shadow-lg hover:border-indigo-200 dark:hover:border-indigo-800",
             )}
           >
             <AutomationCard
@@ -391,7 +391,7 @@ const AutomationList = () => {
                     className={cn(
                       "w-9 h-9",
                       currentPage === pageNum &&
-                        "bg-indigo-600 hover:bg-indigo-700"
+                        "bg-indigo-600 hover:bg-indigo-700",
                     )}
                   >
                     {pageNum}

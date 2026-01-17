@@ -87,13 +87,13 @@ export const createUser = async (
     where: { email },
     select: { name: true },
   });
-  
+
   if (existing) {
     return {
       name: existing.name,
     };
   }
-  
+
   return await client.user.create({
     data: {
       id,
@@ -111,7 +111,7 @@ export const createUser = async (
 
 export const updateSubscription = async (
   userId: string,
-  props: { customerId?: string; plan?: "PRO" | "FREE" }
+  props: { cashfreeCustomerId?: string; plan?: "PRO" | "FREE" }
 ) => {
   // First check if subscription exists
   const existingSubscription = await client.subscription.findUnique({

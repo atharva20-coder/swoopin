@@ -25,7 +25,7 @@ async function isCanvaConnected() {
 }
 
 async function getCanvaConnectUrl() {
-  const res = await fetch("/api/v1/canva/connect");
+  const res = await fetch("/api/v1/canva/oauth");
   return res.json();
 }
 
@@ -93,7 +93,12 @@ export default function ContentLibrary({
     setCanvaLoading(true);
     try {
       const result = await isCanvaConnected();
-      setCanvaConnected(result.connected);
+      // REST API returns { success: boolean, data: { connected: boolean } }
+      if (result.success && result.data) {
+        setCanvaConnected(result.data.connected);
+      } else {
+        setCanvaConnected(false);
+      }
     } catch (error) {
       console.error("Error checking Canva connection:", error);
     } finally {
@@ -111,11 +116,12 @@ export default function ContentLibrary({
     setConnecting(true);
     try {
       const result = await getCanvaConnectUrl();
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { url: string } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to connect to Canva");
         return;
       }
-      window.location.href = result.url;
+      window.location.href = result.data.url;
     } catch (error) {
       toast.error("Failed to connect to Canva");
     } finally {
@@ -163,7 +169,7 @@ export default function ContentLibrary({
               "w-full flex items-center gap-3 p-3 rounded-xl border transition-all",
               canvaConnected
                 ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 hover:bg-green-100/50"
-                : "border-dashed border-gray-200 dark:border-neutral-700 hover:border-cyan-400 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20"
+                : "border-dashed border-gray-200 dark:border-neutral-700 hover:border-cyan-400 hover:bg-cyan-50/50 dark:hover:bg-cyan-950/20",
             )}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center">
@@ -219,7 +225,7 @@ export default function ContentLibrary({
                     "hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700",
                     automation.active
                       ? "border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20"
-                      : "border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900"
+                      : "border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-900",
                   )}
                 >
                   <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />

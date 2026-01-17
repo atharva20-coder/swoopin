@@ -4,6 +4,9 @@ import { client } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+// Force dynamic rendering - this route uses request.url and headers
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -12,22 +15,20 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       return NextResponse.redirect(
-        new URL("/dashboard?error=google_auth_cancelled", req.url)
+        new URL("/dashboard?error=google_auth_cancelled", req.url),
       );
     }
 
     if (!code) {
       return NextResponse.redirect(
-        new URL("/dashboard?error=no_code", req.url)
+        new URL("/dashboard?error=no_code", req.url),
       );
     }
 
     // Get current user
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
-      return NextResponse.redirect(
-        new URL("/sign-in", req.url)
-      );
+      return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
     // Get origin from request URL
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${origin}/api/auth/callback/google-sheets`
+      `${origin}/api/auth/callback/google-sheets`,
     );
 
     const { tokens } = await oauth2Client.getToken(code);
@@ -65,14 +66,21 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Redirect back to integrations
+    // Get user's name for dashboard slug
+    const dbUser = await client.user.findFirst({
+      where: { email: session.user.email },
+      select: { name: true },
+    });
+    const slug = dbUser?.name?.replace(/\s+/g, "") || "user";
+
+    // Redirect back to integrations with google=connected param
     return NextResponse.redirect(
-      new URL("/dashboard/google-connected/integrations?success=google", req.url)
+      new URL(`/dashboard/${slug}/integrations?google=connected`, req.url),
     );
   } catch (error) {
     console.error("Google OAuth callback error:", error);
     return NextResponse.redirect(
-      new URL("/dashboard?error=google_auth_failed", req.url)
+      new URL("/dashboard?error=google_auth_failed", req.url),
     );
   }
 }

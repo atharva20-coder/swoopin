@@ -10,12 +10,64 @@ import { FlowNodeData } from "@/components/global/automations/flow-node";
 import { Button } from "@/components/ui/button";
 import { Save, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  saveAutomationFlowBatch,
-  getFlowData,
-  deleteFlowNode,
-} from "@/actions/automations/flow";
 import { saveFlowToCache, loadFlowFromCache } from "@/lib/flow-cache";
+
+// REST API helpers for flow operations
+async function saveAutomationFlowBatch(
+  automationId: string,
+  payload: {
+    nodes: {
+      nodeId: string;
+      type: string;
+      subType: string;
+      label: string;
+      description?: string;
+      positionX: number;
+      positionY: number;
+      config?: Record<string, unknown>;
+    }[];
+    edges: {
+      edgeId: string;
+      sourceNodeId: string;
+      targetNodeId: string;
+      sourceHandle?: string;
+      targetHandle?: string;
+    }[];
+    triggers: string[];
+    keywords: string[];
+    listener?: {
+      type: "MESSAGE" | "SMARTAI" | "CAROUSEL";
+      prompt: string;
+      reply: string;
+      carouselTemplateId?: string;
+    };
+  }
+) {
+  const res = await fetch(`/api/v1/automations/${automationId}/flow`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "batch", ...payload }),
+  });
+  const data = await res.json();
+  return { status: res.ok ? 200 : 400, data };
+}
+
+async function getFlowData(automationId: string) {
+  const res = await fetch(`/api/v1/automations/${automationId}/flow`);
+  const data = await res.json();
+  return { status: res.ok ? 200 : 404, data: data.data };
+}
+
+async function deleteFlowNode(automationId: string, nodeId: string) {
+  const res = await fetch(
+    `/api/v1/automations/${automationId}/flow?nodeId=${nodeId}`,
+    {
+      method: "DELETE",
+    }
+  );
+  const data = await res.json();
+  return { status: res.ok ? 200 : 400, data };
+}
 
 /**
  * Data is properly typed from Zod parsing in the hook layer

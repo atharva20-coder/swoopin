@@ -28,7 +28,7 @@ type PaginatedNotificationResponse = {
 // === API Functions ===
 
 async function fetchUserProfile() {
-  const res = await fetch("/api/v1/user/profile");
+  const res = await fetch("/api/v1/users/me");
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error?.message ?? "Failed to fetch user profile");
@@ -66,7 +66,7 @@ async function apiMarkNotificationAsRead(notificationId: string) {
   if (!res.ok) {
     const error = await res.json();
     throw new Error(
-      error.error?.message ?? "Failed to mark notification as read"
+      error.error?.message ?? "Failed to mark notification as read",
     );
   }
   return res.json();
@@ -101,7 +101,7 @@ export const useNotifications = () => {
     queryKey: ["user-notifications"],
     queryFn: async ({ pageParam }) => {
       const response = await fetchNotifications(
-        pageParam as string | undefined
+        pageParam as string | undefined,
       );
       const notifications = response.data ?? [];
       const nextCursor = response.nextCursor ?? null;

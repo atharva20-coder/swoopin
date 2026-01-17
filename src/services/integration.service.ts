@@ -1,14 +1,14 @@
-import { client } from '@/lib/prisma';
-import { generateTokens } from '@/lib/fetch';
-import { capitalize } from '@/lib/utils';
-import { notificationService } from './notification.service';
+import { client } from "@/lib/prisma";
+import { generateTokens } from "@/lib/fetch";
+import { capitalize } from "@/lib/utils";
+import { notificationService } from "./notification.service";
 import {
   IntegrationListSchema,
   IntegrationConnectedSchema,
   type Integration,
   type IntegrationConnected,
-} from '@/schemas/integration.schema';
-import axios from 'axios';
+} from "@/schemas/integration.schema";
+import axios from "axios";
 
 /**
  * ============================================
@@ -25,7 +25,7 @@ class IntegrationService {
   async getByUser(userId: string): Promise<Integration[]> {
     const integrations = await client.integrations.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     const validated = IntegrationListSchema.safeParse(integrations);
@@ -36,7 +36,7 @@ class IntegrationService {
    * Get Instagram OAuth URL
    */
   getInstagramOAuthUrl(): string {
-    return process.env.INSTAGRAM_EMBEDDED_OAUTH_URL || '';
+    return process.env.INSTAGRAM_EMBEDDED_OAUTH_URL || "";
   }
 
   /**
@@ -44,38 +44,38 @@ class IntegrationService {
    */
   async connectInstagram(
     userId: string,
-    code: string
+    code: string,
   ): Promise<IntegrationConnected | { error: string }> {
     // Check if user already has Instagram integration
     const existing = await client.integrations.findFirst({
       where: {
         userId,
-        name: 'INSTAGRAM',
+        name: "INSTAGRAM",
       },
     });
 
     if (existing) {
-      return { error: 'Instagram already connected' };
+      return { error: "Instagram already connected" };
     }
 
     // Exchange code for token
     const tokenResult = await generateTokens(code);
     if (!tokenResult) {
-      return { error: 'Failed to exchange OAuth code' };
+      return { error: "Failed to exchange OAuth code" };
     }
 
     // Get Instagram user ID
     let instagramUserId: string | null = null;
     try {
       const response = await axios.get(
-        `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${tokenResult.access_token}`
+        `${process.env.INSTAGRAM_BASE_URL}/me?fields=user_id&access_token=${tokenResult.access_token}`,
       );
       instagramUserId = response.data.user_id;
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error('Failed to get Instagram user ID:', error.message);
+        console.error("Failed to get Instagram user ID:", error.message);
       }
-      return { error: 'Failed to get Instagram account info' };
+      return { error: "Failed to get Instagram account info" };
     }
 
     // Calculate expiry (60 days from now)
@@ -89,7 +89,7 @@ class IntegrationService {
         token: tokenResult.access_token,
         expiresAt,
         instagramId: instagramUserId,
-        name: 'INSTAGRAM',
+        name: "INSTAGRAM",
       },
       select: {
         id: true,
@@ -101,8 +101,8 @@ class IntegrationService {
 
     // Create notification
     await notificationService.create(
-      'You have connected your Instagram account',
-      userId
+      "You have connected your Instagram account",
+      userId,
     );
 
     const result = {
@@ -113,16 +113,13 @@ class IntegrationService {
     };
 
     const validated = IntegrationConnectedSchema.safeParse(result);
-    return validated.success ? validated.data : { error: 'Validation failed' };
+    return validated.success ? validated.data : { error: "Validation failed" };
   }
 
   /**
    * Disconnect integration with ownership check
    */
-  async disconnect(
-    integrationId: string,
-    userId: string
-  ): Promise<boolean> {
+  async disconnect(integrationId: string, userId: string): Promise<boolean> {
     // IDOR check - verify ownership
     const integration = await client.integrations.findUnique({
       where: { id: integrationId },
@@ -144,7 +141,7 @@ class IntegrationService {
     const platformName = capitalize(integration.name);
     await notificationService.create(
       `You have disconnected your ${platformName} account`,
-      userId
+      userId,
     );
 
     return true;
@@ -173,7 +170,7 @@ class IntegrationService {
    */
   async getByPlatform(
     userId: string,
-    platform: 'INSTAGRAM'
+    platform: "INSTAGRAM",
   ): Promise<Integration | null> {
     const integration = await client.integrations.findFirst({
       where: {
@@ -185,7 +182,7 @@ class IntegrationService {
     if (!integration) return null;
 
     const validated = IntegrationListSchema.safeParse([integration]);
-    return validated.success ? validated.data[0] ?? null : null;
+    return validated.success ? (validated.data[0] ?? null) : null;
   }
 }
 

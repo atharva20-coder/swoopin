@@ -1,4 +1,4 @@
-import { client } from '@/lib/prisma';
+import { client } from "@/lib/prisma";
 import {
   UserProfileResponseSchema,
   UpdateUserResponseSchema,
@@ -6,7 +6,7 @@ import {
   type UserProfileResponse,
   type UpdateUserRequest,
   type UpdateUserResponse,
-} from '@/schemas/user.schema';
+} from "@/schemas/user.schema";
 
 /**
  * ============================================
@@ -76,7 +76,7 @@ class UserService {
     // Parse through schema - normalization happens here
     const result = UserProfileResponseSchema.safeParse(rawData);
     if (!result.success) {
-      console.error('User profile validation failed:', result.error.format());
+      console.error("User profile validation failed:", result.error.format());
       return null;
     }
 
@@ -89,11 +89,17 @@ class UserService {
    * @param input - Already validated UpdateUserRequest
    * @returns Validated UpdateUserResponse or null
    */
-  async updateProfile(email: string, input: UpdateUserRequest): Promise<UpdateUserResponse | null> {
+  async updateProfile(
+    email: string,
+    input: UpdateUserRequest,
+  ): Promise<UpdateUserResponse | null> {
     // Parse input through Prisma schema - handles normalization
     const prismaInputResult = UserUpdatePrismaInputSchema.safeParse(input);
     if (!prismaInputResult.success) {
-      console.error('Prisma input validation failed:', prismaInputResult.error.format());
+      console.error(
+        "Prisma input validation failed:",
+        prismaInputResult.error.format(),
+      );
       return null;
     }
 
@@ -134,7 +140,10 @@ class UserService {
     // Parse through response schema
     const result = UpdateUserResponseSchema.safeParse(updated);
     if (!result.success) {
-      console.error('Update user response validation failed:', result.error.format());
+      console.error(
+        "Update user response validation failed:",
+        result.error.format(),
+      );
       return null;
     }
 
@@ -145,10 +154,10 @@ class UserService {
    * Check if email is admin
    */
   checkIsAdmin(email: string): boolean {
-    const adminEmails = (process.env.ADMIN_EMAILS || '')
-      .split(',')
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
       .map((e) => e.trim().toLowerCase());
-    
+
     return adminEmails.includes(email.toLowerCase());
   }
 

@@ -15,6 +15,9 @@ import {
 } from "@/schemas/commerce.schema";
 import { client } from "@/lib/prisma";
 
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
+
 /**
  * Helper to get db user ID
  */

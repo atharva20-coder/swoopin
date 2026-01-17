@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   success,
   unauthorized,
   internalError,
   getAuthUser,
   rateLimitByUser,
-} from '@/app/api/v1/_lib';
-import { integrationService } from '@/services/integration.service';
-import { client } from '@/lib/prisma';
+} from "@/app/api/v1/_lib";
+import { integrationService } from "@/services/integration.service";
+import { client } from "@/lib/prisma";
+
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
 
 /**
  * Helper to get db user ID
@@ -37,11 +40,11 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     // 2. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 3. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -52,7 +55,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     return success(integrations);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('GET /api/v1/integrations error:', error.message);
+      console.error("GET /api/v1/integrations error:", error.message);
     }
     return internalError();
   }

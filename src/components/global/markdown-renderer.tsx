@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import ReactMarkdown from "react-markdown";
@@ -9,7 +10,10 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-export function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  className = "",
+}: MarkdownRendererProps) {
   return (
     <div className={`prose prose-lg max-w-none dark:prose-invert ${className}`}>
       <ReactMarkdown
@@ -20,7 +24,10 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
             const isInternal = href?.startsWith("/");
             if (isInternal) {
               return (
-                <Link href={href || "/"} className="text-blue-600 dark:text-blue-400 hover:underline">
+                <Link
+                  href={href || "/"}
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
                   {children}
                 </Link>
               );
@@ -128,13 +135,10 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
               {children}
             </strong>
           ),
-          // Image
+          // Image - using img for markdown compatibility with external URLs
+          // eslint-disable-next-line @next/next/no-img-element
           img: ({ src, alt }) => (
-            <img
-              src={src}
-              alt={alt || ""}
-              className="rounded-lg my-6 w-full"
-            />
+            <img src={src} alt={alt || ""} className="rounded-lg my-6 w-full" />
           ),
         }}
       >

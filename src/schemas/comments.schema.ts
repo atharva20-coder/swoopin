@@ -13,27 +13,32 @@ import { z } from "zod";
 export const CommentSchema = z.object({
   id: z.string(),
   text: z.string(),
-  username: z.string(),
+  username: z.string().optional(), // May be missing for restricted users or permission issues
   timestamp: z.string(),
   hidden: z.boolean().optional(),
+  like_count: z.number().optional(), // Added - returned by Instagram API
+  media_id: z.string().optional(), // Added - returned by Instagram API
   replies: z
     .array(
       z.object({
         id: z.string(),
         text: z.string(),
-        username: z.string(),
+        username: z.string().optional(), // May be missing
         timestamp: z.string(),
-      })
+        like_count: z.number().optional(),
+        hidden: z.boolean().optional(),
+        media_id: z.string().optional(),
+      }),
     )
     .optional(),
 });
 
 export const MediaWithCommentsSchema = z.object({
   id: z.string(),
-  caption: z.string().nullable(),
+  caption: z.string().optional(),
   media_type: z.string(),
-  media_url: z.string().nullable(),
-  thumbnail_url: z.string().nullable(),
+  media_url: z.string().optional(),
+  thumbnail_url: z.string().optional(), // Not always present in API response
   timestamp: z.string(),
   comments_count: z.number().int(),
   comments: z.array(CommentSchema),

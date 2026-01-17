@@ -1,9 +1,19 @@
-import { deleteKeyword } from "@/actions/automations";
 import { useEditKeyword } from "@/hooks/use-keyword";
-import { useMutationData, useMutationDataState } from "@/hooks/use-mutation-data";
+import {
+  useMutationData,
+  useMutationDataState,
+} from "@/hooks/use-mutation-data";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import React from "react";
+
+// REST API helper for deleting keyword
+async function deleteKeywordApi(id: string) {
+  const res = await fetch(`/api/v1/automations/keywords/${id}`, {
+    method: "DELETE",
+  });
+  return res.json();
+}
 
 interface KeywordItemProps {
   word: {
@@ -16,7 +26,7 @@ interface KeywordItemProps {
 const KeywordItemActive = ({ automationId, word }: KeywordItemProps) => {
   const { mutate: deleteMutation } = useMutationData(
     ["delete-keyword"],
-    (data: { id: string }) => deleteKeyword(data.id),
+    (data: { id: string }) => deleteKeywordApi(data.id),
     "automation-info"
   );
   const { latestVariable: latesDeleteVariable } = useMutationDataState([

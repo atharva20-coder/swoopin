@@ -66,9 +66,11 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
   }, []);
 
   const checkConnectionAndFetch = async () => {
-    const connectionStatus = await isCanvaConnected();
-    setConnected(connectionStatus.connected);
-    if (connectionStatus.connected) {
+    const result = await isCanvaConnected();
+    // REST API returns { success: boolean, data: { connected: boolean } }
+    const isConnected = result.success && result.data?.connected;
+    setConnected(isConnected);
+    if (isConnected) {
       await fetchDesigns();
     } else {
       setLoading(false);
@@ -79,12 +81,13 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
     setLoading(true);
     try {
       const result = await getCanvaDesigns({ limit: 20 });
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { designs: [], continuation: string } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to fetch designs");
         return;
       }
-      setDesigns(result.designs || []);
-      setContinuation(result.continuation);
+      setDesigns(result.data?.designs || []);
+      setContinuation(result.data?.continuation);
     } catch (error) {
       toast.error("Failed to fetch designs");
     } finally {
@@ -96,12 +99,13 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
     if (!continuation) return;
     try {
       const result = await getCanvaDesigns({ limit: 20, continuation });
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { designs: [], continuation: string } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to load more");
         return;
       }
-      setDesigns([...designs, ...(result.designs || [])]);
-      setContinuation(result.continuation);
+      setDesigns([...designs, ...(result.data?.designs || [])]);
+      setContinuation(result.data?.continuation);
     } catch (error) {
       toast.error("Failed to load more designs");
     }
@@ -111,12 +115,13 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
     setExporting(design.id);
     try {
       const result = await exportCanvaDesign(design.id, "png");
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { urls: string[] } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to export design");
         return;
       }
-      if (result.urls && result.urls.length > 0) {
-        onSelect(result.urls[0], design.title);
+      if (result.data?.urls && result.data.urls.length > 0) {
+        onSelect(result.data.urls[0], design.title);
         toast.success("Design imported!");
       }
     } catch (error) {
@@ -127,7 +132,7 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
   };
 
   const filteredDesigns = designs.filter((d) =>
-    d.title.toLowerCase().includes(searchQuery.toLowerCase())
+    d.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (!connected) {

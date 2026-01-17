@@ -5,9 +5,11 @@ import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Loader2, Palette, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // REST API calls
-async function isCanvaConnected() {
+async function fetchCanvaStatus() {
   const res = await fetch("/api/v1/canva/status");
   return res.json();
 }
@@ -23,34 +25,40 @@ async function disconnectCanva() {
 }
 
 export default function CanvaIntegrationCard() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  useEffect(() => {
-    checkConnection();
-  }, []);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["canva-status"],
+    queryFn: fetchCanvaStatus,
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
 
-  const checkConnection = async () => {
-    setIsLoading(true);
-    try {
-      const result = await isCanvaConnected();
-      setIsConnected(result.connected);
-    } finally {
-      setIsLoading(false);
+  // Force refetch when returning from OAuth callback
+  useEffect(() => {
+    const canvaConnected = searchParams.get("canva");
+    if (canvaConnected === "connected") {
+      queryClient.invalidateQueries({ queryKey: ["canva-status"] });
+      refetch();
     }
-  };
+  }, [searchParams, queryClient, refetch]);
+
+  // Extract connection status from REST API response
+  const isConnected = data?.success && data?.data?.connected;
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
       const result = await getCanvaConnectUrl();
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { url: string } } or { success: false, error: { ... } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to connect to Canva");
         setIsConnecting(false);
         return;
       }
-      window.location.href = result.url;
+      window.location.href = result.data.url;
     } catch {
       toast.error("Failed to connect to Canva");
       setIsConnecting(false);
@@ -58,17 +66,18 @@ export default function CanvaIntegrationCard() {
   };
 
   const handleDisconnect = async () => {
-    setIsLoading(true);
     try {
       const result = await disconnectCanva();
-      if ("error" in result) {
-        toast.error(result.error);
+      // REST API returns { success: boolean, data: { disconnected: boolean } }
+      if (!result.success) {
+        toast.error(result.error?.message || "Failed to disconnect");
         return;
       }
-      setIsConnected(false);
+      queryClient.invalidateQueries({ queryKey: ["canva-status"] });
+      refetch();
       toast.success("Canva disconnected");
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      toast.error("Failed to disconnect Canva");
     }
   };
 
@@ -93,7 +102,7 @@ export default function CanvaIntegrationCard() {
         "hover:shadow-lg hover:-translate-y-0.5 dark:hover:bg-[#262626] dark:hover:border-neutral-700",
         isConnected &&
           "bg-purple-50/30 dark:bg-purple-900/10 border-purple-200 dark:border-purple-500/20",
-        !isConnected && "cursor-pointer"
+        !isConnected && "cursor-pointer",
       )}
       onClick={!isConnected ? handleConnect : undefined}
     >

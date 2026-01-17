@@ -2,9 +2,25 @@
 
 import { useMutationData } from "./use-mutation-data";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { editKeywords } from "@/actions/automations";
 import { Input } from "@/components/ui/input";
 import { useClickAway } from "@/hooks/use-click-away";
+
+// REST API helper for editing keywords
+async function editKeywordApi(
+  automationId: string,
+  keyword: string,
+  keywordId: string
+) {
+  const res = await fetch(
+    `/api/v1/automations/${automationId}/keywords/${keywordId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keyword }),
+    }
+  );
+  return res.json();
+}
 
 export const useEditKeyword = (
   automationId: string,
@@ -19,7 +35,7 @@ export const useEditKeyword = (
   const { mutate, isPending } = useMutationData(
     ["update-keyword"],
     async (data: { name: string }) => {
-      return await editKeywords(automationId, data.name, keywordId);
+      return await editKeywordApi(automationId, data.name, keywordId);
     },
     "automation-info"
   );

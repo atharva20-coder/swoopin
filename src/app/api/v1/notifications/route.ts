@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   success,
   unauthorized,
@@ -6,10 +6,13 @@ import {
   getAuthUser,
   validateQuery,
   rateLimitByUser,
-} from '@/app/api/v1/_lib';
-import { notificationService } from '@/services/notification.service';
-import { NotificationQuerySchema } from '@/schemas/notification.schema';
-import { client } from '@/lib/prisma';
+} from "@/app/api/v1/_lib";
+import { notificationService } from "@/services/notification.service";
+import { NotificationQuerySchema } from "@/schemas/notification.schema";
+import { client } from "@/lib/prisma";
+
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
 
 /**
  * Helper to get db user ID
@@ -39,11 +42,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // 2. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 3. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -56,7 +59,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // 5. Fetch notifications
-    const result = await notificationService.listByUser(userId, validation.data);
+    const result = await notificationService.listByUser(
+      userId,
+      validation.data
+    );
 
     // Also get unread count
     const unreadCount = await notificationService.getUnreadCount(userId);
@@ -67,12 +73,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       meta: {
         ...result.meta,
         unreadCount,
-        version: 'v1',
+        version: "v1",
       },
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('GET /api/v1/notifications error:', error.message);
+      console.error("GET /api/v1/notifications error:", error.message);
     }
     return internalError();
   }
@@ -95,11 +101,11 @@ export async function PUT(_request: NextRequest): Promise<NextResponse> {
     // 2. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 3. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -110,7 +116,7 @@ export async function PUT(_request: NextRequest): Promise<NextResponse> {
     return success({ markedAsRead: count });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('PUT /api/v1/notifications error:', error.message);
+      console.error("PUT /api/v1/notifications error:", error.message);
     }
     return internalError();
   }

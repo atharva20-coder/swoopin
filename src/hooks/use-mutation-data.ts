@@ -12,7 +12,7 @@ export const useMutationData = (
   mutationFn: MutationFunction<any, any>,
   queryKey?: string,
   onSuccess?: () => void,
-  toastOn: boolean = true
+  toastOn: boolean = true,
 ) => {
   const client = useQueryClient();
   const { mutate, isPending } = useMutation({
@@ -21,14 +21,29 @@ export const useMutationData = (
     onSuccess: (data) => {
       if (onSuccess) onSuccess();
 
+      // Handle different response formats - data.data can be a string or object
+      const message =
+        typeof data?.data === "string"
+          ? data.data
+          : data?.data?.name
+            ? `Created: ${data.data.name}`
+            : data?.success
+              ? "Operation completed successfully"
+              : "Operation completed";
+
       return toastOn
-        ? toast(data?.status === 200 ? "Success" : "Error", {
-            description: `${data.data}`,
+        ? toast(data?.status === 200 || data?.success ? "Success" : "Error", {
+            description: message,
           })
         : undefined;
     },
     onSettled: async () => {
-      await client.invalidateQueries({ queryKey: [queryKey] });
+      if (queryKey) {
+        await client.invalidateQueries({
+          queryKey: [queryKey],
+          refetchType: "active",
+        });
+      }
     },
   });
 

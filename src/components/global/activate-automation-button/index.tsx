@@ -3,7 +3,16 @@ import { Loader2 } from "lucide-react";
 import React from "react";
 import { useQueryAutomation } from "@/hooks/user-queries";
 import { useMutationData } from "@/hooks/use-mutation-data";
-import { activateAutomation } from "@/actions/automations";
+
+// REST API helper for activating automation
+async function activateAutomationApi(id: string, state: boolean) {
+  const res = await fetch(`/api/v1/automations/${id}/activate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ active: state }),
+  });
+  return res.json();
+}
 
 type Props = {
   id: string;
@@ -13,11 +22,13 @@ const ActivateAutomationButton = ({ id }: Props) => {
   const { data } = useQueryAutomation(id);
   const { mutate, isPending } = useMutationData(
     ["activate"],
-    (data: { state: boolean }) => activateAutomation(id, data.state),
+    (data: { state: boolean }) => activateAutomationApi(id, data.state),
     "automation-info"
   );
 
-  const [optimisticState, setOptimisticState] = React.useState(data?.data?.active || false);
+  const [optimisticState, setOptimisticState] = React.useState(
+    data?.data?.active || false
+  );
 
   React.useEffect(() => {
     if (!isPending) {
@@ -27,16 +38,20 @@ const ActivateAutomationButton = ({ id }: Props) => {
 
   const isActivationAllowed = React.useMemo(() => {
     if (!data?.data) return false;
-    
+
     // Check for flow-based automation (new flow builder)
     const hasFlowNodes = data.data.flowNodes && data.data.flowNodes.length > 0;
     if (hasFlowNodes) {
       // Flow-based: need at least one trigger and one action node
-      const hasTrigger = data.data.flowNodes.some((n: any) => n.type === "trigger");
-      const hasAction = data.data.flowNodes.some((n: any) => n.type === "action");
+      const hasTrigger = data.data.flowNodes.some(
+        (n: any) => n.type === "trigger"
+      );
+      const hasAction = data.data.flowNodes.some(
+        (n: any) => n.type === "action"
+      );
       return hasTrigger && hasAction;
     }
-    
+
     // Legacy: need triggers and keywords
     if (!data.data.trigger || data.data.trigger.length === 0) return false;
     if (!data.data.keywords || data.data.keywords.length === 0) return false;

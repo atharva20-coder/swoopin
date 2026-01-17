@@ -74,9 +74,9 @@ class CanvaService {
         maxAge: 600,
       });
 
-      // Use 127.0.0.1 for localhost as required by Canva
+      // Use the app URL directly - on production this will be the correct domain
       const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000";
+        process.env.NEXT_PUBLIC_APP_URL || "https://swoopin.vercel.app";
       const redirectUri = `${baseUrl}/api/auth/callback/canva`;
 
       const url = getCanvaAuthUrl(redirectUri, state, codeChallenge);
@@ -95,7 +95,7 @@ class CanvaService {
    */
   async getDesigns(
     userId: string,
-    input: GetDesignsRequest
+    input: GetDesignsRequest,
   ): Promise<
     { designs: CanvaDesign[]; continuation: string | null } | { error: string }
   > {
@@ -118,7 +118,7 @@ class CanvaService {
     ) {
       try {
         const refreshed = await refreshAccessToken(
-          dbUser.canvaIntegration.refreshToken
+          dbUser.canvaIntegration.refreshToken,
         );
         accessToken = refreshed.accessToken;
 
@@ -169,7 +169,7 @@ class CanvaService {
    */
   async exportDesign(
     userId: string,
-    input: ExportDesignRequest
+    input: ExportDesignRequest,
   ): Promise<{ urls: string[] } | { error: string }> {
     const dbUser = await client.user.findFirst({
       where: { id: userId },
@@ -184,7 +184,7 @@ class CanvaService {
       const result = await canvaExportDesign(
         dbUser.canvaIntegration.accessToken,
         input.designId,
-        input.format
+        input.format,
       );
 
       // If export is already complete, return URLs
@@ -199,7 +199,7 @@ class CanvaService {
         const status = await canvaGetExportStatus(
           dbUser.canvaIntegration.accessToken,
           input.designId,
-          result.exportId
+          result.exportId,
         );
 
         if (status.status === "completed" && status.urls) {

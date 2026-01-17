@@ -1,4 +1,3 @@
-import { getAutomationInfo } from "@/actions/automations";
 import { PrefetchUserAutomation } from "@/react-query/prefetch";
 import {
   dehydrate,
@@ -10,19 +9,34 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import FlowManager from "./_components/flow-builder";
 
+// Server-side API call for metadata
+async function getAutomationInfoApi(id: string) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/v1/automations/${id}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return { data: null };
+    const json = await res.json();
+    return { data: json.data };
+  } catch {
+    return { data: null };
+  }
+}
+
 type Props = {
   params: { id: string; slug: string };
 };
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   try {
-    const info = await getAutomationInfo(params.id);
+    const info = await getAutomationInfoApi(params.id);
     return {
-      title: info.data?.name || 'Automation Details',
+      title: info.data?.name || "Automation Details",
     };
   } catch (error) {
     return {
-      title: 'Automation Details',
+      title: "Automation Details",
     };
   }
 }

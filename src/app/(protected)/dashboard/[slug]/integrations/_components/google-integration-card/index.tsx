@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { ChevronRight, Loader2, FileSpreadsheet, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // REST API calls
-async function isGoogleConnected() {
+async function fetchGoogleStatus() {
   const res = await fetch("/api/v1/google/status");
   return res.json();
 }
@@ -19,25 +20,29 @@ async function disconnectGoogle() {
 
 export default function GoogleIntegrationCard() {
   const router = useRouter();
-  const [isConnected, setIsConnected] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  useEffect(() => {
-    checkConnection();
-  }, []);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["google-status"],
+    queryFn: fetchGoogleStatus,
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
 
-  const checkConnection = async () => {
-    setIsLoading(true);
-    try {
-      const result = await isGoogleConnected();
-      setIsConnected(result.connected);
-      setEmail(result.email || null);
-    } finally {
-      setIsLoading(false);
+  // Force refetch when returning from OAuth callback
+  useEffect(() => {
+    const googleConnected = searchParams.get("google");
+    if (googleConnected === "connected") {
+      queryClient.invalidateQueries({ queryKey: ["google-status"] });
+      refetch();
     }
-  };
+  }, [searchParams, queryClient, refetch]);
+
+  // Extract connection status from REST API response
+  const isConnected = data?.success && data?.data?.connected;
+  const email = data?.success ? data?.data?.email : null;
 
   const handleConnect = async () => {
     setIsConnecting(true);
@@ -45,7 +50,7 @@ export default function GoogleIntegrationCard() {
     // We use the same callback as existing Google auth but request additional scopes
     const callbackUrl = `${window.location.origin}/api/auth/callback/google-sheets`;
     const scope = encodeURIComponent(
-      "openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file"
+      "openid email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
     );
 
     // Fetch client ID from server to avoid exposing in client bundle
@@ -59,18 +64,17 @@ export default function GoogleIntegrationCard() {
     }
 
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      callbackUrl
+      callbackUrl,
     )}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
   };
 
   const handleDisconnect = async () => {
-    setIsLoading(true);
     try {
       await disconnectGoogle();
-      setIsConnected(false);
-      setEmail(null);
-    } finally {
-      setIsLoading(false);
+      queryClient.invalidateQueries({ queryKey: ["google-status"] });
+      refetch();
+    } catch (error) {
+      console.error("Failed to disconnect Google:", error);
     }
   };
 
@@ -95,7 +99,7 @@ export default function GoogleIntegrationCard() {
         "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
         isConnected &&
           "ring-2 ring-green-500/20 border-green-200 dark:border-green-500/30",
-        !isConnected && "cursor-pointer"
+        !isConnected && "cursor-pointer",
       )}
       onClick={!isConnected ? handleConnect : undefined}
     >

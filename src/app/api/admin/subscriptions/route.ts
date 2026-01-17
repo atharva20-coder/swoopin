@@ -2,9 +2,12 @@ import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/admin/subscriptions
- * 
+ *
  * Get subscription stats and list of paid subscribers.
  * Requires admin authentication.
  */
@@ -17,12 +20,13 @@ export async function GET(req: NextRequest) {
 
   try {
     // Get user counts by plan
-    const [totalUsers, freeUsers, proUsers, enterpriseUsers] = await Promise.all([
-      client.user.count(),
-      client.subscription.count({ where: { plan: "FREE" } }),
-      client.subscription.count({ where: { plan: "PRO" } }),
-      client.subscription.count({ where: { plan: "ENTERPRISE" } }),
-    ]);
+    const [totalUsers, freeUsers, proUsers, enterpriseUsers] =
+      await Promise.all([
+        client.user.count(),
+        client.subscription.count({ where: { plan: "FREE" } }),
+        client.subscription.count({ where: { plan: "PRO" } }),
+        client.subscription.count({ where: { plan: "ENTERPRISE" } }),
+      ]);
 
     // Get subscriptions with user info (ordered by most recent)
     const subscriptions = await client.subscription.findMany({

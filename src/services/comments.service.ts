@@ -38,7 +38,7 @@ class CommentsService {
     const result = await getAllMediaWithComments(
       integration.instagramId,
       integration.token,
-      10 // Limit to 10 posts for performance
+      10, // Limit to 10 posts for performance
     );
 
     if (!result.success) {
@@ -60,7 +60,7 @@ class CommentsService {
   async replyToComment(
     userId: string,
     commentId: string,
-    message: string
+    message: string,
   ): Promise<{ replyId: string } | { error: string }> {
     // Get user's integration
     const integration = await client.integrations.findFirst({
@@ -77,7 +77,7 @@ class CommentsService {
     const result = await apiReplyToComment(
       commentId,
       message,
-      integration.token
+      integration.token,
     );
 
     if (!result.success) {
@@ -93,7 +93,7 @@ class CommentsService {
   async hideComment(
     userId: string,
     commentId: string,
-    hide: boolean
+    hide: boolean,
   ): Promise<{ success: boolean } | { error: string }> {
     // Get user's integration
     const integration = await client.integrations.findFirst({
@@ -110,7 +110,7 @@ class CommentsService {
     const result = await setCommentVisibility(
       commentId,
       hide,
-      integration.token
+      integration.token,
     );
 
     if (!result.success) {
@@ -125,7 +125,7 @@ class CommentsService {
    */
   async deleteComment(
     userId: string,
-    commentId: string
+    commentId: string,
   ): Promise<{ success: boolean } | { error: string }> {
     // Get user's integration
     const integration = await client.integrations.findFirst({

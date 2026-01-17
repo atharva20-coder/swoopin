@@ -1,19 +1,22 @@
 import { client } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering - this route uses request.headers
+export const dynamic = "force-dynamic";
+
 // Secret for authenticating cron requests (set in Vercel cron config or external service)
 const CRON_SECRET = process.env.CRON_SECRET;
 
 /**
  * GET /api/cron/check-enterprise-subscriptions
- * 
+ *
  * Checks for expired enterprise subscriptions and:
  * 1. Downgrades user to FREE plan
  * 2. Pauses all automations
  * 3. Creates notification
- * 
+ *
  * Should be called daily via Vercel cron or external service
- * 
+ *
  * Header: Authorization: Bearer <CRON_SECRET>
  */
 export async function GET(req: NextRequest) {
@@ -21,16 +24,13 @@ export async function GET(req: NextRequest) {
     // Verify cron secret
     const authHeader = req.headers.get("authorization");
     const providedSecret = authHeader?.replace("Bearer ", "");
-    
+
     if (CRON_SECRET && providedSecret !== CRON_SECRET) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const now = new Date();
-    
+
     // Find active enterprise enquiries where subscriptionEndDate has passed
     const expiredEnquiries = await client.enterpriseEnquiry.findMany({
       where: {
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     for (const enquiry of expiredEnquiries) {
       try {
         const user = (enquiry as any).User;
-        
+
         // 1. Mark enquiry as inactive
         await client.enterpriseEnquiry.update({
           where: { id: enquiry.id },
@@ -82,23 +82,28 @@ export async function GET(req: NextRequest) {
           where: { userId: user.id },
           data: { active: false },
         });
-        
+
         results.automationsPaused += automationsCount.count;
 
         // 4. Create notification
         await client.notification.create({
           data: {
             userId: user.id,
-            content: "⚠️ Your Enterprise subscription has expired. You've been moved to the FREE plan and your automations have been paused. Contact support to renew.",
+            content:
+              "⚠️ Your Enterprise subscription has expired. You've been moved to the FREE plan and your automations have been paused. Contact support to renew.",
           },
         });
 
         results.downgraded++;
         results.processed++;
-        
-        console.log(`Downgraded user ${user.email} - paused ${automationsCount.count} automations`);
+
+        console.log(
+          `Downgraded user ${user.email} - paused ${automationsCount.count} automations`
+        );
       } catch (error) {
-        results.errors.push(`Failed to process enquiry ${enquiry.id}: ${error}`);
+        results.errors.push(
+          `Failed to process enquiry ${enquiry.id}: ${error}`
+        );
         results.processed++;
       }
     }

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   success,
   unauthorized,
@@ -7,13 +7,16 @@ import {
   getAuthUser,
   validateBody,
   rateLimitByUser,
-} from '../../_lib';
-import { userService } from '@/services/user.service';
-import { 
+} from "../../_lib";
+import { userService } from "@/services/user.service";
+import {
   UpdateUserRequestSchema,
   type UserProfileResponse,
   type UpdateUserResponse,
-} from '@/schemas/user.schema';
+} from "@/schemas/user.schema";
+
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
 
 /**
  * ============================================
@@ -30,22 +33,23 @@ export async function GET(): Promise<NextResponse> {
     }
 
     // 2. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(authUser.id, 'standard');
+    const rateLimitResponse = await rateLimitByUser(authUser.id, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
     // 3. Fetch user profile via service (IDOR: only fetch own data)
-    const profile: UserProfileResponse | null = await userService.getProfileByEmail(authUser.email);
+    const profile: UserProfileResponse | null =
+      await userService.getProfileByEmail(authUser.email);
 
     if (!profile) {
-      return notFound('User');
+      return notFound("User");
     }
 
     return success(profile);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('GET /api/v1/users/me error:', error.message);
+      console.error("GET /api/v1/users/me error:", error.message);
     }
     return internalError();
   }
@@ -66,7 +70,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     }
 
     // 2. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(authUser.id, 'standard');
+    const rateLimitResponse = await rateLimitByUser(authUser.id, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -84,13 +88,13 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
 
     if (!updated) {
-      return internalError('Failed to update profile');
+      return internalError("Failed to update profile");
     }
 
     return success(updated);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('PUT /api/v1/users/me error:', error.message);
+      console.error("PUT /api/v1/users/me error:", error.message);
     }
     return internalError();
   }

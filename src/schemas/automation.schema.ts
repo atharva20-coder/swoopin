@@ -77,8 +77,8 @@ export const AutomationListItemSchema = z.object({
   name: z.string(),
   active: z.boolean(),
   createdAt: z.coerce.date(),
-  keywords: z.array(KeywordSchema),
-  listener: ListenerSchema.nullable(),
+  keywords: z.array(KeywordSchema).default([]),
+  listener: ListenerSchema.nullish().transform((v) => v ?? null),
 });
 
 export const AutomationListResponseSchema = z.array(AutomationListItemSchema);
@@ -217,7 +217,7 @@ export const SaveListenerRequestSchema = z
   })
   .refine(
     (data) => data.listener !== "CAROUSEL" || data.carouselTemplateId !== null,
-    { message: "carouselTemplateId is required for CAROUSEL listener" }
+    { message: "carouselTemplateId is required for CAROUSEL listener" },
   );
 
 export const SaveTriggerRequestSchema = z.object({
@@ -244,13 +244,120 @@ export const SavePostsRequestSchema = z.object({
           .transform((val): string | null => val ?? null),
         media: z.string().url(),
         mediaType: MediaTypeSchema,
-      })
+      }),
     )
     .min(1),
 });
 
 export const ActivateRequestSchema = z.object({
   active: z.boolean(),
+});
+
+// ============================================
+// FLOW BUILDER REQUEST SCHEMAS
+// ============================================
+
+export const FlowNodeInputSchema = z.object({
+  nodeId: z.string(),
+  type: z.string(),
+  subType: z.string(),
+  label: z.string(),
+  description: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  positionX: z.number(),
+  positionY: z.number(),
+  config: z
+    .record(z.any())
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+export const FlowEdgeInputSchema = z.object({
+  edgeId: z.string(),
+  sourceNodeId: z.string(),
+  targetNodeId: z.string(),
+  sourceHandle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  targetHandle: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+export const ListenerConfigSchema = z.object({
+  type: ListenerTypeSchema,
+  prompt: z.string(),
+  reply: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  carouselTemplateId: z
+    .string()
+    .uuid()
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+export const FlowBatchPayloadSchema = z.object({
+  nodes: z.array(FlowNodeInputSchema),
+  edges: z.array(FlowEdgeInputSchema),
+  triggers: z.array(z.string()),
+  keywords: z.array(z.string()),
+  listener: ListenerConfigSchema.optional(),
+});
+
+export const SaveFlowRequestSchema = z.object({
+  nodes: z.array(FlowNodeInputSchema),
+  edges: z.array(FlowEdgeInputSchema),
+});
+
+export const SyncTriggersRequestSchema = z.object({
+  triggers: z.array(z.string()).min(1),
+});
+
+export const CreateCarouselRequestSchema = z.object({
+  elements: z
+    .array(
+      z.object({
+        title: z.string().min(1).max(80),
+        subtitle: z
+          .string()
+          .nullish()
+          .transform((v) => v ?? null),
+        imageUrl: z
+          .string()
+          .url()
+          .nullish()
+          .transform((v) => v ?? null),
+        defaultAction: z
+          .string()
+          .nullish()
+          .transform((v) => v ?? null),
+        buttons: z
+          .array(
+            z.object({
+              type: ButtonTypeSchema,
+              title: z.string().min(1).max(20),
+              url: z
+                .string()
+                .url()
+                .nullish()
+                .transform((v) => v ?? null),
+              payload: z
+                .string()
+                .nullish()
+                .transform((v) => v ?? null),
+            }),
+          )
+          .max(3),
+      }),
+    )
+    .min(1)
+    .max(10),
 });
 
 // ============================================
@@ -323,3 +430,12 @@ export type AutomationCreatedResponse = z.infer<
 export type AutomationUpdatedResponse = z.infer<
   typeof AutomationUpdatedResponseSchema
 >;
+
+// Flow Builder Types
+export type FlowNodeInput = z.infer<typeof FlowNodeInputSchema>;
+export type FlowEdgeInput = z.infer<typeof FlowEdgeInputSchema>;
+export type ListenerConfig = z.infer<typeof ListenerConfigSchema>;
+export type FlowBatchPayload = z.infer<typeof FlowBatchPayloadSchema>;
+export type SaveFlowRequest = z.infer<typeof SaveFlowRequestSchema>;
+export type SyncTriggersRequest = z.infer<typeof SyncTriggersRequestSchema>;
+export type CreateCarouselRequest = z.infer<typeof CreateCarouselRequestSchema>;

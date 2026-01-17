@@ -4,6 +4,9 @@ import { auth } from "@/lib/auth";
 import { client } from "@/lib/prisma";
 import { exchangeCodeForTokens, getUserProfile } from "@/lib/canva";
 
+// Force dynamic rendering - this route uses request.url and cookies
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -15,23 +18,26 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error("Canva OAuth error:", error);
       return NextResponse.redirect(
-        new URL("/dashboard/integrations?error=canva_denied", url.origin)
+        new URL("/dashboard/integrations?error=canva_denied", url.origin),
       );
     }
 
     if (!code) {
       return NextResponse.redirect(
-        new URL("/dashboard/integrations?error=canva_no_code", url.origin)
+        new URL("/dashboard/integrations?error=canva_no_code", url.origin),
       );
     }
 
     // Verify state
     const cookieStore = await cookies();
     const storedState = cookieStore.get("canva_oauth_state")?.value;
-    
+
     if (!storedState || storedState !== state) {
       return NextResponse.redirect(
-        new URL("/dashboard/integrations?error=canva_invalid_state", url.origin)
+        new URL(
+          "/dashboard/integrations?error=canva_invalid_state",
+          url.origin,
+        ),
       );
     }
 
@@ -39,7 +45,7 @@ export async function GET(req: NextRequest) {
     const codeVerifier = cookieStore.get("canva_code_verifier")?.value;
     if (!codeVerifier) {
       return NextResponse.redirect(
-        new URL("/dashboard/integrations?error=canva_no_verifier", url.origin)
+        new URL("/dashboard/integrations?error=canva_no_verifier", url.origin),
       );
     }
 
@@ -50,7 +56,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Build redirect URI (must match what was sent in authorization request)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${url.protocol}//${url.host}`;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || `${url.protocol}//${url.host}`;
     const redirectUri = `${baseUrl}/api/auth/callback/canva`;
 
     // Exchange code for tokens
@@ -68,11 +75,12 @@ export async function GET(req: NextRequest) {
     // Find database user
     const dbUser = await client.user.findFirst({
       where: { id: session.user.id },
+      select: { id: true, name: true },
     });
 
     if (!dbUser) {
       return NextResponse.redirect(
-        new URL("/dashboard/integrations?error=user_not_found", url.origin)
+        new URL("/dashboard/integrations?error=user_not_found", url.origin),
       );
     }
 
@@ -98,15 +106,21 @@ export async function GET(req: NextRequest) {
     cookieStore.delete("canva_oauth_state");
     cookieStore.delete("canva_code_verifier");
 
+    // Get slug from already-fetched dbUser
+    const slug = dbUser.name?.replace(/\s+/g, "") || "user";
+
     // Redirect to integrations page with success
     return NextResponse.redirect(
-      new URL("/dashboard/integrations?canva=connected", url.origin)
+      new URL(`/dashboard/${slug}/integrations?canva=connected`, url.origin),
     );
   } catch (error) {
     console.error("Canva callback error:", error);
     const url = new URL(req.url);
     return NextResponse.redirect(
-      new URL("/dashboard/integrations?error=canva_callback_failed", url.origin)
+      new URL(
+        "/dashboard/integrations?error=canva_callback_failed",
+        url.origin,
+      ),
     );
   }
 }

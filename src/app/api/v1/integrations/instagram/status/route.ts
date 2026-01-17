@@ -4,9 +4,7 @@ import {
   unauthorized,
   internalError,
   getAuthUser,
-  rateLimitByUser,
 } from "@/app/api/v1/_lib";
-import { schedulerService } from "@/services/scheduler.service";
 import { client } from "@/lib/prisma";
 
 // Force dynamic rendering - this route uses headers for authentication
@@ -24,10 +22,8 @@ async function getDbUserId(email: string): Promise<string | null> {
 }
 
 /**
- * ============================================
- * GET /api/v1/posts/publishing-limit
- * Get Instagram publishing rate limit
- * ============================================
+ * GET /api/v1/integrations/instagram/status
+ * Get Instagram connection status
  */
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
@@ -43,19 +39,41 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       return unauthorized("User not found");
     }
 
-    // 3. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, "standard");
-    if (rateLimitResponse) {
-      return rateLimitResponse;
+    // 3. Check if Instagram integration exists
+    const integration = await client.integrations.findFirst({
+      where: {
+        userId,
+        name: "INSTAGRAM",
+      },
+      select: {
+        id: true,
+        instagramId: true,
+        expiresAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!integration) {
+      return success({
+        connected: false,
+        instagramId: null,
+        expiresAt: null,
+      });
     }
 
-    // 4. Get publishing limit
-    const limit = await schedulerService.getPublishingLimit(userId);
-
-    return success(limit);
+    return success({
+      connected: true,
+      integrationId: integration.id,
+      instagramId: integration.instagramId,
+      expiresAt: integration.expiresAt,
+      createdAt: integration.createdAt,
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error("GET /api/v1/posts/publishing-limit error:", error.message);
+      console.error(
+        "GET /api/v1/integrations/instagram/status error:",
+        error.message,
+      );
     }
     return internalError();
   }

@@ -2,7 +2,7 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 // REST API fetchers
 async function fetchUserProfile() {
-  const res = await fetch("/api/v1/user/profile");
+  const res = await fetch("/api/v1/users/me");
   return res.json();
 }
 
@@ -33,7 +33,7 @@ async function fetchUserAnalytics(slug: string) {
 const prefetch = async (
   client: QueryClient,
   action: QueryFunction,
-  key: string
+  key: string,
 ) => {
   return await client.prefetchQuery({
     queryKey: [key],
@@ -45,7 +45,7 @@ const prefetch = async (
 const prefetchInfinite = async (
   client: QueryClient,
   action: QueryFunction<any, [string], string | null>,
-  key: string
+  key: string,
 ) => {
   return await client.prefetchInfiniteQuery({
     queryKey: [key],
@@ -68,28 +68,28 @@ export const PrefetchUserNotifications = async (client: QueryClient) => {
   return await prefetchInfinite(
     client,
     () => fetchNotifications(undefined),
-    "user-notifications"
+    "user-notifications",
   );
 };
 
 export const PrefetchUserAutomation = async (
   client: QueryClient,
-  automationId: string
+  automationId: string,
 ) => {
   return await prefetch(
     client,
     () => fetchAutomationInfo(automationId),
-    "automation-info"
+    "automation-info",
   );
 };
 
 export const PrefetchUserAnalytics = async (
   client: QueryClient,
-  slug: string
+  slug: string,
 ) => {
   return await prefetch(
     client,
     () => fetchUserAnalytics(slug),
-    "user-analytics"
+    "user-analytics",
   );
 };

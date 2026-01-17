@@ -34,7 +34,7 @@ class AutomationService {
    */
   async listByUser(
     userId: string,
-    pagination: AutomationsPagination
+    pagination: AutomationsPagination,
   ): Promise<PaginatedAutomationsResponse> {
     const { cursor, limit } = pagination;
 
@@ -54,7 +54,7 @@ class AutomationService {
 
     const hasMore = automations.length > limit;
     const data = hasMore ? automations.slice(0, limit) : automations;
-    const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
+    const nextCursor = hasMore ? (data[data.length - 1]?.id ?? null) : null;
 
     // Get total count
     const total = await client.automation.count({ where: { userId } });
@@ -64,7 +64,7 @@ class AutomationService {
     if (!validatedData.success) {
       console.error(
         "Automation list validation failed:",
-        validatedData.error.format()
+        validatedData.error.format(),
       );
       return { data: [], meta: { nextCursor: null, hasMore: false, total: 0 } };
     }
@@ -96,7 +96,7 @@ class AutomationService {
         });
         return user?.automations ?? [];
       },
-      300
+      300,
     );
 
     const validated = AutomationListResponseSchema.safeParse(result);
@@ -108,7 +108,7 @@ class AutomationService {
    */
   async getById(
     automationId: string,
-    userId: string
+    userId: string,
   ): Promise<AutomationDetail | null> {
     const automation = await client.automation.findUnique({
       where: { id: automationId },
@@ -158,7 +158,7 @@ class AutomationService {
     if (!validated.success) {
       console.error(
         "Automation detail validation failed:",
-        validated.error.format()
+        validated.error.format(),
       );
       return null;
     }
@@ -203,11 +203,12 @@ class AutomationService {
    */
   async create(
     userId: string,
-    input: CreateAutomationRequest
+    _input: CreateAutomationRequest,
   ): Promise<AutomationCreatedResponse | null> {
+    // Note: We ignore input.id to prevent unique constraint violations
+    // The database will generate a new UUID automatically
     const result = await client.automation.create({
       data: {
-        ...(input.id && { id: input.id }),
         userId,
       },
       select: {
@@ -230,7 +231,7 @@ class AutomationService {
   async update(
     automationId: string,
     userId: string,
-    input: UpdateAutomationRequest
+    input: UpdateAutomationRequest,
   ): Promise<AutomationUpdatedResponse | null> {
     // IDOR check first
     const existing = await client.automation.findUnique({
@@ -289,7 +290,7 @@ class AutomationService {
   async saveListener(
     automationId: string,
     userId: string,
-    input: SaveListenerRequest
+    input: SaveListenerRequest,
   ): Promise<boolean> {
     // IDOR check
     const existing = await client.automation.findUnique({
@@ -337,7 +338,7 @@ class AutomationService {
   async syncTriggers(
     automationId: string,
     userId: string,
-    input: SaveTriggerRequest
+    input: SaveTriggerRequest,
   ): Promise<{ added: string[]; deleted: string[] } | null> {
     // IDOR check
     const automation = await client.automation.findUnique({
@@ -354,7 +355,7 @@ class AutomationService {
 
     const toAdd = newTypes.filter((t) => !existingTypes.includes(t));
     const toDelete = automation.trigger.filter(
-      (t) => !newTypes.includes(t.type)
+      (t) => !newTypes.includes(t.type),
     );
 
     if (toDelete.length > 0) {
@@ -383,7 +384,7 @@ class AutomationService {
   async addKeyword(
     automationId: string,
     userId: string,
-    input: SaveKeywordRequest
+    input: SaveKeywordRequest,
   ): Promise<boolean> {
     // IDOR check
     const existing = await client.automation.findUnique({
@@ -414,7 +415,7 @@ class AutomationService {
   async editKeyword(
     automationId: string,
     userId: string,
-    input: EditKeywordRequest
+    input: EditKeywordRequest,
   ): Promise<boolean> {
     // IDOR check
     const existing = await client.automation.findUnique({
@@ -467,7 +468,7 @@ class AutomationService {
   async savePosts(
     automationId: string,
     userId: string,
-    input: SavePostsRequest
+    input: SavePostsRequest,
   ): Promise<boolean> {
     // IDOR check
     const existing = await client.automation.findUnique({
@@ -505,9 +506,290 @@ class AutomationService {
   async setActive(
     automationId: string,
     userId: string,
-    active: boolean
+    active: boolean,
   ): Promise<AutomationUpdatedResponse | null> {
     return this.update(automationId, userId, { active });
+  }
+
+  // ============================================
+  // FLOW BUILDER METHODS
+  // ============================================
+
+  /**
+   * Save flow nodes and edges
+   * IDOR: Validates ownership before saving
+   */
+  async saveFlow(
+    automationId: string,
+    userId: string,
+    nodes: {
+      nodeId: string;
+      type: string;
+      subType: string;
+      label: string;
+      description?: string | null;
+      positionX: number;
+      positionY: number;
+      config?: Record<string, unknown> | null;
+    }[],
+    edges: {
+      edgeId: string;
+      sourceNodeId: string;
+      targetNodeId: string;
+      sourceHandle?: string | null;
+      targetHandle?: string | null;
+    }[],
+  ): Promise<boolean> {
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+    });
+    if (!automation) return false;
+
+    // Delete existing nodes and edges
+    await client.flowEdge.deleteMany({ where: { automationId } });
+    await client.flowNode.deleteMany({ where: { automationId } });
+
+    // Create new nodes
+    if (nodes.length > 0) {
+      await client.flowNode.createMany({
+        data: nodes.map((n) => ({
+          nodeId: n.nodeId,
+          type: n.type,
+          subType: n.subType,
+          label: n.label,
+          description: n.description ?? null,
+          positionX: n.positionX,
+          positionY: n.positionY,
+          config: n.config as object | undefined,
+          automationId,
+        })),
+      });
+    }
+
+    // Create new edges
+    if (edges.length > 0) {
+      await client.flowEdge.createMany({
+        data: edges.map((e) => ({
+          edgeId: e.edgeId,
+          sourceNodeId: e.sourceNodeId,
+          targetNodeId: e.targetNodeId,
+          sourceHandle: e.sourceHandle ?? null,
+          targetHandle: e.targetHandle ?? null,
+          automationId,
+        })),
+      });
+    }
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Get flow nodes and edges for an automation
+   */
+  async getFlow(automationId: string, userId: string) {
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+      select: {
+        flowNodes: true,
+        flowEdges: true,
+      },
+    });
+    if (!automation) return null;
+    return {
+      nodes: automation.flowNodes,
+      edges: automation.flowEdges,
+    };
+  }
+
+  /**
+   * Batch save all automation flow data (nodes, edges, triggers, keywords, listener)
+   * Used by flow builder to save everything in one call
+   */
+  async saveFlowBatch(
+    automationId: string,
+    userId: string,
+    payload: {
+      nodes: {
+        nodeId: string;
+        type: string;
+        subType: string;
+        label: string;
+        description?: string | null;
+        positionX: number;
+        positionY: number;
+        config?: Record<string, unknown> | null;
+      }[];
+      edges: {
+        edgeId: string;
+        sourceNodeId: string;
+        targetNodeId: string;
+        sourceHandle?: string | null;
+        targetHandle?: string | null;
+      }[];
+      triggers: string[];
+      keywords: string[];
+      listener?: {
+        type: "MESSAGE" | "SMARTAI" | "CAROUSEL";
+        prompt: string;
+        reply?: string | null;
+        carouselTemplateId?: string | null;
+      };
+    },
+  ): Promise<boolean> {
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+    });
+    if (!automation) return false;
+
+    // Save flow nodes and edges
+    await this.saveFlow(automationId, userId, payload.nodes, payload.edges);
+
+    // Sync triggers
+    if (payload.triggers.length > 0) {
+      await this.syncTriggers(automationId, userId, {
+        triggers: payload.triggers as ("COMMENT" | "DM")[],
+      });
+    }
+
+    // Sync keywords - delete and recreate
+    await client.keyword.deleteMany({ where: { automationId } });
+    if (payload.keywords.length > 0) {
+      await client.keyword.createMany({
+        data: payload.keywords.map((word) => ({ word, automationId })),
+      });
+    }
+
+    // Save listener if provided
+    if (payload.listener) {
+      await this.saveListener(automationId, userId, {
+        listener: payload.listener.type,
+        prompt: payload.listener.prompt,
+        reply: payload.listener.reply ?? null,
+        carouselTemplateId: payload.listener.carouselTemplateId ?? null,
+      });
+    }
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Delete a specific flow node and its connected edges
+   */
+  async deleteFlowNode(
+    automationId: string,
+    userId: string,
+    nodeId: string,
+  ): Promise<boolean> {
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+    });
+    if (!automation) return false;
+
+    // Delete edges connected to this node
+    await client.flowEdge.deleteMany({
+      where: {
+        automationId,
+        OR: [{ sourceNodeId: nodeId }, { targetNodeId: nodeId }],
+      },
+    });
+
+    // Delete the node
+    await client.flowNode.deleteMany({
+      where: { automationId, nodeId },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return true;
+  }
+
+  /**
+   * Get flow execution path for a trigger type
+   * Used by webhook processor to determine action sequence
+   */
+  async getExecutionPath(automationId: string, triggerType: "DM" | "COMMENT") {
+    const automation = await client.automation.findUnique({
+      where: { id: automationId },
+      include: {
+        flowNodes: true,
+        flowEdges: true,
+        trigger: true,
+        listener: true,
+        carouselTemplates: {
+          include: { elements: { include: { buttons: true } } },
+        },
+      },
+    });
+    if (!automation) return null;
+
+    // Check if trigger type matches
+    const hasTrigger = automation.trigger.some((t) => t.type === triggerType);
+    if (!hasTrigger) return null;
+
+    return {
+      automation: {
+        id: automation.id,
+        name: automation.name,
+        active: automation.active,
+      },
+      listener: automation.listener,
+      carouselTemplates: automation.carouselTemplates,
+      flowNodes: automation.flowNodes,
+      flowEdges: automation.flowEdges,
+    };
+  }
+
+  /**
+   * Create carousel template for automation
+   */
+  async createCarouselTemplate(
+    automationId: string,
+    userId: string,
+    elements: {
+      title: string;
+      subtitle?: string | null;
+      imageUrl?: string | null;
+      defaultAction?: string | null;
+      buttons: {
+        type: "WEB_URL" | "POSTBACK";
+        title: string;
+        url?: string | null;
+        payload?: string | null;
+      }[];
+    }[],
+  ): Promise<{ id: string } | null> {
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+    });
+    if (!automation) return null;
+
+    const template = await client.carouselTemplate.create({
+      data: {
+        userId,
+        automationId,
+        elements: {
+          create: elements.map((el, idx) => ({
+            title: el.title,
+            subtitle: el.subtitle ?? null,
+            imageUrl: el.imageUrl ?? null,
+            defaultAction: el.defaultAction ?? null,
+            order: idx,
+            buttons: {
+              create: el.buttons.map((btn) => ({
+                type: btn.type,
+                title: btn.title,
+                url: btn.url ?? null,
+                payload: btn.payload ?? null,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    await deleteCache(`user:${userId}:automations`);
+    return { id: template.id };
   }
 }
 

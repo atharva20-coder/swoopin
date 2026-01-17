@@ -2,27 +2,29 @@
 // REST API calls
 async function onOAuthInstagram(strategy: string) {
   const res = await fetch(
-    `/api/v1/integrations/${strategy.toLowerCase()}/oauth`
+    `/api/v1/integrations/${strategy.toLowerCase()}/oauth`,
   );
-  const data = await res.json();
-  if (data.url) {
-    window.location.href = data.url;
+  const result = await res.json();
+  // REST API returns { success: boolean, data: { url: string } }
+  if (result.success && result.data?.url) {
+    window.location.href = result.data.url;
   }
 }
 
 async function fetchUserInfo() {
-  const res = await fetch("/api/v1/user/profile");
+  const res = await fetch("/api/v1/users/me");
   return res.json();
 }
 import { Switch } from "@/components/ui/switch";
 import useConfirm from "@/hooks/use-confirm";
-import { useQuery } from "@tanstack/react-query";
-import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { ChevronRight, Loader2, Users, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryInstagramProfile } from "@/hooks/user-queries";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), {
   ssr: false,
@@ -46,14 +48,31 @@ const IntegrationCard = ({
   comingSoon,
   buttonText = "Connect",
 }: Props) => {
-  const { data: userData, isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const {
+    data: userData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["user-profile"],
     queryFn: fetchUserInfo,
+    refetchOnMount: "always", // Always refetch when component mounts
+    staleTime: 0, // Consider data always stale to force refetch
   });
   const { data: instagramProfile, isLoading: isLoadingProfile } =
     useQueryInstagramProfile();
   const [showConfetti, setShowConfetti] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  // Force refetch when returning from OAuth callback
+  useEffect(() => {
+    const connected = searchParams.get("instagram");
+    if (connected === "connected") {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      refetch();
+    }
+  }, [searchParams, queryClient, refetch]);
 
   const capitalize = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -61,8 +80,8 @@ const IntegrationCard = ({
   const [ConfirmDialog, confirm] = useConfirm(
     "Terms of Service & Privacy",
     `We comply with ${capitalize(
-      strategy
-    )}'s terms of service and protect your privacy. We do not store sensitive information and ensure secure data handling. By proceeding, you agree to our Terms and Conditions. Learn more at /terms`
+      strategy,
+    )}'s terms of service and protect your privacy. We do not store sensitive information and ensure secure data handling. By proceeding, you agree to our Terms and Conditions. Learn more at /terms`,
   );
 
   const onInstaOAuth = async () => {
@@ -84,7 +103,7 @@ const IntegrationCard = ({
 
   React.useEffect(() => {
     const integrated = userData?.data?.integrations.find(
-      (integration: { name: string }) => integration.name === strategy
+      (integration: { name: string }) => integration.name === strategy,
     );
     const storageKey = `integration_${strategy}_connected`;
     const hasShownConfetti = localStorage.getItem(storageKey);
@@ -97,7 +116,7 @@ const IntegrationCard = ({
   }, [userData?.data?.integrations, strategy]);
 
   const integrated = userData?.data?.integrations.find(
-    (integration: { name: string }) => integration.name === strategy
+    (integration: { name: string }) => integration.name === strategy,
   );
 
   const isConnected = integrated?.name === strategy;
@@ -144,7 +163,7 @@ const IntegrationCard = ({
           "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
           isConnected &&
             "ring-2 ring-blue-500/20 border-blue-200 dark:border-blue-500/30",
-          !isConnected && !comingSoon ? "cursor-pointer" : ""
+          !isConnected && !comingSoon ? "cursor-pointer" : "",
         )}
         onClick={!isConnected && !comingSoon ? onInstaOAuth : undefined}
       >

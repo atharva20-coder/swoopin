@@ -19,10 +19,12 @@ const CreateAutomation = (props: Props) => {
       className="group flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-[1.02]"
       onClick={() =>
         mutate({
-          name: "Untitled",
           id: mutationId,
+          name: "Untitled",
+          active: false,
           createdAt: new Date(),
           keywords: [],
+          listener: null,
         })
       }
     >

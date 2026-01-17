@@ -18,13 +18,20 @@ import {
 
 // Standard API response wrapper for list endpoints
 const AutomationsApiResponseSchema = z.object({
-  status: z.number(),
+  success: z.boolean(),
   data: z.array(AutomationListItemSchema).default([]),
+  meta: z
+    .object({
+      version: z.string().optional(),
+      cursor: z.string().nullish(),
+      hasMore: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 // Standard API response wrapper for single automation
 const AutomationApiResponseSchema = z.object({
-  status: z.number(),
+  success: z.boolean(),
   data: AutomationDetailResponseSchema.optional(),
 });
 
@@ -108,7 +115,7 @@ const PostsApiResponseSchema = z.object({
           .nullish()
           .transform((v) => v ?? ""),
         timestamp: z.string(),
-      })
+      }),
     )
     .default([]),
 });
@@ -136,33 +143,81 @@ export type PostsApiResponse = z.infer<typeof PostsApiResponseSchema>;
 async function fetchAllAutomations(): Promise<AutomationsApiResponse> {
   const res = await fetch("/api/v1/automations");
   const json = await res.json();
+  console.log(
+    "[DEBUG] fetchAllAutomations raw response:",
+    JSON.stringify(json, null, 2),
+  );
   // Parse and transform at the gateway - schema handles all normalizations
-  return AutomationsApiResponseSchema.parse(json);
+  const parsed = AutomationsApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchAllAutomations Zod parse error:",
+      parsed.error.format(),
+    );
+    // Return empty response on parse error
+    return { success: false, data: [] };
+  }
+  return parsed.data;
 }
 
 async function fetchAutomationInfo(id: string): Promise<AutomationApiResponse> {
   const res = await fetch(`/api/v1/automations/${id}`);
   const json = await res.json();
-  // Parse and transform at the gateway - schema handles all normalizations
-  return AutomationApiResponseSchema.parse(json);
+  // safeParse to gracefully handle API errors (401, 404, etc.)
+  const parsed = AutomationApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchAutomationInfo Zod parse error:",
+      parsed.error.format(),
+    );
+    return { success: false, data: undefined };
+  }
+  return parsed.data;
 }
 
 async function fetchProfilePosts(): Promise<PostsApiResponse> {
-  const res = await fetch("/api/v1/posts");
+  const res = await fetch("/api/v1/instagram/media");
   const json = await res.json();
-  return PostsApiResponseSchema.parse(json);
+  // safeParse to gracefully handle API errors
+  const parsed = PostsApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchProfilePosts Zod parse error:",
+      parsed.error.format(),
+    );
+    return { status: 500, data: [] };
+  }
+  return parsed.data;
 }
 
 async function fetchUserProfile(): Promise<UserProfileApiResponse> {
-  const res = await fetch("/api/v1/user/profile");
+  const res = await fetch("/api/v1/users/me");
   const json = await res.json();
-  return UserProfileApiResponseSchema.parse(json);
+  // safeParse to gracefully handle API errors
+  const parsed = UserProfileApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchUserProfile Zod parse error:",
+      parsed.error.format(),
+    );
+    return { status: 500, data: undefined };
+  }
+  return parsed.data;
 }
 
 async function fetchInstagramProfile(): Promise<InstagramProfileApiResponse> {
   const res = await fetch("/api/v1/integrations/instagram");
   const json = await res.json();
-  return InstagramProfileApiResponseSchema.parse(json);
+  // safeParse to gracefully handle API errors
+  const parsed = InstagramProfileApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchInstagramProfile Zod parse error:",
+      parsed.error.format(),
+    );
+    return { status: 500, data: undefined };
+  }
+  return parsed.data;
 }
 
 /**

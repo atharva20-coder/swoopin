@@ -96,7 +96,7 @@ model Subscription {
   createdAt         DateTime          @default(now())
   plan              SUBSCRIPTION_PLAN @default(FREE)
   updatedAt         DateTime          @default(now())
-  customerId        String?           @unique
+  cashfreeCustomerId String?           @unique
   cancelAtPeriodEnd Boolean           @default(false)
   currentPeriodEnd  DateTime?
   User              User?             @relation(fields: [userId], references: [id], onDelete: Cascade)

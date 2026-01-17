@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getAdminSession } from "@/lib/admin";
 
+// Force dynamic rendering - this route uses headers for authentication
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/admin/check
- * 
+ *
  * Check if the current user is an admin.
  * Returns admin status and email.
  */

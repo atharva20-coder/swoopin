@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   success,
   unauthorized,
@@ -8,13 +8,10 @@ import {
   getAuthUser,
   validateBody,
   rateLimitByUser,
-} from '@/app/api/v1/_lib';
-import { automationService } from '@/services/automation.service';
-import {
-  UpdateAutomationRequestSchema,
-  ActivateRequestSchema,
-} from '@/schemas/automation.schema';
-import { client } from '@/lib/prisma';
+} from "@/app/api/v1/_lib";
+import { automationService } from "@/services/automation.service";
+import { UpdateAutomationRequestSchema } from "@/schemas/automation.schema";
+import { client } from "@/lib/prisma";
 
 /**
  * Helper to get db user ID
@@ -35,7 +32,7 @@ async function getDbUserId(email: string): Promise<string | null> {
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     // 1. Authentication
@@ -50,11 +47,11 @@ export async function GET(
     // 3. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -63,13 +60,13 @@ export async function GET(
     const automation = await automationService.getById(id, userId);
 
     if (!automation) {
-      return notFound('Automation');
+      return notFound("Automation");
     }
 
     return success(automation);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('GET /api/v1/automations/[id] error:', error.message);
+      console.error("GET /api/v1/automations/[id] error:", error.message);
     }
     return internalError();
   }
@@ -83,7 +80,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     // 1. Authentication
@@ -98,17 +95,20 @@ export async function PUT(
     // 3. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
     // 5. Validate request body
-    const validation = await validateBody(request, UpdateAutomationRequestSchema);
+    const validation = await validateBody(
+      request,
+      UpdateAutomationRequestSchema,
+    );
     if (!validation.success) {
       return validation.response;
     }
@@ -117,13 +117,13 @@ export async function PUT(
     const result = await automationService.update(id, userId, validation.data);
 
     if (!result) {
-      return forbidden('Not authorized to update this automation');
+      return forbidden("Not authorized to update this automation");
     }
 
     return success(result);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('PUT /api/v1/automations/[id] error:', error.message);
+      console.error("PUT /api/v1/automations/[id] error:", error.message);
     }
     return internalError();
   }
@@ -137,7 +137,7 @@ export async function PUT(
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     // 1. Authentication
@@ -152,11 +152,11 @@ export async function DELETE(
     // 3. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
@@ -165,13 +165,13 @@ export async function DELETE(
     const deleted = await automationService.delete(id, userId);
 
     if (!deleted) {
-      return forbidden('Not authorized to delete this automation');
+      return forbidden("Not authorized to delete this automation");
     }
 
     return success({ deleted: true });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('DELETE /api/v1/automations/[id] error:', error.message);
+      console.error("DELETE /api/v1/automations/[id] error:", error.message);
     }
     return internalError();
   }
@@ -180,12 +180,12 @@ export async function DELETE(
 /**
  * ============================================
  * PATCH /api/v1/automations/{id}
- * Toggle automation active state
+ * Update automation (name and/or active state)
  * ============================================
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     // 1. Authentication
@@ -200,32 +200,35 @@ export async function PATCH(
     // 3. Get user ID
     const userId = await getDbUserId(authUser.email);
     if (!userId) {
-      return unauthorized('User not found');
+      return unauthorized("User not found");
     }
 
     // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, 'standard');
+    const rateLimitResponse = await rateLimitByUser(userId, "standard");
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // 5. Validate request body
-    const validation = await validateBody(request, ActivateRequestSchema);
+    // 5. Validate request body - accepts name and/or active
+    const validation = await validateBody(
+      request,
+      UpdateAutomationRequestSchema,
+    );
     if (!validation.success) {
       return validation.response;
     }
 
-    // 6. Set active state (IDOR check inside service)
-    const result = await automationService.setActive(id, userId, validation.data.active);
+    // 6. Update automation (IDOR check inside service)
+    const result = await automationService.update(id, userId, validation.data);
 
     if (!result) {
-      return forbidden('Not authorized to modify this automation');
+      return forbidden("Not authorized to modify this automation");
     }
 
     return success(result);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('PATCH /api/v1/automations/[id] error:', error.message);
+      console.error("PATCH /api/v1/automations/[id] error:", error.message);
     }
     return internalError();
   }
