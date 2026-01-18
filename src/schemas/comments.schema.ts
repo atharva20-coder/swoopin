@@ -61,8 +61,17 @@ export const HideCommentRequestSchema = z.object({
   hide: z.boolean().default(true),
 });
 
+// ... existing code ...
 export const DeleteCommentRequestSchema = z.object({
   commentId: z.string().min(1, "Comment ID is required"),
+});
+
+export const PrivateReplyRequestSchema = z.object({
+  commentId: z.string().min(1, "Comment ID is required"),
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(1000, "Message too long"), // Instagram text limit is actually 1000 chars for standard messages
 });
 
 // ============================================
@@ -88,3 +97,4 @@ export type CommentsData = z.infer<typeof CommentsDataSchema>;
 export type ReplyToCommentRequest = z.infer<typeof ReplyToCommentRequestSchema>;
 export type HideCommentRequest = z.infer<typeof HideCommentRequestSchema>;
 export type DeleteCommentRequest = z.infer<typeof DeleteCommentRequestSchema>;
+export type PrivateReplyRequest = z.infer<typeof PrivateReplyRequestSchema>;

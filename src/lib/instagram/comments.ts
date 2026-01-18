@@ -52,35 +52,34 @@ export interface CommentsResponse<T> {
  */
 async function getCommentReplies(
   commentId: string,
-  token: string
+  token: string,
 ): Promise<InstagramComment[]> {
   try {
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${commentId}/replies`,
       {
         params: {
-          fields: "id,text,username,timestamp,like_count,hidden,user{id,username,profile_picture_url}",
+          fields:
+            "id,text,username,timestamp,like_count,hidden,user{id,username,profile_picture_url}",
         },
         headers: {
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
-    return (response.data.data || []).map(
-      (c: Record<string, unknown>) => ({
-        id: c.id as string,
-        text: c.text as string,
-        username: c.username as string,
-        timestamp: c.timestamp as string,
-        like_count: (c.like_count as number) || 0,
-        hidden: (c.hidden as boolean) || false,
-        media_id: commentId,
-        user: c.user as InstagramComment["user"],
-        replies: [], // Replies don't have nested replies on Instagram
-      })
-    );
+    return (response.data.data || []).map((c: Record<string, unknown>) => ({
+      id: c.id as string,
+      text: c.text as string,
+      username: c.username as string,
+      timestamp: c.timestamp as string,
+      like_count: (c.like_count as number) || 0,
+      hidden: (c.hidden as boolean) || false,
+      media_id: commentId,
+      user: c.user as InstagramComment["user"],
+      replies: [], // Replies don't have nested replies on Instagram
+    }));
   } catch {
     // Silently fail - replies are optional
     return [];
@@ -94,7 +93,7 @@ async function getCommentReplies(
 export async function getMediaComments(
   mediaId: string,
   token: string,
-  limit: number = 50
+  limit: number = 50,
 ): Promise<CommentsResponse<InstagramComment[]>> {
   try {
     const response = await axios.get(
@@ -102,14 +101,15 @@ export async function getMediaComments(
       {
         params: {
           // Include parent_id to identify replies vs top-level comments
-          fields: "id,text,username,timestamp,like_count,hidden,parent_id,user{id,username,profile_picture_url}",
+          fields:
+            "id,text,username,timestamp,like_count,hidden,parent_id,user{id,username,profile_picture_url}",
           limit,
         },
         headers: {
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
     const rawComments = response.data.data || [];
@@ -117,14 +117,14 @@ export async function getMediaComments(
     // Filter to only top-level comments (those without parent_id)
     // Replies have parent_id set to their parent comment's ID
     const topLevelComments = rawComments.filter(
-      (c: Record<string, unknown>) => !c.parent_id
+      (c: Record<string, unknown>) => !c.parent_id,
     );
 
     // Fetch replies for each top-level comment in parallel
     const commentsWithReplies: InstagramComment[] = await Promise.all(
       topLevelComments.map(async (c: Record<string, unknown>) => {
         const replies = await getCommentReplies(c.id as string, token);
-        
+
         return {
           id: c.id as string,
           text: c.text as string,
@@ -136,7 +136,7 @@ export async function getMediaComments(
           user: c.user as InstagramComment["user"],
           replies,
         };
-      })
+      }),
     );
 
     return { success: true, data: commentsWithReplies };
@@ -154,7 +154,7 @@ export async function getMediaComments(
 async function processBatched<T, R>(
   items: T[],
   processor: (item: T) => Promise<R>,
-  batchSize: number = 5
+  batchSize: number = 5,
 ): Promise<R[]> {
   const results: R[] = [];
   for (let i = 0; i < items.length; i += batchSize) {
@@ -172,7 +172,7 @@ async function processBatched<T, R>(
 export async function getAllMediaWithComments(
   userId: string,
   token: string,
-  mediaLimit: number = 10
+  mediaLimit: number = 10,
 ): Promise<CommentsResponse<MediaWithComments[]>> {
   try {
     // First, get recent media
@@ -187,19 +187,22 @@ export async function getAllMediaWithComments(
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
     const mediaList = mediaResponse.data.data || [];
 
     // Process media in batches of 5 to limit concurrent API calls
-    const mediaWithComments = await processBatched<Record<string, unknown>, MediaWithComments>(
+    const mediaWithComments = await processBatched<
+      Record<string, unknown>,
+      MediaWithComments
+    >(
       mediaList,
       async (media) => {
         const commentsResult = await getMediaComments(
           media.id as string,
           token,
-          10 // Limit to 10 comments per post for performance
+          10, // Limit to 10 comments per post for performance
         );
 
         return {
@@ -212,7 +215,7 @@ export async function getAllMediaWithComments(
           comments: commentsResult.success ? commentsResult.data || [] : [],
         };
       },
-      5 // Process 5 media items at a time
+      5, // Process 5 media items at a time
     );
 
     return { success: true, data: mediaWithComments };
@@ -234,7 +237,7 @@ export async function getAllMediaWithComments(
 export async function replyToComment(
   commentId: string,
   message: string,
-  token: string
+  token: string,
 ): Promise<CommentsResponse<{ id: string }>> {
   try {
     const response = await axios.post(
@@ -246,7 +249,7 @@ export async function replyToComment(
           "Content-Type": "application/json",
         },
         timeout: 10000,
-      }
+      },
     );
 
     return { success: true, data: { id: response.data.id } };
@@ -266,7 +269,7 @@ export async function replyToComment(
 export async function setCommentVisibility(
   commentId: string,
   hide: boolean,
-  token: string
+  token: string,
 ): Promise<CommentsResponse<{ success: boolean }>> {
   try {
     await axios.post(
@@ -278,7 +281,7 @@ export async function setCommentVisibility(
           "Content-Type": "application/json",
         },
         timeout: 10000,
-      }
+      },
     );
 
     return { success: true, data: { success: true } };
@@ -297,22 +300,97 @@ export async function setCommentVisibility(
  */
 export async function deleteComment(
   commentId: string,
-  token: string
+  token: string,
 ): Promise<CommentsResponse<{ success: boolean }>> {
   try {
-    await axios.delete(
-      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${commentId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 10000,
-      }
-    );
+    await axios.delete(`${process.env.INSTAGRAM_BASE_URL}/v21.0/${commentId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 10000,
+    });
 
+    // ... existing code ...
     return { success: true, data: { success: true } };
   } catch (error) {
     console.error("Error deleting comment:", error);
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+// =============================================================================
+// Private Reply
+// =============================================================================
+
+/**
+ * Get the Facebook Page ID for the connected user
+ * Needed specifically for the messages endpoint which uses Page ID, not IG ID
+ */
+async function getPageId(token: string): Promise<string | null> {
+  try {
+    const response = await axios.get(
+      `${process.env.INSTAGRAM_BASE_URL}/me/accounts`,
+      {
+        params: {
+          access_token: token,
+        },
+      },
+    );
+
+    // Assuming the user has one connected page, or we take the first one
+    // In a more complex scenario we might need to match this against the specific IG account
+    const accounts = response.data.data;
+    if (accounts && accounts.length > 0) {
+      return accounts[0].id; // Return the first Page ID
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching Page ID:", error);
+    return null;
+  }
+}
+
+/**
+ * Send a private reply to a comment
+ * Uses the /PAGE-ID/messages endpoint
+ */
+export async function sendPrivateReply(
+  commentId: string,
+  message: string,
+  token: string,
+): Promise<CommentsResponse<{ recipient_id: string; message_id: string }>> {
+  try {
+    // 1. Get Page ID dynamically
+    const pageId = await getPageId(token);
+    if (!pageId) {
+      return { success: false, error: "Count not determine Facebook Page ID" };
+    }
+
+    // 2. Send Message
+    const response = await axios.post(
+      `${process.env.INSTAGRAM_BASE_URL}/${pageId}/messages`,
+      {
+        recipient: { comment_id: commentId },
+        message: { text: message },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      },
+    );
+
+    return {
+      success: true,
+      data: {
+        recipient_id: response.data.recipient_id,
+        message_id: response.data.message_id,
+      },
+    };
+  } catch (error) {
+    console.error("Error sending private reply:", error);
     return { success: false, error: getErrorMessage(error) };
   }
 }

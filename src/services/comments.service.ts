@@ -2,6 +2,7 @@ import { client } from "@/lib/prisma";
 import {
   getAllMediaWithComments,
   replyToComment as apiReplyToComment,
+  sendPrivateReply as apiSendPrivateReply,
   setCommentVisibility,
   deleteComment as apiDeleteComment,
 } from "@/lib/instagram/comments";
@@ -145,7 +146,44 @@ class CommentsService {
       return { error: result.error || "Failed to delete comment" };
     }
 
+    // ... existing code ...
     return { success: true };
+  }
+
+  /**
+   * Send a private reply to a comment
+   */
+  async sendPrivateReply(
+    userId: string,
+    commentId: string,
+    message: string,
+  ): Promise<{ recipientId: string; messageId: string } | { error: string }> {
+    // Get user's integration
+    const integration = await client.integrations.findFirst({
+      where: {
+        userId,
+        name: "INSTAGRAM",
+      },
+    });
+
+    if (!integration?.token) {
+      return { error: "Instagram not connected" };
+    }
+
+    const result = await apiSendPrivateReply(
+      commentId,
+      message,
+      integration.token,
+    );
+
+    if (!result.success || !result.data) {
+      return { error: result.error || "Failed to send private reply" };
+    }
+
+    return {
+      recipientId: result.data.recipient_id,
+      messageId: result.data.message_id,
+    };
   }
 }
 

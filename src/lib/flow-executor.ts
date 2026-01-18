@@ -2,7 +2,6 @@ import { client } from "@/lib/prisma";
 import {
   sendDM,
   sendPrivateMessage,
-  replyToComment,
   sendCarouselMessage,
   checkIfFollower,
   getMediaHashtags,
@@ -48,7 +47,7 @@ type ExecutionContext = {
 
 // Build adjacency list from edges
 const buildAdjacencyList = (
-  edges: { sourceNodeId: string; targetNodeId: string }[]
+  edges: { sourceNodeId: string; targetNodeId: string }[],
 ) => {
   const adjacencyList = new Map<string, string[]>();
   edges.forEach((edge) => {
@@ -63,7 +62,7 @@ const buildAdjacencyList = (
 const getExecutionPath = (
   triggerNodeId: string,
   nodes: FlowNode[],
-  adjacencyList: Map<string, string[]>
+  adjacencyList: Map<string, string[]>,
 ): FlowNode[] => {
   const path: FlowNode[] = [];
   const visited = new Set<string>();
@@ -105,7 +104,7 @@ const checkKeywordMatch = (messageText: string, nodes: FlowNode[]): boolean => {
 // Evaluate a condition node
 const evaluateCondition = async (
   node: FlowNode,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): Promise<boolean> => {
   const { token, pageId, senderId, mediaId, messageText } = context;
 
@@ -137,7 +136,7 @@ const evaluateCondition = async (
         }
 
         return requiredTags.some((tag: string) =>
-          foundTags.includes(tag.toLowerCase().replace("#", ""))
+          foundTags.includes(tag.toLowerCase().replace("#", "")),
         );
       }
 
@@ -162,7 +161,7 @@ const evaluateCondition = async (
 // Execute a single action node
 const executeActionNode = async (
   node: FlowNode,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): Promise<{ success: boolean; message: string }> => {
   const { token, pageId, senderId, automationId, userId, commentId } = context;
 
@@ -173,7 +172,7 @@ const executeActionNode = async (
           "MESSAGE node: context.aiResponse =",
           context.aiResponse
             ? context.aiResponse.substring(0, 30) + "..."
-            : "none"
+            : "none",
         );
         const messageText = context.aiResponse || node.config?.message || "";
         if (!messageText)
@@ -194,7 +193,7 @@ const executeActionNode = async (
 
         console.log(
           "MESSAGE node: Sending DM with text:",
-          messageText.substring(0, 50) + "..."
+          messageText.substring(0, 50) + "...",
         );
         const result = await sendDM(pageId, senderId, messageText, token);
 
@@ -225,8 +224,11 @@ const executeActionNode = async (
         const usedAiResponse = !!context.aiResponse;
         if (context.aiResponse) delete context.aiResponse;
 
+        // Use the robust instagram/comments library
+        const { replyToComment } = await import("@/lib/instagram/comments");
         const result = await replyToComment(commentId, replyText, token);
-        if (result.status === 200) {
+
+        if (result.success) {
           await trackResponses(automationId, "COMMENT");
           await trackAnalytics(userId, "comment").catch(console.error);
           return {
@@ -236,7 +238,10 @@ const executeActionNode = async (
               : "Comment reply sent",
           };
         }
-        return { success: false, message: "Failed to reply to comment" };
+        return {
+          success: false,
+          message: result.error || "Failed to reply to comment",
+        };
       }
 
       case "SMARTAI": {
@@ -252,9 +257,11 @@ const executeActionNode = async (
 
         const { checkRateLimit } = await import("@/lib/rate-limiter");
         const { generatePersonifiedResponse } = await import("@/lib/gemini");
-        const { getChatHistory, createChatHistory } = await import(
-          "@/actions/webhook/queries"
-        );
+        // Use webhookService instead of actions for consistency
+        const getChatHistory =
+          webhookService.getChatHistory.bind(webhookService);
+        const createChatHistory =
+          webhookService.createChatHistory.bind(webhookService);
 
         const rateLimitResult = await checkRateLimit(`ai:${senderId}`, "AI");
         if (!rateLimitResult.success) {
@@ -291,7 +298,7 @@ const executeActionNode = async (
         let generatedResponse = await generatePersonifiedResponse(
           prompt,
           context.messageText || "",
-          chatHistory
+          chatHistory,
         );
 
         if (!generatedResponse) {
@@ -312,13 +319,13 @@ const executeActionNode = async (
             automationId,
             senderId,
             pageId,
-            context.messageText || ""
+            context.messageText || "",
           );
           await createChatHistory(
             automationId,
             pageId,
             senderId,
-            generatedResponse
+            generatedResponse,
           );
         } catch (e) {}
 
@@ -326,7 +333,7 @@ const executeActionNode = async (
         context.aiResponse = generatedResponse;
         console.log(
           "SmartAI: Generated response, passing to downstream node:",
-          generatedResponse.substring(0, 50) + "..."
+          generatedResponse.substring(0, 50) + "...",
         );
 
         return {
@@ -388,16 +395,16 @@ const executeActionNode = async (
                 title: button.title,
                 url: button.url || undefined,
                 payload: button.payload || undefined,
-              })
+              }),
             ),
-          })
+          }),
         );
 
         const result = await sendCarouselMessage(
           pageId,
           senderId,
           carouselElements,
-          token
+          token,
         );
         if (result) {
           await trackResponses(automationId, "CAROUSEL");
@@ -426,7 +433,7 @@ const executeActionNode = async (
           mediaId,
           replyText,
           token,
-          commentId
+          commentId,
         );
 
         if (result.success) {
@@ -463,7 +470,7 @@ const executeActionNode = async (
           senderId,
           text,
           buttons,
-          token
+          token,
         );
 
         if (result.success) {
@@ -489,7 +496,7 @@ const executeActionNode = async (
           pageId,
           senderId,
           productIds,
-          token
+          token,
         );
 
         if (result.success) {
@@ -520,7 +527,7 @@ const executeActionNode = async (
           senderId,
           text,
           quickReplies,
-          token
+          token,
         );
 
         if (result.success) {
@@ -577,7 +584,7 @@ const executeActionNode = async (
           pageId,
           senderId,
           "typing_on",
-          token
+          token,
         );
         if (result.success) {
           return { success: true, message: "Typing indicator shown" };
@@ -593,7 +600,7 @@ const executeActionNode = async (
           pageId,
           senderId,
           "typing_off",
-          token
+          token,
         );
         if (result.success) {
           return { success: true, message: "Typing indicator hidden" };
@@ -609,7 +616,7 @@ const executeActionNode = async (
           pageId,
           senderId,
           "mark_seen",
-          token
+          token,
         );
         if (result.success) {
           return { success: true, message: "Message marked as seen" };
@@ -644,9 +651,8 @@ const executeActionNode = async (
 
         try {
           // Import dynamically to avoid circular deps
-          const { googleSheetsService } = await import(
-            "@/services/google-sheets.service"
-          );
+          const { googleSheetsService } =
+            await import("@/services/google-sheets.service");
 
           const timestamp = new Date().toISOString();
           const senderInfo = context.senderId || "Unknown";
@@ -666,7 +672,7 @@ const executeActionNode = async (
                 "Trigger Type",
               ],
               rows: [[timestamp, senderInfo, messageContent, triggerType]],
-            }
+            },
           );
 
           if ("exported" in result && result.exported) {
@@ -698,7 +704,7 @@ const executeActionNode = async (
 // Main flow execution function with proper branching
 export const executeFlow = async (
   automationId: string,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): Promise<{ success: boolean; message: string }> => {
   try {
     // Load flow data
@@ -730,7 +736,7 @@ export const executeFlow = async (
         subType: n.subType,
         label: n.label,
         config: (n.config as Record<string, unknown>) || {},
-      })
+      }),
     );
 
     if (
@@ -741,7 +747,7 @@ export const executeFlow = async (
     }
 
     const triggerNode = flowNodes.find(
-      (n) => n.type === "trigger" && n.subType === context.triggerType
+      (n) => n.type === "trigger" && n.subType === context.triggerType,
     );
 
     if (!triggerNode) {
@@ -825,7 +831,7 @@ export const executeFlow = async (
         console.log(`[Flow] Executing action: ${node.subType} (${node.label})`);
         console.log(
           `[Flow] context.aiResponse before:`,
-          context.aiResponse ? "present" : "none"
+          context.aiResponse ? "present" : "none",
         );
 
         const result = await executeActionNode(node, context);
@@ -838,7 +844,7 @@ export const executeFlow = async (
         console.log(`[Flow] Action result:`, result.message);
         console.log(
           `[Flow] context.aiResponse after:`,
-          context.aiResponse ? "present" : "none"
+          context.aiResponse ? "present" : "none",
         );
 
         const children = adjacencyList.get(nodeId) || [];

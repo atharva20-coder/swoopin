@@ -10,7 +10,7 @@ import { X } from "lucide-react";
 
 // REST API helpers for scheduler
 async function createScheduledPost(data: Record<string, unknown>) {
-  const res = await fetch("/api/v1/scheduler", {
+  const res = await fetch("/api/v1/posts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -20,7 +20,7 @@ async function createScheduledPost(data: Record<string, unknown>) {
 }
 
 async function updateScheduledPost(id: string, data: Record<string, unknown>) {
-  const res = await fetch(`/api/v1/scheduler/${id}`, {
+  const res = await fetch(`/api/v1/posts/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -29,21 +29,21 @@ async function updateScheduledPost(id: string, data: Record<string, unknown>) {
 }
 
 async function deleteScheduledPost(id: string) {
-  const res = await fetch(`/api/v1/scheduler/${id}`, {
+  const res = await fetch(`/api/v1/posts/${id}`, {
     method: "DELETE",
   });
   return { status: res.status };
 }
 
 async function publishScheduledPost(id: string) {
-  const res = await fetch(`/api/v1/scheduler/${id}/publish`, {
+  const res = await fetch(`/api/v1/posts/${id}/publish`, {
     method: "POST",
   });
   return { status: res.status, data: await res.json() };
 }
 
 async function createDraft(data: Record<string, unknown>) {
-  const res = await fetch("/api/v1/scheduler/drafts", {
+  const res = await fetch("/api/v1/drafts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -103,7 +103,7 @@ export default function SchedulerView({
   const [isCanvaPickerOpen, setIsCanvaPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(
-    initialScheduledPosts
+    initialScheduledPosts,
   );
   const [drafts, setDrafts] = useState(initialDrafts);
   const [isLoading, setIsLoading] = useState(false);
@@ -163,8 +163,8 @@ export default function SchedulerView({
             scheduledPosts.map((p) =>
               p.id === postData.id
                 ? ({ ...p, ...postData } as ScheduledPost)
-                : p
-            )
+                : p,
+            ),
           );
           toast.success("Post updated!");
         } else {
@@ -183,13 +183,13 @@ export default function SchedulerView({
           carouselItems: postData.mediaUrls?.map((url) => ({ imageUrl: url })),
         });
         if (
-          result.status === 200 &&
-          result.data &&
-          typeof result.data !== "string"
+          (result.status === 200 || result.status === 201) &&
+          result.data?.success &&
+          result.data?.data
         ) {
           const newPost: ScheduledPost = {
-            id: result.data.id,
             ...postData,
+            id: result.data.data.id, // Must be LAST to override temp ID from postData
             scheduledFor: postData.scheduledFor || new Date(),
             status: "SCHEDULED",
           } as ScheduledPost;
@@ -224,11 +224,11 @@ export default function SchedulerView({
           carouselItems: postData.mediaUrls?.map((url) => ({ imageUrl: url })),
         });
         if (
-          createResult.status === 200 &&
-          createResult.data &&
-          typeof createResult.data !== "string"
+          (createResult.status === 200 || createResult.status === 201) &&
+          createResult.data?.success &&
+          createResult.data?.data
         ) {
-          postId = createResult.data.id;
+          postId = createResult.data.data.id;
         } else {
           toast.error("Failed to create post");
           return;
@@ -240,13 +240,13 @@ export default function SchedulerView({
       if (result.status === 200) {
         setScheduledPosts(
           scheduledPosts.map((p) =>
-            p.id === postId ? { ...p, status: "POSTED" as const } : p
-          )
+            p.id === postId ? { ...p, status: "POSTED" as const } : p,
+          ),
         );
         toast.success("Post published to Instagram!");
       } else {
         toast.error(
-          typeof result.data === "string" ? result.data : "Failed to publish"
+          typeof result.data === "string" ? result.data : "Failed to publish",
         );
       }
     } catch (error) {
@@ -316,13 +316,13 @@ export default function SchedulerView({
       if (result.status === 200) {
         setScheduledPosts(
           scheduledPosts.map((p) =>
-            p.id === postId ? { ...p, scheduledFor: newDate } : p
-          )
+            p.id === postId ? { ...p, scheduledFor: newDate } : p,
+          ),
         );
         toast.success("Post rescheduled!", {
           description: `Moved to ${newDate.toLocaleDateString()} at ${newDate.toLocaleTimeString(
             [],
-            { hour: "numeric", minute: "2-digit" }
+            { hour: "numeric", minute: "2-digit" },
           )}`,
         });
       } else {
@@ -335,7 +335,7 @@ export default function SchedulerView({
 
   const handleAutomationDrop = async (
     date: Date,
-    automation: { id: string; name: string }
+    automation: { id: string; name: string },
   ) => {
     try {
       const result = await createScheduledPost({

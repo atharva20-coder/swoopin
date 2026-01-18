@@ -1,6 +1,6 @@
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
-import { client } from '@/lib/prisma';
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { client } from "@/lib/prisma";
 
 /**
  * API Middleware
@@ -22,6 +22,8 @@ export interface AuthenticatedUser {
 export async function getAuthUser(): Promise<AuthenticatedUser | null> {
   try {
     const headersList = await headers();
+
+    // Debug logging
     const session = await auth.api.getSession({
       headers: headersList,
     });
@@ -39,7 +41,7 @@ export async function getAuthUser(): Promise<AuthenticatedUser | null> {
     };
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error('Auth error:', error.message);
+      console.error("Auth error:", error.message);
     }
     return null;
   }
@@ -52,7 +54,7 @@ export async function getAuthUser(): Promise<AuthenticatedUser | null> {
 export async function requireAuth(): Promise<AuthenticatedUser> {
   const user = await getAuthUser();
   if (!user) {
-    throw new Error('UNAUTHORIZED');
+    throw new Error("UNAUTHORIZED");
   }
   return user;
 }
@@ -68,7 +70,7 @@ export async function getDbUser(userId: string) {
       integrations: true,
     },
   });
-  
+
   return user;
 }
 
@@ -77,7 +79,7 @@ export async function getDbUser(userId: string) {
  */
 export async function hasSubscription(
   userId: string,
-  requiredPlans: string[] = ['PRO', 'ENTERPRISE']
+  requiredPlans: string[] = ["PRO", "ENTERPRISE"],
 ): Promise<boolean> {
   const user = await client.user.findUnique({
     where: { id: userId },
@@ -95,10 +97,10 @@ export async function hasSubscription(
  * Check if user is an admin
  */
 export function isAdmin(email: string): boolean {
-  const adminEmails = (process.env.ADMIN_EMAILS || '')
-    .split(',')
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
     .map((e) => e.trim().toLowerCase());
-  
+
   return adminEmails.includes(email.toLowerCase());
 }
 
@@ -108,9 +110,9 @@ export function isAdmin(email: string): boolean {
  */
 export async function verifyOwnership(
   resourceUserId: string,
-  currentUserId: string
+  currentUserId: string,
 ): Promise<void> {
   if (resourceUserId !== currentUserId) {
-    throw new Error('FORBIDDEN');
+    throw new Error("FORBIDDEN");
   }
 }

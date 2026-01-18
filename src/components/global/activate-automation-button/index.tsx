@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import React from "react";
 import { useQueryAutomation } from "@/hooks/user-queries";
 import { useMutationData } from "@/hooks/use-mutation-data";
+import { useQueryClient } from "@tanstack/react-query";
 
 // REST API helper for activating automation
 async function activateAutomationApi(id: string, state: boolean) {
@@ -19,11 +20,16 @@ type Props = {
 };
 
 const ActivateAutomationButton = ({ id }: Props) => {
+  const queryClient = useQueryClient();
   const { data } = useQueryAutomation(id);
   const { mutate, isPending } = useMutationData(
     ["activate"],
     (data: { state: boolean }) => activateAutomationApi(id, data.state),
     "automation-info",
+    // Also invalidate the automations list
+    () => {
+      queryClient.invalidateQueries({ queryKey: ["user-automations"] });
+    },
   );
 
   const [optimisticState, setOptimisticState] = React.useState(

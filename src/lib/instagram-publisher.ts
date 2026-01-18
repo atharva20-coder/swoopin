@@ -5,9 +5,9 @@ import axios from "axios";
 // Types for Instagram Graph API responses
 export type MediaType = "IMAGE" | "VIDEO" | "REELS" | "STORIES";
 
-export type ContainerStatus = 
+export type ContainerStatus =
   | "EXPIRED"
-  | "ERROR" 
+  | "ERROR"
   | "FINISHED"
   | "IN_PROGRESS"
   | "PUBLISHED";
@@ -97,13 +97,13 @@ const getBaseUrl = () => {
  * This is Step 1 in the publishing process
  */
 export async function createMediaContainer(
-  params: MediaContainerParams
+  params: MediaContainerParams,
 ): Promise<{ success: boolean; containerId?: string; error?: string }> {
-  const { 
-    instagramAccountId, 
-    accessToken, 
-    imageUrl, 
-    videoUrl, 
+  const {
+    instagramAccountId,
+    accessToken,
+    imageUrl,
+    videoUrl,
     mediaType,
     caption,
     altText,
@@ -120,7 +120,10 @@ export async function createMediaContainer(
   } = params;
 
   if (!imageUrl && !videoUrl) {
-    return { success: false, error: "Either image_url or video_url is required" };
+    return {
+      success: false,
+      error: "Either image_url or video_url is required",
+    };
   }
 
   try {
@@ -207,13 +210,13 @@ export async function createMediaContainer(
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: true, containerId: response.data.id };
   } catch (error) {
     console.error("Error creating media container:", error);
-    
+
     let errorMessage = "Failed to create media container";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -230,19 +233,22 @@ export async function createMediaContainer(
  * Carousels can contain up to 10 images/videos
  */
 export async function createCarouselContainer(
-  params: CarouselContainerParams
+  params: CarouselContainerParams,
 ): Promise<{ success: boolean; containerId?: string; error?: string }> {
-  const { 
-    instagramAccountId, 
-    accessToken, 
-    caption, 
+  const {
+    instagramAccountId,
+    accessToken,
+    caption,
     children,
     locationId,
     collaborators,
   } = params;
 
   if (!children || children.length === 0) {
-    return { success: false, error: "At least one child container is required" };
+    return {
+      success: false,
+      error: "At least one child container is required",
+    };
   }
 
   if (children.length > 10) {
@@ -275,13 +281,13 @@ export async function createCarouselContainer(
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: true, containerId: response.data.id };
   } catch (error) {
     console.error("Error creating carousel container:", error);
-    
+
     let errorMessage = "Failed to create carousel container";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -328,20 +334,20 @@ export async function uploadResumableVideo(params: {
     const response = await axios.post<ResumableUploadResponse>(
       `https://rupload.facebook.com/ig-api-upload/v21.0/${containerId}`,
       videoUrl.startsWith("http") ? undefined : videoUrl,
-      { headers }
+      { headers },
     );
 
     if (response.data.success) {
       return { success: true };
     } else {
-      return { 
-        success: false, 
-        error: response.data.debug_info?.message || "Upload failed" 
+      return {
+        success: false,
+        error: response.data.debug_info?.message || "Upload failed",
       };
     }
   } catch (error) {
     console.error("Error uploading video:", error);
-    
+
     let errorMessage = "Failed to upload video";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -371,13 +377,13 @@ export async function getContainerStatus(params: {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
     return { success: true, status: response.data.status_code };
   } catch (error) {
     console.error("Error getting container status:", error);
-    
+
     let errorMessage = "Failed to get container status";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -394,7 +400,7 @@ export async function getContainerStatus(params: {
  * This is the final step in the publishing process
  */
 export async function publishContainer(
-  params: PublishParams
+  params: PublishParams,
 ): Promise<{ success: boolean; mediaId?: string; error?: string }> {
   const { instagramAccountId, accessToken, containerId } = params;
 
@@ -407,13 +413,13 @@ export async function publishContainer(
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: true, mediaId: response.data.id };
   } catch (error) {
     console.error("Error publishing container:", error);
-    
+
     let errorMessage = "Failed to publish content";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -432,11 +438,11 @@ export async function publishContainer(
 export async function getPublishingLimit(params: {
   instagramAccountId: string;
   accessToken: string;
-}): Promise<{ 
-  success: boolean; 
-  quotaUsage?: number; 
+}): Promise<{
+  success: boolean;
+  quotaUsage?: number;
   quotaTotal?: number;
-  error?: string 
+  error?: string;
 }> {
   const { instagramAccountId, accessToken } = params;
 
@@ -448,17 +454,17 @@ export async function getPublishingLimit(params: {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       quotaUsage: response.data.quota_usage,
       quotaTotal: response.data.config?.quota_total || 100,
     };
   } catch (error) {
     console.error("Error getting publishing limit:", error);
-    
+
     let errorMessage = "Failed to get publishing limit";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
@@ -480,18 +486,18 @@ export async function waitForContainerReady(params: {
   maxWaitMs?: number;
   pollIntervalMs?: number;
 }): Promise<{ success: boolean; status?: ContainerStatus; error?: string }> {
-  const { 
-    containerId, 
-    accessToken, 
+  const {
+    containerId,
+    accessToken,
     maxWaitMs = 300000, // 5 minutes default
-    pollIntervalMs = 5000 // 5 seconds default
+    pollIntervalMs = 5000, // 5 seconds default
   } = params;
 
   const startTime = Date.now();
 
   while (Date.now() - startTime < maxWaitMs) {
     const result = await getContainerStatus({ containerId, accessToken });
-    
+
     if (!result.success) {
       return result;
     }
@@ -500,14 +506,22 @@ export async function waitForContainerReady(params: {
       case "FINISHED":
         return { success: true, status: "FINISHED" };
       case "ERROR":
-        return { success: false, error: "Container processing failed", status: "ERROR" };
+        return {
+          success: false,
+          error: "Container processing failed",
+          status: "ERROR",
+        };
       case "EXPIRED":
-        return { success: false, error: "Container has expired", status: "EXPIRED" };
+        return {
+          success: false,
+          error: "Container has expired",
+          status: "EXPIRED",
+        };
       case "PUBLISHED":
         return { success: true, status: "PUBLISHED" };
       case "IN_PROGRESS":
         // Wait and poll again
-        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
         break;
       default:
         return { success: false, error: `Unknown status: ${result.status}` };
@@ -531,12 +545,12 @@ export async function publishSingleMedia(params: {
   altText?: string;
   trialParams?: { graduationStrategy: GraduationStrategy };
 }): Promise<{ success: boolean; mediaId?: string; error?: string }> {
-  const { 
-    instagramAccountId, 
-    accessToken, 
-    imageUrl, 
-    videoUrl, 
-    mediaType, 
+  const {
+    instagramAccountId,
+    accessToken,
+    imageUrl,
+    videoUrl,
+    mediaType,
     caption,
     altText,
     trialParams,
@@ -555,19 +569,28 @@ export async function publishSingleMedia(params: {
   });
 
   if (!containerResult.success || !containerResult.containerId) {
-    return { success: false, error: containerResult.error || "Failed to create container" };
+    return {
+      success: false,
+      error: containerResult.error || "Failed to create container",
+    };
   }
 
-  // Step 2: For videos/reels, wait for processing
-  if (videoUrl || mediaType === "VIDEO" || mediaType === "REELS") {
-    const waitResult = await waitForContainerReady({
-      containerId: containerResult.containerId,
-      accessToken,
-    });
+  // Step 2: Wait for container to be ready
+  // Instagram needs time to process ALL media types, not just videos
+  // Use shorter polling for images (they process faster)
+  const isVideo = videoUrl || mediaType === "VIDEO" || mediaType === "REELS";
+  const pollIntervalMs = isVideo ? 5000 : 2000; // 5s for video, 2s for images
+  const maxWaitMs = isVideo ? 300000 : 60000; // 5min for video, 1min for images
 
-    if (!waitResult.success) {
-      return { success: false, error: waitResult.error };
-    }
+  const waitResult = await waitForContainerReady({
+    containerId: containerResult.containerId,
+    accessToken,
+    pollIntervalMs,
+    maxWaitMs,
+  });
+
+  if (!waitResult.success) {
+    return { success: false, error: waitResult.error };
   }
 
   // Step 3: Publish
@@ -605,7 +628,7 @@ export async function publishCarousel(params: {
 
   // Step 1: Create containers for each item
   const childContainerIds: string[] = [];
-  
+
   for (const item of items) {
     const containerResult = await createMediaContainer({
       instagramAccountId,
@@ -617,7 +640,10 @@ export async function publishCarousel(params: {
     });
 
     if (!containerResult.success || !containerResult.containerId) {
-      return { success: false, error: `Failed to create carousel item: ${containerResult.error}` };
+      return {
+        success: false,
+        error: `Failed to create carousel item: ${containerResult.error}`,
+      };
     }
 
     // Wait for video items to process
@@ -628,7 +654,10 @@ export async function publishCarousel(params: {
       });
 
       if (!waitResult.success) {
-        return { success: false, error: `Failed processing carousel video: ${waitResult.error}` };
+        return {
+          success: false,
+          error: `Failed processing carousel video: ${waitResult.error}`,
+        };
       }
     }
 
@@ -644,7 +673,10 @@ export async function publishCarousel(params: {
   });
 
   if (!carouselResult.success || !carouselResult.containerId) {
-    return { success: false, error: carouselResult.error || "Failed to create carousel" };
+    return {
+      success: false,
+      error: carouselResult.error || "Failed to create carousel",
+    };
   }
 
   // Step 3: Publish carousel

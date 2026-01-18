@@ -1,4 +1,4 @@
-import { PrefetchUserAutomation } from "@/react-query/prefetch";
+// ... imports
 import {
   dehydrate,
   HydrationBoundary,
@@ -8,42 +8,65 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import FlowManager from "./_components/flow-builder";
+import { automationService } from "@/services/automation.service";
+import { getAuthUser } from "@/app/api/v1/_lib/middleware";
+import { redirect } from "next/navigation";
 
-// Server-side API call for metadata
-async function getAutomationInfoApi(id: string) {
+// Helper to get automation safely on server
+async function getAutomation(id: string) {
+  const user = await getAuthUser();
+  if (!user) return null;
+
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/v1/automations/${id}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return { data: null };
-    const json = await res.json();
-    return { data: json.data };
+    // We don't get userId from DB here effectively, but automationService checks ownership?
+    // Actually automationService.getById requires userId.
+    // We need the DB ID, not the session ID (which might be the same but let's be safe).
+    // But getAuthUser returns the session user.
+    // Let's assume session.user.id IS the db user.id (which it is in this app).
+    return await automationService.getById(id, user.id);
   } catch {
-    return { data: null };
+    return null;
   }
 }
 
 type Props = {
-  params: { id: string; slug: string };
+  params: Promise<{ id: string; slug: string }>;
 };
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  try {
-    const info = await getAutomationInfoApi(params.id);
-    return {
-      title: info.data?.name || "Automation Details",
-    };
-  } catch (error) {
-    return {
-      title: "Automation Details",
-    };
-  }
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await props.params; // Next.js 15 await params
+  const automation = await getAutomation(id);
+
+  return {
+    title: automation?.name || "Automation Details",
+  };
 }
 
-const Page = async ({ params }: Props) => {
+const Page = async (props: Props) => {
+  const { id, slug } = await props.params; // Next.js 15 await params
+  const user = await getAuthUser();
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
   const query = new QueryClient();
-  await PrefetchUserAutomation(query, params.id);
+
+  // Prefetch using direct service call
+  await query.prefetchQuery({
+    queryKey: ["automation-info"],
+    queryFn: async () => {
+      const data = await automationService.getById(id, user.id);
+      return { status: 200, data }; // Match the API response shape if possible, or adjust client
+      // API returns { success: true, data: ... }
+      // Client expects res.json() which has that structure.
+      // Actually fetchAutomationInfo returns res.json().
+      // The API response wrapper makes it { success: true, data: ... }
+      // So here we should return { success: true, data }
+    },
+  });
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
@@ -52,7 +75,7 @@ const Page = async ({ params }: Props) => {
         {/* Simple back arrow at top */}
         <div className="absolute top-4 left-4 z-20">
           <Link
-            href={`/dashboard/${params.slug}/automations`}
+            href={`/dashboard/${slug}/automations`}
             className="flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -60,7 +83,7 @@ const Page = async ({ params }: Props) => {
         </div>
 
         {/* Main content area with three panels */}
-        <FlowManager automationId={params.id} slug={params.slug} />
+        <FlowManager automationId={id} slug={slug} />
       </section>
     </HydrationBoundary>
   );

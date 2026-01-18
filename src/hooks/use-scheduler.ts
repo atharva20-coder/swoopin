@@ -40,14 +40,14 @@ interface DraftData {
 // === API Functions ===
 
 async function fetchScheduledPosts(
-  options?: Omit<ScheduledPostOptions, "refetchInterval">
+  options?: Omit<ScheduledPostOptions, "refetchInterval">,
 ) {
   const params = new URLSearchParams();
   if (options?.status) params.set("status", options.status);
   if (options?.fromDate) params.set("fromDate", options.fromDate.toISOString());
   if (options?.toDate) params.set("toDate", options.toDate.toISOString());
 
-  const url = `/api/v1/scheduler/posts${params.toString() ? `?${params}` : ""}`;
+  const url = `/api/v1/posts${params.toString() ? `?${params}` : ""}`;
   const res = await fetch(url);
   if (!res.ok) {
     const error = await res.json();
@@ -57,7 +57,7 @@ async function fetchScheduledPosts(
 }
 
 async function apiCreateScheduledPost(data: CreateScheduledPostData) {
-  const res = await fetch("/api/v1/scheduler/posts", {
+  const res = await fetch("/api/v1/posts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -71,9 +71,9 @@ async function apiCreateScheduledPost(data: CreateScheduledPostData) {
 
 async function apiUpdateScheduledPost(
   id: string,
-  data: Omit<UpdateScheduledPostData, "id">
+  data: Omit<UpdateScheduledPostData, "id">,
 ) {
-  const res = await fetch(`/api/v1/scheduler/posts/${id}`, {
+  const res = await fetch(`/api/v1/posts/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -86,7 +86,7 @@ async function apiUpdateScheduledPost(
 }
 
 async function apiDeleteScheduledPost(id: string) {
-  const res = await fetch(`/api/v1/scheduler/posts/${id}`, {
+  const res = await fetch(`/api/v1/posts/${id}`, {
     method: "DELETE",
   });
   if (!res.ok) {
@@ -97,7 +97,7 @@ async function apiDeleteScheduledPost(id: string) {
 }
 
 async function apiPublishScheduledPost(id: string) {
-  const res = await fetch(`/api/v1/scheduler/posts/${id}/publish`, {
+  const res = await fetch(`/api/v1/posts/${id}/publish`, {
     method: "POST",
   });
   if (!res.ok) {
@@ -108,7 +108,7 @@ async function apiPublishScheduledPost(id: string) {
 }
 
 async function fetchPublishingLimit() {
-  const res = await fetch("/api/v1/scheduler/limit");
+  const res = await fetch("/api/v1/posts/publishing-limit");
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error?.message ?? "Failed to check publishing limit");
@@ -117,7 +117,7 @@ async function fetchPublishingLimit() {
 }
 
 async function fetchContentDrafts() {
-  const res = await fetch("/api/v1/scheduler/drafts");
+  const res = await fetch("/api/v1/drafts");
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error?.message ?? "Failed to fetch drafts");
@@ -126,7 +126,7 @@ async function fetchContentDrafts() {
 }
 
 async function apiCreateDraft(data: DraftData) {
-  const res = await fetch("/api/v1/scheduler/drafts", {
+  const res = await fetch("/api/v1/drafts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -139,7 +139,7 @@ async function apiCreateDraft(data: DraftData) {
 }
 
 async function apiUpdateDraft(id: string, data: DraftData) {
-  const res = await fetch(`/api/v1/scheduler/drafts/${id}`, {
+  const res = await fetch(`/api/v1/drafts/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -152,7 +152,7 @@ async function apiUpdateDraft(id: string, data: DraftData) {
 }
 
 async function apiDeleteDraft(id: string) {
-  const res = await fetch(`/api/v1/scheduler/drafts/${id}`, {
+  const res = await fetch(`/api/v1/drafts/${id}`, {
     method: "DELETE",
   });
   if (!res.ok) {
