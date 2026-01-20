@@ -11,7 +11,16 @@ import {
 } from "@/lib/fetch";
 import { generateGeminiResponse } from "@/lib/gemini";
 import { client } from "@/lib/prisma";
-import { executeFlow, hasFlowNodes } from "@/lib/flow-executor";
+// New flow-runner architecture (primary)
+import {
+  initializeNodeRegistry,
+  runWorkflow,
+  type ExecutionContext,
+  type FlowNodeRuntime,
+  type FlowEdgeRuntime,
+} from "@/lib/flow-runner";
+// Old flow-executor (fallback for safety)
+import { executeFlow as executeFlowLegacy } from "@/lib/flow-executor";
 import type { WebhookJobPayload } from "@/lib/queue";
 
 // Service method aliases for compatibility
@@ -66,7 +75,7 @@ export async function POST(req: NextRequest) {
     if (webhook_payload.entry[0].messaging) {
       matcher = await matchKeyword(
         webhook_payload.entry[0].messaging[0].message.text,
-        "DM"
+        "DM",
       );
     }
 
@@ -74,33 +83,29 @@ export async function POST(req: NextRequest) {
     if (webhook_payload.entry[0].changes) {
       matcher = await matchKeyword(
         webhook_payload.entry[0].changes[0].value.text,
-        "COMMENT"
+        "COMMENT",
       );
     }
 
     if (matcher && matcher.automationId) {
       console.log("Matched automation:", matcher.automationId);
 
-      // Check if automation uses flow-based execution
-      const useFlowExecution = await hasFlowNodes(matcher.automationId);
-
-      if (useFlowExecution) {
-        console.log("Using flow-based execution");
-
-        const automation = await getKeywordAutomation(
-          matcher.automationId,
-          true
+      const automation = await getKeywordAutomation(matcher.automationId, true);
+      if (!automation || !automation.active) {
+        return NextResponse.json(
+          { message: "Automation inactive" },
+          { status: 200 },
         );
-        if (!automation || !automation.active) {
-          return NextResponse.json(
-            { message: "Automation inactive" },
-            { status: 200 }
-          );
-        }
+      }
 
+      // Check if automation has flow nodes
+      const hasFlowNodes =
+        automation.flowNodes && automation.flowNodes.length > 0;
+
+      if (hasFlowNodes) {
         const isMessage = !!webhook_payload.entry[0].messaging;
         const isComment = !!webhook_payload.entry[0].changes?.find(
-          (c: any) => c.field === "comments"
+          (c: any) => c.field === "comments",
         );
 
         // Check post attachment for comments
@@ -111,12 +116,13 @@ export async function POST(req: NextRequest) {
             if (!postMatch) {
               return NextResponse.json(
                 { message: "Post not attached" },
-                { status: 200 }
+                { status: 200 },
               );
             }
           }
         }
 
+        // Build execution context (shared by both new and old executors)
         const context = {
           automationId: matcher.automationId,
           userId: automation.userId!,
@@ -139,22 +145,111 @@ export async function POST(req: NextRequest) {
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };
 
-        const flowResult = await executeFlow(matcher.automationId, context);
-        console.log("Flow execution result:", flowResult);
+        // Try new flow-runner first, fall back to legacy if it fails
+        try {
+          console.log("[FlowExecution] Using new flow-runner architecture");
 
-        return NextResponse.json(
-          { message: flowResult.message, success: flowResult.success },
-          { status: 200 }
-        );
+          // Initialize node registry
+          initializeNodeRegistry();
+
+          // Convert flow nodes to runtime format
+          const runtimeNodes: FlowNodeRuntime[] = automation.flowNodes.map(
+            (node) => ({
+              nodeId: node.nodeId,
+              type: node.type,
+              subType: node.subType,
+              label: node.label,
+              config: (node.config as Record<string, unknown>) || {},
+            }),
+          );
+
+          // Convert flow edges to runtime format
+          const runtimeEdges: FlowEdgeRuntime[] = (
+            automation.flowEdges || []
+          ).map((edge) => ({
+            edgeId: edge.edgeId,
+            sourceNodeId: edge.sourceNodeId,
+            targetNodeId: edge.targetNodeId,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
+          }));
+
+          // Execute flow using new runner
+          const flowResult = await runWorkflow(
+            runtimeNodes,
+            runtimeEdges,
+            context as ExecutionContext,
+          );
+
+          console.log("[FlowExecution] New runner result:", flowResult);
+
+          // If new runner succeeded, return result
+          if (flowResult.success) {
+            return NextResponse.json(
+              {
+                message: flowResult.message,
+                success: flowResult.success,
+                executionTimeMs: flowResult.executionTimeMs,
+                engine: "flow-runner",
+              },
+              { status: 200 },
+            );
+          }
+
+          // If new runner failed, try legacy as fallback
+          console.warn(
+            "[FlowExecution] New runner failed, trying legacy executor:",
+            flowResult.message,
+          );
+          throw new Error(flowResult.message);
+        } catch (newRunnerError) {
+          // Fallback to legacy flow-executor
+          console.warn(
+            "[FlowExecution] Falling back to legacy flow-executor:",
+            newRunnerError,
+          );
+
+          try {
+            const legacyResult = await executeFlowLegacy(
+              matcher.automationId,
+              context,
+            );
+            console.log(
+              "[FlowExecution] Legacy executor result:",
+              legacyResult,
+            );
+
+            return NextResponse.json(
+              {
+                message: legacyResult.message,
+                success: legacyResult.success,
+                engine: "flow-executor-legacy",
+              },
+              { status: 200 },
+            );
+          } catch (legacyError) {
+            console.error(
+              "[FlowExecution] Both executors failed:",
+              legacyError,
+            );
+            return NextResponse.json(
+              {
+                message: "Flow execution failed",
+                success: false,
+                error: String(legacyError),
+              },
+              { status: 200 },
+            );
+          }
+        }
       }
 
       // Legacy execution path (for automations without flow nodes)
-      // ... keeping this simpler for now, the flow executor handles most cases
       console.log("No flow nodes, using legacy path");
 
       return NextResponse.json(
         { message: "Processed (legacy)" },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -162,7 +257,7 @@ export async function POST(req: NextRequest) {
     if (!matcher && webhook_payload.entry[0].messaging) {
       const customer_history = await getChatHistory(
         webhook_payload.entry[0].messaging[0].recipient.id,
-        webhook_payload.entry[0].messaging[0].sender.id
+        webhook_payload.entry[0].messaging[0].sender.id,
       );
 
       if (
@@ -181,7 +276,7 @@ export async function POST(req: NextRequest) {
               role:
                 msg.role === "user" ? ("user" as const) : ("model" as const),
               text: msg.content,
-            })
+            }),
           );
 
           const systemPrompt = `${automation.listener?.prompt}: keep responses under 2 sentences`;
@@ -191,7 +286,7 @@ export async function POST(req: NextRequest) {
           const smart_ai_message = await generateGeminiResponse(
             systemPrompt,
             userMessage,
-            chatHistory
+            chatHistory,
           );
 
           if (smart_ai_message) {
@@ -199,30 +294,30 @@ export async function POST(req: NextRequest) {
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
-              webhook_payload.entry[0].messaging[0].message.text
+              webhook_payload.entry[0].messaging[0].message.text,
             );
 
             await createChatHistory(
               automation.id,
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
-              smart_ai_message
+              smart_ai_message,
             );
 
             const direct_message = await sendDM(
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               smart_ai_message,
-              automation.User?.integrations[0].token!
+              automation.User?.integrations[0].token!,
             );
 
             if (direct_message.status === 200) {
               await trackAnalytics(automation.userId!, "dm").catch(
-                console.error
+                console.error,
               );
               return NextResponse.json(
                 { message: "Chat continued" },
-                { status: 200 }
+                { status: 200 },
               );
             }
           }
@@ -232,14 +327,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { message: "No matching automation" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Job processing error:", error);
     // Return 500 so QStash will retry
     return NextResponse.json(
       { error: "Processing failed", details: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
