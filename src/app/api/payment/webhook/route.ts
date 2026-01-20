@@ -6,14 +6,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { Cashfree } from "cashfree-pg";
+import { Cashfree, CFEnvironment } from "cashfree-pg";
 import { client } from "@/lib/prisma";
 
 // Initialize Cashfree SDK (v5+)
 const cashfree = new Cashfree(
   process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "production"
-    ? Cashfree.PRODUCTION
-    : Cashfree.SANDBOX,
+    ? CFEnvironment.PRODUCTION
+    : CFEnvironment.SANDBOX,
   process.env.CASHFREE_APP_ID!,
   process.env.CASHFREE_APP_SECRET!,
 );
@@ -99,9 +99,9 @@ export async function POST(req: NextRequest) {
           where: { cashfreeCustomerId: orderId },
         });
 
-        if (subscription) {
+        if (subscription && subscription.userId) {
           await client.subscription.update({
-            where: { userId: subscription.userId ?? undefined },
+            where: { userId: subscription.userId },
             data: { plan: "FREE" },
           });
           console.log(

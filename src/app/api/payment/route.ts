@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { Cashfree } from "cashfree-pg";
+import { Cashfree, CFEnvironment } from "cashfree-pg";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { client } from "@/lib/prisma";
@@ -14,8 +14,8 @@ import { client } from "@/lib/prisma";
 // Initialize Cashfree SDK (v5+)
 const cashfree = new Cashfree(
   process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "production"
-    ? Cashfree.PRODUCTION
-    : Cashfree.SANDBOX,
+    ? CFEnvironment.PRODUCTION
+    : CFEnvironment.SANDBOX,
   process.env.CASHFREE_APP_ID!,
   process.env.CASHFREE_APP_SECRET!,
 );
@@ -139,11 +139,14 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      // Return payment link
-      const paymentLink = response.data.payment_link;
+      // Build Cashfree checkout URL
+      const checkoutUrl =
+        process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === "production"
+          ? `https://payments.cashfree.com/order/#${response.data.payment_session_id}`
+          : `https://sandbox.cashfree.com/pg/order?order_session_id=${response.data.payment_session_id}`;
 
       return NextResponse.json({
-        session_url: paymentLink,
+        session_url: checkoutUrl,
         order_id: orderId,
         payment_session_id: response.data.payment_session_id,
       });
