@@ -26,7 +26,7 @@ const PostButton = ({ id }: Props) => {
 
   return (
     <TriggerButton label="Attach a post">
-      {data?.status === 200 && allPosts.length > 0 ? (
+      {data?.success && allPosts.length > 0 ? (
         <div className="flex flex-col gap-y-6 w-full max-h-[70vh] overflow-y-auto p-4 dark:bg-neutral-900/95 backdrop-blur-sm">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
             {allPosts.map((post: InstagramPostProps) => (
@@ -53,7 +53,7 @@ const PostButton = ({ id }: Props) => {
                         const video = e.target as HTMLVideoElement;
                         if (video.src === post.media_url) {
                           video.src = `/api/instagram-proxy?url=${encodeURIComponent(
-                            post.media_url
+                            post.media_url,
                           )}`;
                         }
                       }}
@@ -76,7 +76,7 @@ const PostButton = ({ id }: Props) => {
                         const img = e.target as HTMLImageElement;
                         if (img.src === post.media_url) {
                           img.src = `/api/instagram-proxy?url=${encodeURIComponent(
-                            post.media_url
+                            post.media_url,
                           )}`;
                         }
                       }}

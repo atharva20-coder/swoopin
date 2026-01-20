@@ -1,4 +1,4 @@
-"use server";
+// API Route for scheduled post publishing cron job
 
 import { NextRequest, NextResponse } from "next/server";
 import { client } from "@/lib/prisma";

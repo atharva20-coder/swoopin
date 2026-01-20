@@ -28,8 +28,7 @@ const InstagramStats = () => {
 
   // Get top post from the fetched posts (first one as placeholder for "most viewed")
   // Data is properly typed from Zod parsing in hook
-  const posts =
-    postsData?.status === 200 && postsData.data ? postsData.data : [];
+  const posts = postsData?.success && postsData.data ? postsData.data : [];
   const topContent = posts.length > 0 ? posts[0] : null;
 
   const formatNumber = (count: number) => {
@@ -138,7 +137,7 @@ const InstagramStats = () => {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={`/api/instagram-proxy?url=${encodeURIComponent(
-                    topContent.media_url
+                    topContent.media_url,
                   )}`}
                   alt="Post thumbnail"
                   className="w-full h-full object-cover"
