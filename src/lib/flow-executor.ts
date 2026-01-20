@@ -739,12 +739,11 @@ export const executeFlow = async (
       }),
     );
 
-    if (
-      context.messageText &&
-      !checkKeywordMatch(context.messageText, flowNodes)
-    ) {
-      return { success: false, message: "Message does not match keywords" };
-    }
+    // NOTE: Keyword matching is already done by webhookService.matchKeyword()
+    // before this function is called. We don't need to re-verify keywords here.
+    // Previously there was a duplicate check that would fail for:
+    // 1. Legacy keywords stored in Keyword table (not FlowNode config)
+    // 2. Catch-all automations (no keywords)
 
     const triggerNode = flowNodes.find(
       (n) => n.type === "trigger" && n.subType === context.triggerType,

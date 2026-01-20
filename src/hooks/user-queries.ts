@@ -36,8 +36,11 @@ const AutomationApiResponseSchema = z.object({
 });
 
 // Standard API response wrapper for user profile
+// Handles both success and error responses gracefully
 const UserProfileApiResponseSchema = z.object({
-  status: z.number(),
+  status: z.number().optional(),
+  success: z.boolean().optional(),
+  error: z.string().optional(),
   data: z
     .object({
       id: z.string(),
@@ -63,8 +66,11 @@ const UserProfileApiResponseSchema = z.object({
 
 // Standard API response wrapper for Instagram profile
 // Field names match the response from getInstagramUserProfile in fetch.ts
+// Handles both success and error responses gracefully
 const InstagramProfileApiResponseSchema = z.object({
-  status: z.number(),
+  status: z.number().optional(),
+  success: z.boolean().optional(),
+  error: z.string().optional(),
   data: z
     .object({
       id: z.string().optional(),
@@ -196,10 +202,12 @@ async function fetchUserProfile(): Promise<UserProfileApiResponse> {
   // safeParse to gracefully handle API errors
   const parsed = UserProfileApiResponseSchema.safeParse(json);
   if (!parsed.success) {
-    console.error(
-      "[DEBUG] fetchUserProfile Zod parse error:",
-      parsed.error.format(),
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[DEBUG] fetchUserProfile parse warning:",
+        parsed.error.format(),
+      );
+    }
     return { status: 500, data: undefined };
   }
   return parsed.data;
@@ -211,10 +219,12 @@ async function fetchInstagramProfile(): Promise<InstagramProfileApiResponse> {
   // safeParse to gracefully handle API errors
   const parsed = InstagramProfileApiResponseSchema.safeParse(json);
   if (!parsed.success) {
-    console.error(
-      "[DEBUG] fetchInstagramProfile Zod parse error:",
-      parsed.error.format(),
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[DEBUG] fetchInstagramProfile parse warning:",
+        parsed.error.format(),
+      );
+    }
     return { status: 500, data: undefined };
   }
   return parsed.data;
