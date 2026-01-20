@@ -13,7 +13,7 @@ async function isAdmin(): Promise<boolean> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  
+
   if (!session?.user) return false;
   return ADMIN_EMAILS.includes(session.user.email.toLowerCase());
 }
@@ -24,15 +24,17 @@ async function isAdmin(): Promise<boolean> {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     if (!(await isAdmin())) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const enquiry = await client.enterpriseEnquiry.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         User: {
           select: {
@@ -56,7 +58,10 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error fetching enquiry:", error);
-    return NextResponse.json({ error: "Failed to fetch enquiry" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch enquiry" },
+      { status: 500 },
+    );
   }
 }
 
@@ -66,38 +71,43 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     if (!(await isAdmin())) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const body = await req.json();
-    const { 
-      status, 
-      notes, 
-      customDmsLimit, 
-      customAutomationsLimit, 
-      customScheduledLimit, 
+    const {
+      status,
+      notes,
+      customDmsLimit,
+      customAutomationsLimit,
+      customScheduledLimit,
       customAiLimit,
       dealAmount,
       dealClosed,
     } = body;
 
     const updateData: Record<string, unknown> = {};
-    
+
     if (status !== undefined) updateData.status = status;
     if (notes !== undefined) updateData.notes = notes;
-    if (customDmsLimit !== undefined) updateData.customDmsLimit = customDmsLimit;
-    if (customAutomationsLimit !== undefined) updateData.customAutomationsLimit = customAutomationsLimit;
-    if (customScheduledLimit !== undefined) updateData.customScheduledLimit = customScheduledLimit;
+    if (customDmsLimit !== undefined)
+      updateData.customDmsLimit = customDmsLimit;
+    if (customAutomationsLimit !== undefined)
+      updateData.customAutomationsLimit = customAutomationsLimit;
+    if (customScheduledLimit !== undefined)
+      updateData.customScheduledLimit = customScheduledLimit;
     if (customAiLimit !== undefined) updateData.customAiLimit = customAiLimit;
     if (dealAmount !== undefined) updateData.dealAmount = dealAmount;
     if (dealClosed !== undefined) updateData.dealClosed = dealClosed;
 
     const enquiry = await client.enterpriseEnquiry.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
 
@@ -107,7 +117,10 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating enquiry:", error);
-    return NextResponse.json({ error: "Failed to update enquiry" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update enquiry" },
+      { status: 500 },
+    );
   }
 }
 
@@ -117,15 +130,17 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     if (!(await isAdmin())) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await client.enterpriseEnquiry.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({
@@ -134,6 +149,9 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting enquiry:", error);
-    return NextResponse.json({ error: "Failed to delete enquiry" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete enquiry" },
+      { status: 500 },
+    );
   }
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import {
   dehydrate,
   HydrationBoundary,
@@ -16,17 +16,19 @@ import { Loader2 } from "lucide-react";
 
 type Props = {
   children: ReactNode;
-  params: { slug: string };
+  slug: string;
 };
 
-const LayoutClient = ({ children, params }: Props) => {
+const LayoutClient = ({ children, slug }: Props) => {
   const pathname = usePathname();
   const router = useRouter();
   const { data: user } = useQueryUser();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
-  
+
   // Detect if current page is an admin page OR if user is an admin viewing settings/profile
-  const isAdmin = pathname.includes('/admin') || (!!(user?.data as any)?.isAdmin && pathname.includes('/settings'));
+  const isAdmin =
+    pathname.includes("/admin") ||
+    (!!(user?.data as any)?.isAdmin && pathname.includes("/settings"));
 
   // Check onboarding status for new users
   useEffect(() => {
@@ -34,7 +36,7 @@ const LayoutClient = ({ children, params }: Props) => {
       try {
         const res = await fetch("/api/onboarding");
         const data = await res.json();
-        
+
         if (data.status === 200) {
           // Redirect if:
           // 1. No onboarding data exists (new user)
@@ -65,10 +67,10 @@ const LayoutClient = ({ children, params }: Props) => {
   }
 
   return (
-    <PlatformProvider connectedPlatforms={['instagram']}>
+    <PlatformProvider connectedPlatforms={["instagram"]}>
       <div className="p-3">
-        <Sidebar slug={params.slug} isAdmin={isAdmin} />
-        <MobileNav slug={params.slug} />
+        <Sidebar slug={slug} isAdmin={isAdmin} />
+        <MobileNav slug={slug} />
         <div
           className="
             lg:ml-[var(--sidebar-width,250px)] 
@@ -82,7 +84,7 @@ const LayoutClient = ({ children, params }: Props) => {
             duration-300
           "
         >
-          <InfoBar slug={params.slug} isAdmin={isAdmin} />
+          <InfoBar slug={slug} isAdmin={isAdmin} />
           {/* Show admin notification banners for regular users only */}
           {!isAdmin && <AdminNotificationBanner />}
           {children}

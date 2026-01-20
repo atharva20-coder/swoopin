@@ -14,10 +14,11 @@ import LayoutClient from "./layout-client";
 
 type Props = {
   children: ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 const Layout = async ({ children, params }: Props) => {
+  const { slug } = await params;
   const query = new QueryClient();
 
   // Run all prefetch queries in parallel for faster page load
@@ -25,14 +26,12 @@ const Layout = async ({ children, params }: Props) => {
     PrefetchUserProfile(query),
     PrefetchUserAutomations(query),
     PrefetchUserNotifications(query),
-    PrefetchUserAnalytics(query, params.slug),
+    PrefetchUserAnalytics(query, slug),
   ]);
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
-      <LayoutClient params={params}>
-        {children}
-      </LayoutClient>
+      <LayoutClient slug={slug}>{children}</LayoutClient>
     </HydrationBoundary>
   );
 };

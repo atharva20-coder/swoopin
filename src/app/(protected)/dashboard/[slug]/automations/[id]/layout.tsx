@@ -13,10 +13,11 @@ import {
 
 type Props = {
   children: ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string; id: string }>;
 };
 
 const Layout = async ({ children, params }: Props) => {
+  const { slug } = await params;
   const query = new QueryClient();
 
   await PrefetchUserProfile(query);
@@ -25,7 +26,7 @@ const Layout = async ({ children, params }: Props) => {
 
   await PrefetchUserNotifications(query);
 
-  await PrefetchUserAnalytics(query, params.slug);
+  await PrefetchUserAnalytics(query, slug);
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
