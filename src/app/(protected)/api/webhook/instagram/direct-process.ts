@@ -120,11 +120,21 @@ export async function processWebhookDirectly(
           };
         }
 
+        // Ensure user has a valid integration token
+        const integration = automation.User?.integrations?.[0];
+        if (!integration?.token) {
+          console.error(
+            "No valid integration token found for user:",
+            automation.userId,
+          );
+          return { message: "No valid integration found", success: false };
+        }
+
         // Build execution context
         const context: ExecutionContext = {
           automationId: matcher.automationId,
           userId: automation.userId!,
-          token: automation.User?.integrations[0].token!,
+          token: integration.token,
           pageId: webhook_payload.entry[0].id,
           senderId: isMessage
             ? webhook_payload.entry[0].messaging[0].sender.id
@@ -243,11 +253,17 @@ export async function processWebhookDirectly(
           automation.listener.listener === "MESSAGE" &&
           webhook_payload.entry[0].messaging
         ) {
+          const legacyIntegration = automation.User?.integrations?.[0];
+          if (!legacyIntegration?.token) {
+            console.error("No valid integration token for legacy message");
+            return { message: "No valid integration found", success: false };
+          }
+
           const result = await sendDM(
             webhook_payload.entry[0].id,
             webhook_payload.entry[0].messaging[0].sender.id,
             automation.listener.prompt || "",
-            automation.User?.integrations[0].token!,
+            legacyIntegration.token,
           );
           if (result.status === 200) {
             await trackResponses(automation.id, "DM");
@@ -309,11 +325,17 @@ export async function processWebhookDirectly(
               smart_ai_message,
             );
 
+            const chatIntegration = automation.User?.integrations?.[0];
+            if (!chatIntegration?.token) {
+              console.error("No valid integration token for chat continuation");
+              return { message: "No valid integration found", success: false };
+            }
+
             const direct_message = await sendDM(
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               smart_ai_message,
-              automation.User?.integrations[0].token!,
+              chatIntegration.token,
             );
 
             if (direct_message.status === 200) {
