@@ -41,7 +41,7 @@ async function saveAutomationFlowBatch(
       reply: string;
       carouselTemplateId?: string;
     };
-  }
+  },
 ) {
   const res = await fetch(`/api/v1/automations/${automationId}/flow`, {
     method: "POST",
@@ -63,7 +63,7 @@ async function deleteFlowNode(automationId: string, nodeId: string) {
     `/api/v1/automations/${automationId}/flow?nodeId=${nodeId}`,
     {
       method: "DELETE",
-    }
+    },
   );
   const data = await res.json();
   return { status: res.ok ? 200 : 400, data };
@@ -82,7 +82,7 @@ type Props = {
 // Validate the flow before saving
 const validateFlow = (
   nodes: Node<FlowNodeData>[],
-  edges: Edge[]
+  edges: Edge[],
 ): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
@@ -107,7 +107,7 @@ const validateFlow = (
 const FlowManager = ({ automationId, slug }: Props) => {
   const { data, refetch } = useQueryAutomation(automationId);
   const [selectedNode, setSelectedNode] = useState<Node<FlowNodeData> | null>(
-    null
+    null,
   );
   const [nodes, setNodes] = useState<Node<FlowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -141,7 +141,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
         const result = await Promise.race([
           getFlowData(automationId),
           new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout")), 5000)
+            setTimeout(() => reject(new Error("Timeout")), 5000),
           ),
         ]);
 
@@ -385,14 +385,14 @@ const FlowManager = ({ automationId, slug }: Props) => {
         }
       }
     },
-    [nodes]
+    [nodes],
   );
 
   const handleNodesChange = useCallback(
     (updatedNodes: Node<FlowNodeData>[]) => {
       setNodes(updatedNodes);
     },
-    []
+    [],
   );
 
   const handleEdgesChange = useCallback((updatedEdges: Edge[]) => {
@@ -405,17 +405,17 @@ const FlowManager = ({ automationId, slug }: Props) => {
         prevNodes.map((node) =>
           node.id === nodeId
             ? { ...node, data: { ...node.data, config } }
-            : node
-        )
+            : node,
+        ),
       );
       // Also update selectedNode if it's the one being updated
       setSelectedNode((prev) =>
         prev && prev.id === nodeId
           ? { ...prev, data: { ...prev.data, config } }
-          : prev
+          : prev,
       );
     },
-    []
+    [],
   );
 
   // Delete node from canvas and database
@@ -423,7 +423,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
     async (nodeId: string) => {
       setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeId));
       setEdges((prevEdges) =>
-        prevEdges.filter((e) => e.source !== nodeId && e.target !== nodeId)
+        prevEdges.filter((e) => e.source !== nodeId && e.target !== nodeId),
       );
       setSelectedNode(null);
 
@@ -431,7 +431,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
       await deleteFlowNode(automationId, nodeId);
       toast.success("Node deleted");
     },
-    [automationId]
+    [automationId],
   );
 
   // Save entire flow to database - BATCHED to single server call
@@ -462,7 +462,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
       const triggerNodes = nodes.filter(
         (n) =>
           n.data.type === "trigger" &&
-          (n.data.subType === "DM" || n.data.subType === "COMMENT")
+          (n.data.subType === "DM" || n.data.subType === "COMMENT"),
       );
       const triggers = triggerNodes.map((n) => n.data.subType);
 
@@ -523,6 +523,29 @@ const FlowManager = ({ automationId, slug }: Props) => {
       if (result.status === 200) {
         // Update localStorage cache with saved data
         saveFlowToCache(automationId, nodes, edges);
+
+        // Check for server-side validation results
+        const validation = result.data?.data?.validation;
+        if (validation) {
+          if (validation.errors && validation.errors.length > 0) {
+            // Show errors as warnings (saving still allowed)
+            validation.errors.forEach(
+              (err: { message: string; code: string }) => {
+                toast.warning(err.message, {
+                  description: `Code: ${err.code}`,
+                  duration: 5000,
+                });
+              },
+            );
+          }
+          if (validation.warnings && validation.warnings.length > 0) {
+            // Show first warning only
+            toast.info(validation.warnings[0].message, {
+              duration: 3000,
+            });
+          }
+        }
+
         toast.success("Flow saved successfully!");
         refetch();
       } else {

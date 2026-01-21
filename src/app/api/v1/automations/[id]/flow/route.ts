@@ -103,6 +103,38 @@ export async function POST(
         });
       }
 
+      // Get user's subscription plan for validation limits
+      const userWithSubscription = await client.user.findUnique({
+        where: { id: user.id },
+        select: { subscription: { select: { plan: true } } },
+      });
+      const plan = (userWithSubscription?.subscription?.plan ||
+        "FREE") as PlanType;
+
+      // Convert nodes to runtime format for validation
+      const runtimeNodes: FlowNodeRuntime[] = (validation.data.nodes || []).map(
+        (n) => ({
+          nodeId: n.nodeId,
+          type: n.type,
+          subType: n.subType,
+          label: n.label,
+          config: (n.config as Record<string, unknown>) || {},
+        }),
+      );
+
+      const runtimeEdges: FlowEdgeRuntime[] = (validation.data.edges || []).map(
+        (e) => ({
+          edgeId: e.edgeId,
+          sourceNodeId: e.sourceNodeId,
+          targetNodeId: e.targetNodeId,
+          sourceHandle: e.sourceHandle,
+          targetHandle: e.targetHandle,
+        }),
+      );
+
+      // Validate flow structure
+      const flowValidation = validateFlow(runtimeNodes, runtimeEdges, plan);
+
       const result = await flowService.saveFlowBatch(
         user.id,
         automationId,
@@ -113,7 +145,15 @@ export async function POST(
         return error("EXTERNAL_API_ERROR", result.error, 400);
       }
 
-      return success(result);
+      // Return result with validation warnings/errors
+      return success({
+        ...result,
+        validation: {
+          valid: flowValidation.valid,
+          errors: flowValidation.errors,
+          warnings: flowValidation.warnings,
+        },
+      });
     }
 
     // Simple save (nodes and edges only)
