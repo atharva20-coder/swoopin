@@ -22,14 +22,20 @@ export const useMutationData = (
       if (onSuccess) onSuccess();
 
       // Handle different response formats - data.data can be a string or object
-      const message =
-        typeof data?.data === "string"
-          ? data.data
-          : data?.data?.name
-            ? `Created: ${data.data.name}`
-            : data?.success
-              ? "Operation completed successfully"
-              : "Operation completed";
+      let message = "Operation completed";
+
+      if (typeof data?.data === "string") {
+        message = data.data;
+      } else if (data?.data?.active !== undefined) {
+        // Activation/deactivation response
+        message = data.data.active
+          ? "Automation activated"
+          : "Automation deactivated";
+      } else if (data?.data?.name) {
+        message = `Created: ${data.data.name}`;
+      } else if (data?.success) {
+        message = "Operation completed successfully";
+      }
 
       return toastOn
         ? toast(data?.status === 200 || data?.success ? "Success" : "Error", {

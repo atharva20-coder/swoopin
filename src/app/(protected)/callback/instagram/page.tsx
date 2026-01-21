@@ -70,6 +70,12 @@ const Page = async ({ searchParams }: Props) => {
         </div>
       );
     } catch (err) {
+      // Re-throw NEXT_REDIRECT errors - these are not actual errors
+      // but Next.js 15's way of handling redirects
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+        throw err;
+      }
+
       console.error("Instagram callback exception:", err);
       return (
         <div className="flex flex-col items-center justify-center min-h-screen">

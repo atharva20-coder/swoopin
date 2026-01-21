@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const refreshToken = async (token: string) => {
   const refresh_token = await axios.get(
-    `${process.env.INSTAGRAM_BASE_URL}/refresh_access_token?grant_type=ig_refresh_token&access_token=${token}`
+    `${process.env.INSTAGRAM_BASE_URL}/refresh_access_token?grant_type=ig_refresh_token&access_token=${token}`,
   );
 
   return refresh_token.data;
@@ -25,19 +25,20 @@ export type InstagramProfile = {
 };
 
 export const getInstagramUserProfile = async (
-  token: string
+  token: string,
 ): Promise<{ success: boolean; data?: InstagramProfile; error?: string }> => {
   try {
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/me`,
       {
         params: {
-          fields: "id,name,username,profile_picture_url,followers_count,biography",
+          fields:
+            "id,name,username,profile_picture_url,followers_count,biography",
         },
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     // Map response to our profile type
@@ -68,26 +69,37 @@ export const sendDM = async (
   userId: string,
   recieverId: string,
   prompt: string,
-  token: string
+  token: string,
 ) => {
-
-  return await axios.post(
-    `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/messages`,
-    {
-      recipient: {
-        id: recieverId,
+  try {
+    return await axios.post(
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/messages`,
+      {
+        recipient: {
+          id: recieverId,
+        },
+        message: {
+          text: prompt,
+        },
       },
-      message: {
-        text: prompt,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+    );
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(
+        "[Instagram API] sendDM Failed:",
+        JSON.stringify(error.response.data),
+      );
+    } else {
+      console.error("[Instagram API] sendDM Error:", error);
     }
-  );
+    throw error; // Re-throw to be handled by caller
+  }
 };
 
 /**
@@ -98,7 +110,7 @@ export const sendSenderAction = async (
   pageId: string,
   recipientId: string,
   action: "typing_on" | "typing_off" | "mark_seen",
-  token: string
+  token: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await axios.post(
@@ -114,7 +126,7 @@ export const sendSenderAction = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: response.status === 200 };
@@ -141,17 +153,20 @@ export const sendProductTemplate = async (
   pageId: string,
   recipientId: string,
   productIds: string[],
-  token: string
+  token: string,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
   try {
     if (!productIds || productIds.length === 0) {
       return { success: false, error: "At least one product ID is required" };
     }
     if (productIds.length > 10) {
-      return { success: false, error: "Maximum 10 products allowed in a carousel" };
+      return {
+        success: false,
+        error: "Maximum 10 products allowed in a carousel",
+      };
     }
 
-    const elements = productIds.map(id => ({ id }));
+    const elements = productIds.map((id) => ({ id }));
 
     const response = await axios.post(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${pageId}/messages`,
@@ -174,12 +189,12 @@ export const sendProductTemplate = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
-    return { 
-      success: response.status === 200, 
-      messageId: response.data?.message_id 
+    return {
+      success: response.status === 200,
+      messageId: response.data?.message_id,
     };
   } catch (error) {
     console.error("Error sending product template:", error);
@@ -204,8 +219,12 @@ export const sendQuickReplies = async (
   pageId: string,
   recipientId: string,
   text: string,
-  quickReplies: Array<{ content_type: "text" | "user_phone_number"; title?: string; payload?: string }>,
-  token: string
+  quickReplies: Array<{
+    content_type: "text" | "user_phone_number";
+    title?: string;
+    payload?: string;
+  }>,
+  token: string,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
   try {
     if (!text) {
@@ -219,7 +238,7 @@ export const sendQuickReplies = async (
     }
 
     // Format quick replies - truncate titles to 20 chars
-    const formattedReplies = quickReplies.map(qr => {
+    const formattedReplies = quickReplies.map((qr) => {
       if (qr.content_type === "user_phone_number") {
         return { content_type: "user_phone_number" };
       }
@@ -247,12 +266,12 @@ export const sendQuickReplies = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
-    return { 
-      success: response.status === 200, 
-      messageId: response.data?.message_id 
+    return {
+      success: response.status === 200,
+      messageId: response.data?.message_id,
     };
   } catch (error) {
     console.error("Error sending quick replies:", error);
@@ -272,9 +291,8 @@ export const sendPrivateMessage = async (
   userId: string,
   recieverId: string,
   prompt: string,
-  token: string
+  token: string,
 ) => {
-
   return await axios.post(
     `${process.env.INSTAGRAM_BASE_URL}/${userId}/messages`,
     {
@@ -290,12 +308,15 @@ export const sendPrivateMessage = async (
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 
-export const replyToComment = async (commentId: string, message: string, token: string) => {
-
+export const replyToComment = async (
+  commentId: string,
+  message: string,
+  token: string,
+) => {
   // Encode the message for URL safety
   const encodedMessage = encodeURIComponent(message);
   // Include API version and pass message as a query parameter
@@ -307,7 +328,7 @@ export const replyToComment = async (commentId: string, message: string, token: 
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 
@@ -326,7 +347,7 @@ export const sendCarouselMessage = async (
       payload?: string;
     }[];
   }[],
-  token: string
+  token: string,
 ) => {
   try {
     // Validate minimum requirements
@@ -334,46 +355,59 @@ export const sendCarouselMessage = async (
       throw new Error("At least one carousel element is required");
     }
 
-    const formattedElements = elements.map((element, index) => {
-      // Validate element requirements
-      if (!element.title) {
-        throw new Error(`Element ${index + 1} is missing title`);
-      }
-      
-      // At least one additional property required (per Instagram docs)
-      const hasAdditionalProperties = element.subtitle || element.imageUrl || 
-                                    element.defaultAction || element.buttons;
-      if (!hasAdditionalProperties) {
-        throw new Error(`Element ${index + 1} needs at least one of: subtitle, imageUrl, defaultAction, or buttons`);
-      }
+    const formattedElements = elements
+      .map((element, index) => {
+        // Validate element requirements
+        if (!element.title) {
+          throw new Error(`Element ${index + 1} is missing title`);
+        }
 
-      // Format element according to API specs
-      return {
-        title: element.title.substring(0, 80),
-        subtitle: element.subtitle?.substring(0, 80),
-        image_url: element.imageUrl,
-        default_action: element.defaultAction ? {
-          type: "web_url",
-          url: element.defaultAction,
-          webview_height_ratio: "full"
-        } : undefined,
-        buttons: element.buttons?.slice(0, 3).map(button => {
-          if (button.type === "web_url" && !button.url) {
-            throw new Error(`Web URL button in element ${index + 1} is missing URL`);
-          }
-          if (button.type === "postback" && !button.payload) {
-            throw new Error(`Postback button in element ${index + 1} is missing payload`);
-          }
-          
-          return {
-            type: button.type,
-            title: button.title.substring(0, 20),
-            ...(button.url && { url: button.url }),
-            ...(button.payload && { payload: button.payload })
-          };
-        })
-      };
-    }).slice(0, 10); // Instagram's maximum of 10 elements
+        // At least one additional property required (per Instagram docs)
+        const hasAdditionalProperties =
+          element.subtitle ||
+          element.imageUrl ||
+          element.defaultAction ||
+          element.buttons;
+        if (!hasAdditionalProperties) {
+          throw new Error(
+            `Element ${index + 1} needs at least one of: subtitle, imageUrl, defaultAction, or buttons`,
+          );
+        }
+
+        // Format element according to API specs
+        return {
+          title: element.title.substring(0, 80),
+          subtitle: element.subtitle?.substring(0, 80),
+          image_url: element.imageUrl,
+          default_action: element.defaultAction
+            ? {
+                type: "web_url",
+                url: element.defaultAction,
+                webview_height_ratio: "full",
+              }
+            : undefined,
+          buttons: element.buttons?.slice(0, 3).map((button) => {
+            if (button.type === "web_url" && !button.url) {
+              throw new Error(
+                `Web URL button in element ${index + 1} is missing URL`,
+              );
+            }
+            if (button.type === "postback" && !button.payload) {
+              throw new Error(
+                `Postback button in element ${index + 1} is missing payload`,
+              );
+            }
+
+            return {
+              type: button.type,
+              title: button.title.substring(0, 20),
+              ...(button.url && { url: button.url }),
+              ...(button.payload && { payload: button.payload }),
+            };
+          }),
+        };
+      })
+      .slice(0, 10); // Instagram's maximum of 10 elements
 
     // Structure matching the working sendDM pattern
     const payload = {
@@ -383,10 +417,10 @@ export const sendCarouselMessage = async (
           type: "template",
           payload: {
             template_type: "generic",
-            elements: formattedElements
-          }
-        }
-      }
+            elements: formattedElements,
+          },
+        },
+      },
     };
 
     // Use the same base URL and version pattern as working sendDM
@@ -396,22 +430,22 @@ export const sendCarouselMessage = async (
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     return response.data;
   } catch (error) {
     console.error("Error sending carousel:", error);
-    
+
     let errorMessage = "Failed to send carousel message";
     if (axios.isAxiosError(error)) {
       errorMessage = error.response?.data?.error?.message || error.message;
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }
-    
+
     throw new Error(errorMessage);
   }
 };
@@ -430,7 +464,7 @@ export const sendButtonTemplate = async (
     url?: string;
     payload?: string;
   }[],
-  token: string
+  token: string,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> => {
   try {
     // Validate requirements
@@ -486,7 +520,7 @@ export const sendButtonTemplate = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: true, messageId: response.data.message_id };
@@ -511,7 +545,7 @@ export const sendButtonTemplate = async (
  */
 export const setIceBreakers = async (
   iceBreakers: { question: string; payload: string }[],
-  token: string
+  token: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     if (!iceBreakers || iceBreakers.length === 0) {
@@ -524,7 +558,10 @@ export const setIceBreakers = async (
     // Validate each ice breaker
     for (const ib of iceBreakers) {
       if (!ib.question || !ib.payload) {
-        return { success: false, error: "Each ice breaker requires a question and payload" };
+        return {
+          success: false,
+          error: "Each ice breaker requires a question and payload",
+        };
       }
     }
 
@@ -533,7 +570,7 @@ export const setIceBreakers = async (
       platform: "instagram",
       ice_breakers: [
         {
-          call_to_actions: iceBreakers.map(ib => ({
+          call_to_actions: iceBreakers.map((ib) => ({
             question: ib.question,
             payload: ib.payload,
           })),
@@ -550,7 +587,7 @@ export const setIceBreakers = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: response.data?.result === "success" || !!response.data };
@@ -572,7 +609,7 @@ export const setIceBreakers = async (
  * Get current Ice Breakers configuration
  */
 export const getIceBreakers = async (
-  token: string
+  token: string,
 ): Promise<{ success: boolean; data?: any[]; error?: string }> => {
   try {
     const response = await axios.get(
@@ -585,7 +622,7 @@ export const getIceBreakers = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return { success: true, data: response.data?.data || [] };
@@ -607,7 +644,7 @@ export const getIceBreakers = async (
  * Delete all Ice Breakers
  */
 export const deleteIceBreakers = async (
-  token: string
+  token: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await axios.delete(
@@ -620,7 +657,7 @@ export const deleteIceBreakers = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: response.data?.result === "success" || !!response.data };
@@ -644,8 +681,13 @@ export const deleteIceBreakers = async (
  * Best practice: limit to 5 items
  */
 export const setPersistentMenu = async (
-  menuItems: { type: "web_url" | "postback"; title: string; url?: string; payload?: string }[],
-  token: string
+  menuItems: {
+    type: "web_url" | "postback";
+    title: string;
+    url?: string;
+    payload?: string;
+  }[],
+  token: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     if (!menuItems || menuItems.length === 0) {
@@ -666,7 +708,7 @@ export const setPersistentMenu = async (
     }
 
     // Format menu items
-    const callToActions = menuItems.map(item => ({
+    const callToActions = menuItems.map((item) => ({
       type: item.type,
       title: item.title,
       ...(item.url && { url: item.url }),
@@ -690,7 +732,7 @@ export const setPersistentMenu = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: response.data?.result === "success" || !!response.data };
@@ -712,7 +754,7 @@ export const setPersistentMenu = async (
  * Get current Persistent Menu configuration
  */
 export const getPersistentMenu = async (
-  token: string
+  token: string,
 ): Promise<{ success: boolean; data?: any[]; error?: string }> => {
   try {
     const response = await axios.get(
@@ -725,7 +767,7 @@ export const getPersistentMenu = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return { success: true, data: response.data?.data || [] };
@@ -747,7 +789,7 @@ export const getPersistentMenu = async (
  * Delete Persistent Menu
  */
 export const deletePersistentMenu = async (
-  token: string
+  token: string,
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const response = await axios.delete(
@@ -760,7 +802,7 @@ export const deletePersistentMenu = async (
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     return { success: response.data?.result === "success" || !!response.data };
@@ -806,7 +848,7 @@ export const generateTokens = async (code: string) => {
     insta_form.append("grant_type", "authorization_code");
     insta_form.append(
       "redirect_uri",
-      `${process.env.NEXT_PUBLIC_HOST_URL}/callback/instagram`
+      `${process.env.NEXT_PUBLIC_HOST_URL}/callback/instagram`,
     );
     insta_form.append("code", code);
 
@@ -818,12 +860,11 @@ export const generateTokens = async (code: string) => {
     if (!shortTokenRes.ok) {
       const errorText = await shortTokenRes.text();
       throw new Error(
-        `Token request failed: ${shortTokenRes.status} - ${errorText}`
+        `Token request failed: ${shortTokenRes.status} - ${errorText}`,
       );
     }
 
     const token = await shortTokenRes.json();
-
 
     if (!token || !token.access_token) {
       throw new Error("Invalid token response");
@@ -842,9 +883,8 @@ export const generateTokens = async (code: string) => {
           client_secret: process.env.INSTAGRAM_CLIENT_SECRET,
           access_token: token.access_token,
         },
-      }
+      },
     );
-
 
     return longTokenResponse.data;
   } catch (error) {
@@ -865,28 +905,29 @@ export const generateTokens = async (code: string) => {
  * Check if a user follows the Instagram Business/Creator account
  * Uses Instagram User Profile API with is_user_follow_business field
  * Available in Graph API v12.0+
- * 
+ *
  * Permissions required: instagram_basic, instagram_manage_messages
- * 
+ *
  * Note: Instagram sorts messages from followers to Primary folder,
  * non-followers to Requests folder. This can be used as alternative detection.
  */
 export const checkIfFollower = async (
   pageId: string,
   userIgsid: string,
-  token: string
+  token: string,
 ): Promise<boolean> => {
   try {
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userIgsid}`,
       {
         params: {
-          fields: "name,profile_pic,is_user_follow_business,is_business_follow_user,follower_count",
+          fields:
+            "name,profile_pic,is_user_follow_business,is_business_follow_user,follower_count",
         },
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data?.is_user_follow_business === true;
@@ -902,7 +943,7 @@ export const checkIfFollower = async (
  */
 export const getMediaHashtags = async (
   mediaId: string,
-  token: string
+  token: string,
 ): Promise<string[]> => {
   try {
     const response = await axios.get(
@@ -914,7 +955,7 @@ export const getMediaHashtags = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const caption = response.data?.caption || "";
@@ -933,7 +974,7 @@ export const getMediaHashtags = async (
  */
 export const getUserProfile = async (
   userId: string,
-  token: string
+  token: string,
 ): Promise<{ id: string; username?: string; name?: string } | null> => {
   try {
     const response = await axios.get(
@@ -945,7 +986,7 @@ export const getUserProfile = async (
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
