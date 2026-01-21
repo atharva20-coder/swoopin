@@ -15,7 +15,7 @@ import type {
 } from "../types";
 
 export class KeywordsNodeExecutor implements INodeExecutor {
-  readonly type = "trigger"; // Acts like a trigger/condition
+  readonly type = "filter"; // Filter type - executes and controls downstream flow
   readonly subType = "KEYWORDS";
   readonly description = "Filter messages based on keyword matches";
 
