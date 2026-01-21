@@ -8,13 +8,39 @@ import crypto from "crypto";
  *
  * We must verify this signature to ensure webhooks are authentic.
  *
- * Uses INSTAGRAM_CLIENT_SECRET (the App Secret from Facebook App Dashboard)
+ * For Instagram API with Instagram Login, Meta may use either:
+ * - FB_APP_SECRET (Facebook App Secret from Settings > Basic)
+ * - INSTAGRAM_CLIENT_SECRET (Instagram App Secret from Instagram Business Login settings)
+ *
+ * We try both to determine which one works.
  */
 
-// Use FB_APP_SECRET for signature verification (the App Secret from Facebook App Dashboard)
-// Falls back to INSTAGRAM_CLIENT_SECRET if FB_APP_SECRET not set
-const INSTAGRAM_APP_SECRET =
-  process.env.FB_APP_SECRET || process.env.INSTAGRAM_CLIENT_SECRET;
+/**
+ * Helper to verify signature with a specific secret
+ */
+function verifyWithSecret(
+  payload: string,
+  receivedHash: string,
+  secret: string,
+): boolean {
+  const expectedHash = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  try {
+    const receivedBuffer = Buffer.from(receivedHash, "hex");
+    const expectedBuffer = Buffer.from(expectedHash, "hex");
+
+    if (receivedBuffer.length !== expectedBuffer.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Verify Instagram webhook signature
@@ -31,18 +57,6 @@ export function verifyInstagramSignature(
     return false;
   }
 
-  if (!INSTAGRAM_APP_SECRET) {
-    console.error(
-      "[Webhook] INSTAGRAM_CLIENT_SECRET not configured in environment",
-    );
-    // In development, allow webhooks without verification if secret not set
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[Webhook] Allowing unverified webhook in development mode");
-      return true;
-    }
-    return false;
-  }
-
   // Signature format: sha256=<hash>
   const signatureParts = signature.split("=");
   if (signatureParts.length !== 2 || signatureParts[0] !== "sha256") {
@@ -55,33 +69,58 @@ export function verifyInstagramSignature(
 
   const receivedHash = signatureParts[1];
 
-  // Calculate expected hash using INSTAGRAM_CLIENT_SECRET
-  const expectedHash = crypto
-    .createHmac("sha256", INSTAGRAM_APP_SECRET)
-    .update(payload)
-    .digest("hex");
+  // Get both possible secrets
+  const fbAppSecret = process.env.FB_APP_SECRET;
+  const instagramClientSecret = process.env.INSTAGRAM_CLIENT_SECRET;
 
-  // Use timing-safe comparison to prevent timing attacks
-  try {
-    const receivedBuffer = Buffer.from(receivedHash, "hex");
-    const expectedBuffer = Buffer.from(expectedHash, "hex");
-
-    if (receivedBuffer.length !== expectedBuffer.length) {
-      console.error("[Webhook] Signature length mismatch");
-      return false;
+  // In development, allow webhooks without verification if no secrets are set
+  if (!fbAppSecret && !instagramClientSecret) {
+    console.error(
+      "[Webhook] No secrets configured (FB_APP_SECRET or INSTAGRAM_CLIENT_SECRET)",
+    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[Webhook] Allowing unverified webhook in development mode");
+      return true;
     }
-
-    const isValid = crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
-    if (!isValid) {
-      console.error(
-        "[Webhook] Signature mismatch - check that INSTAGRAM_CLIENT_SECRET matches App Secret in Facebook Dashboard",
-      );
-    }
-    return isValid;
-  } catch (error) {
-    console.error("[Webhook] Signature comparison error:", error);
     return false;
   }
+
+  // Try FB_APP_SECRET first (Facebook App Secret from Settings > Basic)
+  if (fbAppSecret) {
+    const isValid = verifyWithSecret(payload, receivedHash, fbAppSecret);
+    if (isValid) {
+      console.log("[Webhook] ✓ Signature verified using FB_APP_SECRET");
+      return true;
+    }
+  }
+
+  // Try INSTAGRAM_CLIENT_SECRET (Instagram App Secret from Business Login settings)
+  if (instagramClientSecret) {
+    const isValid = verifyWithSecret(
+      payload,
+      receivedHash,
+      instagramClientSecret,
+    );
+    if (isValid) {
+      console.log(
+        "[Webhook] ✓ Signature verified using INSTAGRAM_CLIENT_SECRET",
+      );
+      return true;
+    }
+  }
+
+  // Both failed
+  console.error("[Webhook] Signature verification failed with both secrets");
+  console.error(
+    "[Webhook] Tried FB_APP_SECRET:",
+    fbAppSecret ? "yes" : "not set",
+  );
+  console.error(
+    "[Webhook] Tried INSTAGRAM_CLIENT_SECRET:",
+    instagramClientSecret ? "yes" : "not set",
+  );
+
+  return false;
 }
 
 /**
