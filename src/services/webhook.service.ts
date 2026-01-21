@@ -14,8 +14,13 @@ class WebhookService {
    */
   async matchKeyword(
     messageText: string,
-    triggerType: "DM" | "COMMENT" = "DM"
+    triggerType: "DM" | "COMMENT" = "DM",
   ) {
+    // Guard against undefined/null messageText
+    if (!messageText || typeof messageText !== "string") {
+      return null;
+    }
+
     // First, try legacy keyword table
     const legacyKeywords = await client.keyword.findMany({
       where: {
@@ -138,7 +143,7 @@ class WebhookService {
    */
   async trackResponses(
     automationId: string,
-    type: "COMMENT" | "DM" | "CAROUSEL" | "MENTION"
+    type: "COMMENT" | "DM" | "CAROUSEL" | "MENTION",
   ) {
     if (type === "COMMENT" || type === "MENTION") {
       return await client.listener.update({
@@ -166,7 +171,7 @@ class WebhookService {
     automationId: string,
     sender: string,
     receiver: string,
-    message: string
+    message: string,
   ) {
     return client.automation.update({
       where: { id: automationId },

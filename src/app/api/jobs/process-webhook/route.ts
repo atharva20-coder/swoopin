@@ -73,18 +73,50 @@ export async function POST(req: NextRequest) {
   try {
     // Match keywords for DM
     if (webhook_payload.entry[0].messaging) {
-      matcher = await matchKeyword(
-        webhook_payload.entry[0].messaging[0].message.text,
-        "DM",
+      const messaging = webhook_payload.entry[0].messaging[0];
+
+      // Skip echo messages (messages we sent ourselves)
+      if (messaging?.message?.is_echo) {
+        console.log("Skipping echo message");
+        return NextResponse.json(
+          { message: "Echo message ignored" },
+          { status: 200 },
+        );
+      }
+
+      // Check for story mention
+      const isStoryMention = messaging?.message?.attachments?.some(
+        (a: any) => a.type === "story_mention",
       );
+
+      // Check for post share
+      const isPostShare = messaging?.message?.attachments?.some(
+        (a: any) => a.type === "share" || a.type === "ig_post",
+      );
+
+      // Get text if available
+      const messageText = messaging?.message?.text;
+
+      if (messageText) {
+        matcher = await matchKeyword(messageText, "DM");
+      } else if (isStoryMention) {
+        // For story mentions without text, match as STORY_REPLY trigger
+        console.log(
+          "Story mention received, checking for STORY_REPLY automation",
+        );
+        // Will be handled by flow execution with STORY_REPLY trigger
+      } else if (isPostShare) {
+        // Post shares without text - just acknowledge
+        console.log("Post share received, no text to match");
+      }
     }
 
     // Match keywords for Comment
-    if (webhook_payload.entry[0].changes) {
-      matcher = await matchKeyword(
-        webhook_payload.entry[0].changes[0].value.text,
-        "COMMENT",
-      );
+    if (!matcher && webhook_payload.entry[0].changes) {
+      const commentText = webhook_payload.entry[0].changes[0]?.value?.text;
+      if (commentText) {
+        matcher = await matchKeyword(commentText, "COMMENT");
+      }
     }
 
     if (matcher && matcher.automationId) {

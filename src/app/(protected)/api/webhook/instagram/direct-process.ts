@@ -42,6 +42,12 @@ export async function processWebhookDirectly(
   try {
     const messaging = webhook_payload.entry[0].messaging?.[0];
 
+    // Skip echo messages (messages we sent ourselves)
+    if (messaging?.message?.is_echo) {
+      console.log("Skipping echo message");
+      return { message: "Echo message ignored", success: true };
+    }
+
     // Check for postback event (button click)
     if (messaging?.postback?.payload) {
       console.log("Postback received:", messaging.postback.payload);
@@ -57,10 +63,10 @@ export async function processWebhookDirectly(
 
     // Match keywords for Comment
     if (!matcher && webhook_payload.entry[0].changes) {
-      matcher = await matchKeyword(
-        webhook_payload.entry[0].changes[0].value.text,
-        "COMMENT",
-      );
+      const commentText = webhook_payload.entry[0].changes[0]?.value?.text;
+      if (commentText) {
+        matcher = await matchKeyword(commentText, "COMMENT");
+      }
     }
 
     if (matcher && matcher.automationId) {

@@ -32,9 +32,19 @@ export class SmartAINodeExecutor implements INodeExecutor {
       timestamp: startTime,
       level: "info",
       message: "Starting SMARTAI node execution",
+      data: {
+        userSubscription: context.userSubscription,
+        hasMessageText: !!context.messageText,
+      },
     });
 
     const { token, pageId, senderId, userSubscription } = context;
+
+    console.log("[SmartAI] Subscription check:", {
+      userSubscription,
+      isPro: userSubscription === "PRO",
+      isEnterprise: userSubscription === "ENTERPRISE",
+    });
 
     // Subscription check
     if (userSubscription !== "PRO" && userSubscription !== "ENTERPRISE") {
@@ -45,10 +55,12 @@ export class SmartAINodeExecutor implements INodeExecutor {
         data: { currentPlan: userSubscription },
       });
 
+      console.error("[SmartAI] Subscription check failed:", userSubscription);
+
       return {
         success: false,
         items: [],
-        message: "Smart AI requires PRO or ENTERPRISE subscription",
+        message: `Smart AI requires PRO or ENTERPRISE subscription (current: ${userSubscription || "none"})`,
         logs,
       };
     }
@@ -78,17 +90,30 @@ export class SmartAINodeExecutor implements INodeExecutor {
     // Get prompt
     const prompt =
       (config.message as string) || (config.prompt as string) || "";
+
+    console.log("[SmartAI] Config check:", {
+      hasMessage: !!config.message,
+      hasPrompt: !!config.prompt,
+      configKeys: Object.keys(config),
+    });
+
     if (!prompt) {
       logs.push({
         timestamp: Date.now(),
         level: "error",
         message: "No prompt configured",
+        data: { configKeys: Object.keys(config) },
       });
+
+      console.error(
+        "[SmartAI] No prompt configured. Config:",
+        JSON.stringify(config),
+      );
 
       return {
         success: false,
         items: [],
-        message: "No prompt configured",
+        message: "No prompt configured for SmartAI",
         logs,
       };
     }
