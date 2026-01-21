@@ -115,19 +115,18 @@ export class KeywordsNodeExecutor implements INodeExecutor {
       logs.push({
         timestamp: Date.now(),
         level: "info",
-        message: "No keyword matched - stopping this branch",
+        message: "No keyword matched - branch ends (n8n style: empty output)",
       });
 
-      console.log("[Keywords] No keyword matched, stopping this branch");
+      console.log("[Keywords] No keyword matched, branch output is empty");
 
-      // Return success: false to stop THIS branch execution
-      // Other branches from the same parent will still execute
+      // n8n-style: return success with EMPTY items
+      // Empty output means children won't execute, but flow continues for other branches
       return {
-        success: false,
-        items: [],
+        success: true,
+        items: [], // Empty = this branch effectively stops
         message: "No keyword matched",
         logs,
-        // Special flag to indicate this is a "branch stop", not an error
       };
     }
   }

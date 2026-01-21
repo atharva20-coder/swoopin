@@ -69,8 +69,14 @@ class WebhookService {
       }
     }
 
-    // No keyword match - look for CATCH-ALL automations
-    const catchAllFlows = await client.flowNode.findMany({
+    // No keyword match - find ANY automation with this trigger type
+    // Flow execution will handle all branching logic
+    // This supports:
+    // - Simple: DM → SendDM
+    // - With SmartAI: DM → SmartAI → SendDM
+    // - Mixed: DM → [Keywords + SmartAI branches]
+    // - ANY other combination
+    const triggerFlows = await client.flowNode.findMany({
       where: {
         type: "trigger",
         subType: triggerType,
@@ -80,23 +86,12 @@ class WebhookService {
       },
       select: {
         automationId: true,
-        Automation: {
-          select: {
-            flowNodes: {
-              where: { subType: "KEYWORDS" },
-              select: { id: true },
-              take: 1,
-            },
-          },
-        },
       },
     });
 
-    for (const triggerNode of catchAllFlows) {
-      const hasKeywords = (triggerNode.Automation?.flowNodes?.length || 0) > 0;
-      if (!hasKeywords) {
-        return { automationId: triggerNode.automationId };
-      }
+    // Return first matching automation
+    if (triggerFlows.length > 0) {
+      return { automationId: triggerFlows[0].automationId, isCatchAll: true };
     }
 
     return null;

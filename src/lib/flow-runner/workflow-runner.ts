@@ -316,12 +316,30 @@ export class WorkflowRunner {
       return { success: true, message: "Condition evaluated" };
     }
 
+    // n8n-style: If node outputs empty items, skip children (branch ends gracefully)
+    if (outputItems.length === 0) {
+      console.log(
+        `[WorkflowRunner] Node ${node.subType} output empty - branch ends`,
+      );
+      return {
+        success: true,
+        message: `Node ${node.subType} completed (branch ended)`,
+      };
+    }
+
     // Execute all children (parallel branching - all branches run)
     // This enables nodes with multiple children to all execute
     const children = this.adjacencyList.get(nodeId) || [];
+
+    // If no children, node is a terminal/leaf node - success
+    if (children.length === 0) {
+      return {
+        success: true,
+        message: `Node ${node.subType} completed (terminal)`,
+      };
+    }
+
     let anyChildSucceeded = false;
-    let anyChildFailed = false;
-    let failureMessage = "";
 
     for (const childId of children) {
       const result = await this.executeFromNode(
@@ -332,8 +350,6 @@ export class WorkflowRunner {
       if (result.success) {
         anyChildSucceeded = true;
       } else {
-        anyChildFailed = true;
-        failureMessage = result.message;
         console.log(
           `[WorkflowRunner] Child branch ${childId} stopped:`,
           result.message,
@@ -341,16 +357,8 @@ export class WorkflowRunner {
       }
     }
 
-    // Node succeeds if it executed + at least one child succeeded (or no children)
-    if (children.length === 0 || anyChildSucceeded) {
-      return { success: true, message: `Node ${node.subType} completed` };
-    }
-
-    // If all children failed, report failure
-    return {
-      success: false,
-      message: failureMessage || `All child branches of ${node.subType} failed`,
-    };
+    // Node succeeds if it executed (we already checked for empty items above)
+    return { success: true, message: `Node ${node.subType} completed` };
   }
 
   /**
