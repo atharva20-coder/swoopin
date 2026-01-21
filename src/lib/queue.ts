@@ -18,8 +18,8 @@ export type WebhookJobPayload = {
  * Returns immediately, processing happens async
  */
 export async function enqueueWebhookJob(payload: WebhookJobPayload) {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
-  
+  const baseUrl = process.env.NEXT_PUBLIC_HOST_URL;
+
   if (!baseUrl) {
     console.error("QStash: No base URL configured");
     throw new Error("No base URL configured for QStash");
@@ -50,9 +50,9 @@ export async function enqueueWebhookJob(payload: WebhookJobPayload) {
  */
 export async function enqueueDelayedJob(
   payload: WebhookJobPayload,
-  delaySeconds: number
+  delaySeconds: number,
 ) {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || process.env.VERCEL_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_HOST_URL;
   const targetUrl = `${baseUrl?.startsWith("http") ? baseUrl : `https://${baseUrl}`}/api/jobs/process-webhook`;
 
   const result = await qstash.publishJSON({
@@ -64,4 +64,3 @@ export async function enqueueDelayedJob(
 
   return { success: true, messageId: result.messageId };
 }
-
