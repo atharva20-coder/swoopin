@@ -31,6 +31,7 @@ import {
 import { isFollowerNodeExecutor } from "./nodes/is-follower.node";
 import { hasTagNodeExecutor } from "./nodes/has-tag.node";
 import { keywordsNodeExecutor } from "./nodes/keywords.node";
+import { yesNodeExecutor, noNodeExecutor } from "./nodes/branch.node";
 
 // =============================================================================
 // REGISTER ALL NODES
@@ -71,7 +72,11 @@ export function initializeNodeRegistry(): void {
   registerNode(hasTagNodeExecutor);
   registerNode(keywordsNodeExecutor);
 
-  console.log("[FlowRunner] Node registry initialized with all 16 node types");
+  // Branch Nodes (YES/NO pass-through)
+  registerNode(yesNodeExecutor);
+  registerNode(noNodeExecutor);
+
+  console.log("[FlowRunner] Node registry initialized with all 18 node types");
 }
 
 // =============================================================================

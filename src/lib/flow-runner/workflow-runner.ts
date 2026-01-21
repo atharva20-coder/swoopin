@@ -316,18 +316,41 @@ export class WorkflowRunner {
       return { success: true, message: "Condition evaluated" };
     }
 
-    // Execute all children (sequential execution)
+    // Execute all children (parallel branching - all branches run)
+    // This enables nodes with multiple children to all execute
     const children = this.adjacencyList.get(nodeId) || [];
+    let anyChildSucceeded = false;
+    let anyChildFailed = false;
+    let failureMessage = "";
+
     for (const childId of children) {
       const result = await this.executeFromNode(
         childId,
         outputItems,
         depth + 1,
       );
-      if (!result.success) return result;
+      if (result.success) {
+        anyChildSucceeded = true;
+      } else {
+        anyChildFailed = true;
+        failureMessage = result.message;
+        console.log(
+          `[WorkflowRunner] Child branch ${childId} stopped:`,
+          result.message,
+        );
+      }
     }
 
-    return { success: true, message: `Node ${node.subType} completed` };
+    // Node succeeds if it executed + at least one child succeeded (or no children)
+    if (children.length === 0 || anyChildSucceeded) {
+      return { success: true, message: `Node ${node.subType} completed` };
+    }
+
+    // If all children failed, report failure
+    return {
+      success: false,
+      message: failureMessage || `All child branches of ${node.subType} failed`,
+    };
   }
 
   /**
