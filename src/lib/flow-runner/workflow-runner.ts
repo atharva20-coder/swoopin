@@ -15,6 +15,11 @@ import type {
   ExecutionLogEntry,
 } from "./types";
 import { getExecutorForNode } from "./node-registry";
+import {
+  validateFlowForExecution,
+  PLAN_LIMITS,
+  type PlanType,
+} from "./flow-validator";
 
 // =============================================================================
 // WORKFLOW RUNNER CLASS
@@ -26,6 +31,10 @@ export class WorkflowRunner {
   private context: ExecutionContext;
   private nodeLogs: Record<string, ExecutionLogEntry[]> = {};
   private visited: Set<string> = new Set();
+  private currentDepth: number = 0;
+  private maxDepthLimit: number;
+  private nodesArray: FlowNodeRuntime[];
+  private edgesArray: FlowEdgeRuntime[];
 
   constructor(
     nodes: FlowNodeRuntime[],
@@ -33,6 +42,13 @@ export class WorkflowRunner {
     context: ExecutionContext,
   ) {
     this.context = context;
+    this.nodesArray = nodes;
+    this.edgesArray = edges;
+
+    // Determine plan-based depth limit
+    const plan = (context.userSubscription as PlanType) || "FREE";
+    this.maxDepthLimit =
+      PLAN_LIMITS[plan]?.maxDepth || PLAN_LIMITS.FREE.maxDepth;
 
     // Build node map for O(1) lookup
     this.nodes = new Map();
@@ -52,6 +68,30 @@ export class WorkflowRunner {
    */
   async run(): Promise<FlowExecutionResult> {
     const startTime = Date.now();
+
+    // Runtime validation (Zero-Patchwork: validate at gateway)
+    const plan = (this.context.userSubscription as PlanType) || "FREE";
+    const validation = validateFlowForExecution(
+      this.nodesArray,
+      this.edgesArray,
+      plan,
+    );
+
+    if (!validation.canExecute) {
+      console.error(
+        "[WorkflowRunner] Flow validation failed:",
+        validation.error,
+      );
+      return {
+        success: false,
+        message: validation.error || "Flow validation failed",
+        executionTimeMs: Date.now() - startTime,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: validation.error || "Flow validation failed",
+        },
+      };
+    }
 
     // Find trigger node matching the context's trigger type
     const triggerNode = this.findTriggerNode();
@@ -114,7 +154,23 @@ export class WorkflowRunner {
   private async executeFromNode(
     nodeId: string,
     inputItems: ItemData[],
+    depth: number = 0,
   ): Promise<FlowExecutionResult> {
+    // Depth limit check (runtime safety)
+    if (depth > this.maxDepthLimit) {
+      console.error(
+        `[WorkflowRunner] Max depth exceeded: ${depth} > ${this.maxDepthLimit}`,
+      );
+      return {
+        success: false,
+        message: `Execution depth limit exceeded (max: ${this.maxDepthLimit} nodes). Upgrade your plan for deeper flows.`,
+        error: {
+          code: "DEPTH_LIMIT_EXCEEDED",
+          message: `Max depth of ${this.maxDepthLimit} nodes exceeded`,
+        },
+      };
+    }
+
     // Prevent cycles
     if (this.visited.has(nodeId)) {
       return { success: true, message: "Already visited node" };
@@ -126,16 +182,43 @@ export class WorkflowRunner {
       return { success: false, message: `Node not found: ${nodeId}` };
     }
 
-    console.log(`[WorkflowRunner] Executing node: ${node.subType} (${nodeId})`);
+    console.log(
+      `[WorkflowRunner] Executing node: ${node.subType} (${nodeId}) [depth: ${depth}]`,
+    );
 
     // Skip trigger nodes (they don't execute, just start the flow)
+    // For triggers, we execute ALL children (branches) even if some fail
+    // This enables branching like: Keyword Match → Send DM vs SmartAI → Send DM
     if (node.type === "trigger") {
       const children = this.adjacencyList.get(nodeId) || [];
+      let anySucceeded = false;
+      let lastError: FlowExecutionResult | null = null;
+
       for (const childId of children) {
-        const result = await this.executeFromNode(childId, inputItems);
-        if (!result.success) return result;
+        const result = await this.executeFromNode(
+          childId,
+          inputItems,
+          depth + 1,
+        );
+        if (result.success) {
+          anySucceeded = true;
+        } else {
+          // Log but continue - other branches may succeed
+          console.log(
+            `[WorkflowRunner] Branch ${childId} stopped:`,
+            result.message,
+          );
+          lastError = result;
+        }
       }
-      return { success: true, message: "Trigger processed" };
+
+      // Consider trigger successful if any branch succeeded
+      if (anySucceeded) {
+        return { success: true, message: "Trigger processed" };
+      }
+
+      // If no branches succeeded, return the last error
+      return lastError || { success: false, message: "No branches executed" };
     }
 
     // Get the executor for this node type
@@ -201,10 +284,18 @@ export class WorkflowRunner {
 
         // Route based on condition result
         if (childNode?.subType === "YES" && conditionResult) {
-          const result = await this.executeFromNode(childId, outputItems);
+          const result = await this.executeFromNode(
+            childId,
+            outputItems,
+            depth + 1,
+          );
           if (!result.success) return result;
         } else if (childNode?.subType === "NO" && !conditionResult) {
-          const result = await this.executeFromNode(childId, outputItems);
+          const result = await this.executeFromNode(
+            childId,
+            outputItems,
+            depth + 1,
+          );
           if (!result.success) return result;
         } else if (
           childNode?.subType !== "YES" &&
@@ -212,7 +303,11 @@ export class WorkflowRunner {
         ) {
           // Non-branching child, always execute if condition passed
           if (conditionResult) {
-            const result = await this.executeFromNode(childId, outputItems);
+            const result = await this.executeFromNode(
+              childId,
+              outputItems,
+              depth + 1,
+            );
             if (!result.success) return result;
           }
         }
@@ -224,7 +319,11 @@ export class WorkflowRunner {
     // Execute all children (sequential execution)
     const children = this.adjacencyList.get(nodeId) || [];
     for (const childId of children) {
-      const result = await this.executeFromNode(childId, outputItems);
+      const result = await this.executeFromNode(
+        childId,
+        outputItems,
+        depth + 1,
+      );
       if (!result.success) return result;
     }
 

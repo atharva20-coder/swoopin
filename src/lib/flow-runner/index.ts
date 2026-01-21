@@ -30,6 +30,7 @@ import {
 // Condition Nodes
 import { isFollowerNodeExecutor } from "./nodes/is-follower.node";
 import { hasTagNodeExecutor } from "./nodes/has-tag.node";
+import { keywordsNodeExecutor } from "./nodes/keywords.node";
 
 // =============================================================================
 // REGISTER ALL NODES
@@ -65,11 +66,12 @@ export function initializeNodeRegistry(): void {
   registerNode(delayNodeExecutor);
   registerNode(logToSheetsNodeExecutor);
 
-  // Condition Nodes
+  // Condition/Filter Nodes
   registerNode(isFollowerNodeExecutor);
   registerNode(hasTagNodeExecutor);
+  registerNode(keywordsNodeExecutor);
 
-  console.log("[FlowRunner] Node registry initialized with all 15 node types");
+  console.log("[FlowRunner] Node registry initialized with all 16 node types");
 }
 
 // =============================================================================
@@ -79,3 +81,15 @@ export function initializeNodeRegistry(): void {
 export * from "./types";
 export * from "./node-registry";
 export { WorkflowRunner, runWorkflow } from "./workflow-runner";
+export {
+  validateFlow,
+  validateFlowForExecution,
+  detectCycles,
+  findOrphanedNodes,
+  findDeadEnds,
+  calculateMaxDepth,
+  PLAN_LIMITS,
+  type PlanType,
+  type FlowValidationResult,
+  type FlowValidationError,
+} from "./flow-validator";

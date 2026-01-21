@@ -3,12 +3,19 @@ import { requireAuth } from "@/app/api/v1/_lib/middleware";
 import { rateLimitByUser } from "@/app/api/v1/_lib/rate-limit";
 import { success, error, validationError } from "@/app/api/v1/_lib/response";
 import { flowService } from "@/services/flow.service";
+import { client } from "@/lib/prisma";
 import {
   SaveFlowDataRequestSchema,
   SaveFlowBatchRequestSchema,
   DeleteNodeRequestSchema,
   GetExecutionPathRequestSchema,
 } from "@/schemas/flow.schema";
+import {
+  validateFlow,
+  type FlowNodeRuntime,
+  type FlowEdgeRuntime,
+  type PlanType,
+} from "@/lib/flow-runner";
 
 /**
  * GET /api/v1/automations/[id]/flow
@@ -16,7 +23,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireAuth();
@@ -42,7 +49,7 @@ export async function GET(
 
       const result = await flowService.getFlowExecutionPath(
         automationId,
-        validation.data.triggerType
+        validation.data.triggerType,
       );
 
       if ("error" in result) {
@@ -75,7 +82,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireAuth();
@@ -99,7 +106,7 @@ export async function POST(
       const result = await flowService.saveFlowBatch(
         user.id,
         automationId,
-        validation.data
+        validation.data,
       );
 
       if ("error" in result) {
@@ -117,18 +124,55 @@ export async function POST(
       });
     }
 
+    // Get user's subscription plan for validation limits
+    const userWithSubscription = await client.user.findUnique({
+      where: { id: user.id },
+      select: { subscription: { select: { plan: true } } },
+    });
+    const plan = (userWithSubscription?.subscription?.plan ||
+      "FREE") as PlanType;
+
+    // Convert to runtime format for validation
+    const runtimeNodes: FlowNodeRuntime[] = validation.data.nodes.map((n) => ({
+      nodeId: n.nodeId,
+      type: n.type,
+      subType: n.subType,
+      label: n.label,
+      config: (n.config as Record<string, unknown>) || {},
+    }));
+
+    const runtimeEdges: FlowEdgeRuntime[] = validation.data.edges.map((e) => ({
+      edgeId: e.edgeId,
+      sourceNodeId: e.sourceNodeId,
+      targetNodeId: e.targetNodeId,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
+    }));
+
+    // Validate flow structure (Zero-Patchwork: validate at gateway)
+    const flowValidation = validateFlow(runtimeNodes, runtimeEdges, plan);
+
+    // Save the flow (allow save with warnings - flexible approach)
     const result = await flowService.saveFlowData(
       user.id,
       automationId,
       validation.data.nodes,
-      validation.data.edges
+      validation.data.edges,
     );
 
     if ("error" in result) {
       return error("EXTERNAL_API_ERROR", result.error, 400);
     }
 
-    return success(result);
+    // Return result with validation warnings/errors
+    return success({
+      ...result,
+      validation: {
+        valid: flowValidation.valid,
+        errors: flowValidation.errors,
+        warnings: flowValidation.warnings,
+      },
+    });
   } catch (err) {
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
       return error("UNAUTHORIZED", "Authentication required", 401);
@@ -144,7 +188,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const user = await requireAuth();
@@ -168,7 +212,7 @@ export async function DELETE(
     const result = await flowService.deleteFlowNode(
       user.id,
       automationId,
-      validation.data.nodeId
+      validation.data.nodeId,
     );
 
     if ("error" in result) {

@@ -59,6 +59,10 @@ export interface ExecutionContext {
 
   // AI response passthrough (for SmartAI → Message chaining)
   aiResponse?: string;
+
+  // Keyword matching state (for conditional branching)
+  keywordMatched?: boolean;
+  keywordMatchedWord?: string | null;
 }
 
 // =============================================================================
