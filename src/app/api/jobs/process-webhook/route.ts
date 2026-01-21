@@ -122,11 +122,24 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // Ensure user has a valid integration token
+        const integration = automation.User?.integrations?.[0];
+        if (!integration?.token) {
+          console.error(
+            "No valid integration token found for user:",
+            automation.userId,
+          );
+          return NextResponse.json(
+            { message: "No valid integration found", success: false },
+            { status: 200 },
+          );
+        }
+
         // Build execution context (shared by both new and old executors)
         const context = {
           automationId: matcher.automationId,
           userId: automation.userId!,
-          token: automation.User?.integrations[0].token!,
+          token: integration.token,
           pageId: webhook_payload.entry[0].id,
           senderId: isMessage
             ? webhook_payload.entry[0].messaging[0].sender.id
@@ -304,11 +317,20 @@ export async function POST(req: NextRequest) {
               smart_ai_message,
             );
 
+            const chatIntegration = automation.User?.integrations?.[0];
+            if (!chatIntegration?.token) {
+              console.error("No valid integration token for chat continuation");
+              return NextResponse.json(
+                { message: "No valid integration found" },
+                { status: 200 },
+              );
+            }
+
             const direct_message = await sendDM(
               webhook_payload.entry[0].id,
               webhook_payload.entry[0].messaging[0].sender.id,
               smart_ai_message,
-              automation.User?.integrations[0].token!,
+              chatIntegration.token,
             );
 
             if (direct_message.status === 200) {
