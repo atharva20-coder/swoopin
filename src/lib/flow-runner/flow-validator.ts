@@ -486,3 +486,104 @@ export function validateFlowForExecution(
 
   return { canExecute: true };
 }
+
+// =============================================================================
+// REFERENCE INTEGRITY VALIDATION
+// =============================================================================
+
+export interface ReferenceValidationResult {
+  valid: boolean;
+  missingReferences: Array<{
+    nodeId: string;
+    nodeLabel: string;
+    referenceType: string;
+    referenceId: string;
+  }>;
+}
+
+/**
+ * Extract all external references from flow nodes.
+ * Used for pre-flight validation before execution.
+ */
+export function extractExternalReferences(nodes: FlowNodeRuntime[]): Array<{
+  nodeId: string;
+  nodeLabel: string;
+  referenceType: "CAROUSEL_TEMPLATE" | "PRODUCT" | "SPREADSHEET";
+  referenceId: string;
+}> {
+  const references: Array<{
+    nodeId: string;
+    nodeLabel: string;
+    referenceType: "CAROUSEL_TEMPLATE" | "PRODUCT" | "SPREADSHEET";
+    referenceId: string;
+  }> = [];
+
+  for (const node of nodes) {
+    const config = node.config || {};
+
+    // Carousel templates
+    if (node.subType === "CAROUSEL" && config.carouselTemplateId) {
+      references.push({
+        nodeId: node.nodeId,
+        nodeLabel: node.label,
+        referenceType: "CAROUSEL_TEMPLATE",
+        referenceId: config.carouselTemplateId as string,
+      });
+    }
+
+    // Product templates
+    if (node.subType === "PRODUCT_TEMPLATE" && config.productIds) {
+      const productIds = config.productIds as string[];
+      for (const productId of productIds) {
+        references.push({
+          nodeId: node.nodeId,
+          nodeLabel: node.label,
+          referenceType: "PRODUCT",
+          referenceId: productId,
+        });
+      }
+    }
+
+    // Google Sheets
+    if (node.subType === "LOG_TO_SHEETS" && config.spreadsheetId) {
+      references.push({
+        nodeId: node.nodeId,
+        nodeLabel: node.label,
+        referenceType: "SPREADSHEET",
+        referenceId: config.spreadsheetId as string,
+      });
+    }
+  }
+
+  return references;
+}
+
+/**
+ * Check if flow uses features that require specific subscription tiers.
+ */
+export function checkSubscriptionRequirements(
+  nodes: FlowNodeRuntime[],
+  userPlan: PlanType,
+): { allowed: boolean; requiredPlan?: string; feature?: string } {
+  // SmartAI requires PRO or ENTERPRISE
+  const hasSmartAI = nodes.some((n) => n.subType === "SMARTAI");
+  if (hasSmartAI && userPlan === "FREE") {
+    return {
+      allowed: false,
+      requiredPlan: "PRO",
+      feature: "Smart AI",
+    };
+  }
+
+  // Log to Sheets requires PRO or ENTERPRISE
+  const hasLogToSheets = nodes.some((n) => n.subType === "LOG_TO_SHEETS");
+  if (hasLogToSheets && userPlan === "FREE") {
+    return {
+      allowed: false,
+      requiredPlan: "PRO",
+      feature: "Log to Sheets",
+    };
+  }
+
+  return { allowed: true };
+}

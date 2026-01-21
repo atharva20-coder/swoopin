@@ -88,8 +88,11 @@ export {
   findOrphanedNodes,
   findDeadEnds,
   calculateMaxDepth,
+  extractExternalReferences,
+  checkSubscriptionRequirements,
   PLAN_LIMITS,
   type PlanType,
   type FlowValidationResult,
   type FlowValidationError,
+  type ReferenceValidationResult,
 } from "./flow-validator";
