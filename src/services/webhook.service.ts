@@ -242,6 +242,17 @@ class WebhookService {
       },
     });
   }
+
+  /**
+   * Get integration token by Page ID (Instagram ID)
+   */
+  async getIntegrationToken(pageId: string) {
+    const integration = await client.integrations.findUnique({
+      where: { instagramId: pageId },
+      select: { token: true },
+    });
+    return integration?.token;
+  }
 }
 
 // Export singleton instance

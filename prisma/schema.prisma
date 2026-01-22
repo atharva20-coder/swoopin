@@ -714,3 +714,20 @@ model CanvaIntegration {
 
   @@index([userId])
 }
+
+model Contact {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instagramId     String
+  pageId          String
+  name            String?
+  username        String?
+  isFollower      Boolean  @default(false)
+  lastInteraction DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([instagramId, pageId])
+  @@index([pageId])
+  @@index([instagramId])
+  @@map("contact")
+}

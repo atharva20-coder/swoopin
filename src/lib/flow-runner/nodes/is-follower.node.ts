@@ -12,7 +12,12 @@ import type {
   NodeExecutionResult,
   ExecutionLogEntry,
 } from "../types";
-import { checkIfFollower } from "@/lib/fetch";
+import { checkIfFollower, getUserProfile } from "@/lib/fetch";
+import {
+  getContact,
+  updateFollowerStatus,
+  upsertContact,
+} from "@/services/contact.service";
 
 export class IsFollowerNodeExecutor implements INodeExecutor {
   readonly type = "condition";
@@ -37,7 +42,55 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
     });
 
     try {
-      const isFollower = await checkIfFollower(pageId, senderId, token);
+      let isFollower = false;
+      const apiResult = await checkIfFollower(pageId, senderId, token);
+
+      if (apiResult !== null) {
+        // API Check Successful (True or False)
+        isFollower = apiResult;
+
+        // Sync state to DB
+        // We might need to fetch profile if we don't have basic details, but for now just update status
+        try {
+          // We upsert to ensure record exists. We try to get profile for name/username if possible
+          // But to keep it fast, we might just update status if contact exists, or create minimal contact.
+          // Let's attempt to get profile only if we are creating.
+          // Ideally, webhook created it.
+
+          await updateFollowerStatus(senderId, pageId, isFollower).catch(
+            async () => {
+              // If update fails (does not exist), we need to create it.
+              // Fetch profile first
+              const profile = await getUserProfile(senderId, token);
+              await upsertContact(senderId, pageId, {
+                name: profile?.name,
+                username: profile?.username,
+                isFollower,
+              });
+            },
+          );
+        } catch (dbError) {
+          console.error("Failed to sync follower status to DB:", dbError);
+        }
+
+        logs.push({
+          timestamp: Date.now(),
+          level: "info",
+          message: `API Verification: ${isFollower}`,
+          data: { source: "API", isFollower },
+        });
+      } else {
+        // API Check Failed (Error or Permission) -> Fallback to DB
+        const contact = await getContact(senderId, pageId);
+        isFollower = contact?.isFollower ?? false;
+
+        logs.push({
+          timestamp: Date.now(),
+          level: "warn",
+          message: `API Failed. DB Fallback: ${isFollower}`,
+          data: { source: "DB", isFollower, dbRecordFound: !!contact },
+        });
+      }
 
       logs.push({
         timestamp: Date.now(),

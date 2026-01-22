@@ -112,7 +112,7 @@ const evaluateCondition = async (
     switch (node.subType) {
       case "IS_FOLLOWER": {
         const isFollower = await checkIfFollower(pageId, senderId, token);
-        return isFollower;
+        return isFollower === true;
       }
 
       case "HAS_TAG": {

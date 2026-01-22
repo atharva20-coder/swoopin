@@ -915,7 +915,7 @@ export const checkIfFollower = async (
   pageId: string,
   userIgsid: string,
   token: string,
-): Promise<boolean> => {
+): Promise<boolean | null> => {
   try {
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userIgsid}`,
@@ -930,11 +930,13 @@ export const checkIfFollower = async (
       },
     );
 
-    return response.data?.is_user_follow_business === true;
+    if (typeof response.data?.is_user_follow_business === "boolean") {
+      return response.data.is_user_follow_business;
+    }
+    return null;
   } catch (error) {
     console.error("Error checking follower status:", error);
-    // Default to TRUE on error so flow continues
-    return true;
+    return null;
   }
 };
 

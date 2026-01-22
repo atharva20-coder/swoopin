@@ -8,7 +8,10 @@ import {
   sendPrivateMessage,
   replyToComment,
   sendCarouselMessage,
+  getUserProfile,
+  checkIfFollower,
 } from "@/lib/fetch";
+import { upsertContact } from "@/services/contact.service";
 import { generateGeminiResponse } from "@/lib/gemini";
 import { client } from "@/lib/prisma";
 // New flow-runner architecture (primary)
@@ -69,6 +72,45 @@ export async function POST(req: NextRequest) {
   });
 
   let matcher;
+
+  // =================================================================
+  // CONTACT INGESTION (Zero-Patchwork Protocol)
+  // Ensure we capture contact state for every interaction
+  // =================================================================
+  try {
+    const entry = webhook_payload.entry[0];
+    const pageId = entry.id;
+    let senderId: string | undefined;
+
+    if (entry.messaging) {
+      senderId = entry.messaging[0].sender.id;
+    } else if (entry.changes) {
+      senderId = entry.changes[0].value.from.id;
+    }
+
+    if (senderId && pageId) {
+      // Fetch token to perform API checks
+      const token = await webhookService.getIntegrationToken(pageId);
+      if (token) {
+        // Opportunistic checks
+        const [profile, isFollower] = await Promise.all([
+          getUserProfile(senderId, token),
+          checkIfFollower(pageId, senderId, token),
+        ]);
+
+        // Update DB
+        await upsertContact(senderId, pageId, {
+          name: profile?.name,
+          username: profile?.username,
+          isFollower: isFollower ?? undefined, // Only update if not null
+        });
+        console.log("Contact ingested:", { senderId, isFollower });
+      }
+    }
+  } catch (ingestError) {
+    console.error("Contact ingestion failed:", ingestError);
+    // Non-blocking: Continue flow execution even if ingestion fails
+  }
 
   try {
     // Match keywords for DM
