@@ -19,7 +19,7 @@ import type {
  * Simply passes data through to connected children
  */
 export class YesNodeExecutor implements INodeExecutor {
-  readonly type = "condition";
+  readonly type = "branch"; // Pass-through, not a condition evaluator
   readonly subType = "YES";
   readonly description = "Continue flow when condition is true";
 
@@ -50,7 +50,7 @@ export class YesNodeExecutor implements INodeExecutor {
  * Simply passes data through to connected children
  */
 export class NoNodeExecutor implements INodeExecutor {
-  readonly type = "condition";
+  readonly type = "branch"; // Pass-through, not a condition evaluator
   readonly subType = "NO";
   readonly description = "Continue flow when condition is false";
 
