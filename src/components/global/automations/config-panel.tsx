@@ -14,6 +14,7 @@ import {
   useAutomationPosts,
   useEditAutomation,
   useDeleteAutomation,
+  useDetachPost,
 } from "@/hooks/use-automations";
 import {
   Loader2,
@@ -59,6 +60,7 @@ const ConfigPanel = ({
     mutate: savePosts,
     isPending: isSavingPosts,
   } = useAutomationPosts(id);
+  const { detach: detachPost, isDetaching } = useDetachPost(id);
   const { onSetListener, register, onFormSubmit, listener, isPending } =
     useListener(id);
 
@@ -126,7 +128,7 @@ const ConfigPanel = ({
     if (!selectedNode) return;
     const currentKeywords = formData.keywords || [];
     const updatedKeywords = currentKeywords.filter(
-      (k: string) => k !== keyword
+      (k: string) => k !== keyword,
     );
     const newConfig = { ...formData, keywords: updatedKeywords };
     setFormData(newConfig);
@@ -210,7 +212,7 @@ const ConfigPanel = ({
                 setNewKeyword(
                   selectedNode?.data.subType === "POSTBACK"
                     ? e.target.value.toUpperCase().replace(/\s+/g, "_")
-                    : e.target.value
+                    : e.target.value,
                 )
               }
               onKeyDown={handleKeywordKeyDown}
@@ -259,7 +261,7 @@ const ConfigPanel = ({
         onUpdateNode(nodeId, config);
       }
     },
-    300
+    300,
   );
 
   const handleAutoSave = (field: string, value: any) => {
@@ -506,7 +508,7 @@ const ConfigPanel = ({
 
     const updateButton = (index: number, field: string, value: string) => {
       const newButtons = buttons.map((btn: any, i: number) =>
-        i === index ? { ...btn, [field]: value } : btn
+        i === index ? { ...btn, [field]: value } : btn,
       );
       setFormData({ ...formData, buttons: newButtons });
     };
@@ -611,7 +613,7 @@ const ConfigPanel = ({
                         updateButton(
                           index,
                           "payload",
-                          e.target.value.toUpperCase().replace(/\s+/g, "_")
+                          e.target.value.toUpperCase().replace(/\s+/g, "_"),
                         )
                       }
                       placeholder="e.g., BUY_NOW, VIEW_DETAILS, GET_STARTED"
@@ -660,14 +662,14 @@ const ConfigPanel = ({
 
     const updateIceBreaker = (index: number, field: string, value: string) => {
       const newIceBreakers = iceBreakers.map((ib: any, i: number) =>
-        i === index ? { ...ib, [field]: value } : ib
+        i === index ? { ...ib, [field]: value } : ib,
       );
       setFormData({ ...formData, iceBreakers: newIceBreakers });
     };
 
     const removeIceBreaker = (index: number) => {
       const newIceBreakers = iceBreakers.filter(
-        (_: any, i: number) => i !== index
+        (_: any, i: number) => i !== index,
       );
       setFormData({ ...formData, iceBreakers: newIceBreakers });
     };
@@ -741,7 +743,7 @@ const ConfigPanel = ({
                       updateIceBreaker(
                         index,
                         "payload",
-                        e.target.value.toUpperCase().replace(/\s+/g, "_")
+                        e.target.value.toUpperCase().replace(/\s+/g, "_"),
                       )
                     }
                     placeholder="e.g., HOURS_INFO, PRICING, CONTACT_US"
@@ -801,7 +803,7 @@ const ConfigPanel = ({
 
     const updateMenuItem = (index: number, field: string, value: string) => {
       const newItems = menuItems.map((item: any, i: number) =>
-        i === index ? { ...item, [field]: value } : item
+        i === index ? { ...item, [field]: value } : item,
       );
       setFormData({ ...formData, menuItems: newItems });
     };
@@ -902,7 +904,7 @@ const ConfigPanel = ({
                         updateMenuItem(
                           index,
                           "payload",
-                          e.target.value.toUpperCase().replace(/\s+/g, "_")
+                          e.target.value.toUpperCase().replace(/\s+/g, "_"),
                         )
                       }
                       placeholder="e.g., MENU_HOURS, MENU_HELP, MENU_PRICING"
@@ -938,7 +940,7 @@ const ConfigPanel = ({
             menuItems.some(
               (item: any) =>
                 !item.title ||
-                (item.type === "web_url" ? !item.url : !item.payload)
+                (item.type === "web_url" ? !item.url : !item.payload),
             )
           }
           className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
@@ -1135,7 +1137,7 @@ const ConfigPanel = ({
 
     const removeQuickReply = (index: number) => {
       const updated = quickReplies.filter(
-        (_: unknown, i: number) => i !== index
+        (_: unknown, i: number) => i !== index,
       );
       setFormData({ ...formData, quickReplies: updated });
     };
@@ -1177,7 +1179,7 @@ const ConfigPanel = ({
             {quickReplies.map(
               (
                 qr: { content_type: string; title?: string; payload?: string },
-                index: number
+                index: number,
               ) => (
                 <div
                   key={index}
@@ -1206,7 +1208,7 @@ const ConfigPanel = ({
                             updateQuickReply(
                               index,
                               "title",
-                              e.target.value.substring(0, 20)
+                              e.target.value.substring(0, 20),
                             )
                           }
                           placeholder="Button title (max 20 chars)"
@@ -1232,7 +1234,7 @@ const ConfigPanel = ({
                             updateQuickReply(
                               index,
                               "payload",
-                              e.target.value.toUpperCase().replace(/\s+/g, "_")
+                              e.target.value.toUpperCase().replace(/\s+/g, "_"),
                             )
                           }
                           placeholder="e.g., OPTION_A, YES, NO, INTERESTED"
@@ -1245,7 +1247,7 @@ const ConfigPanel = ({
                     </div>
                   )}
                 </div>
-              )
+              ),
             )}
           </div>
 
@@ -1349,10 +1351,10 @@ const ConfigPanel = ({
               Currently Attached ({attachedPosts.length})
             </p>
             <div className="grid grid-cols-3 gap-2">
-              {attachedPosts.map((post: any) => (
+              {attachedPosts.map((post: any, index: number) => (
                 <div
-                  key={post.postid}
-                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-neutral-800"
+                  key={`${post.postid}-${index}`}
+                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-neutral-800 group"
                 >
                   <Image
                     fill
@@ -1364,6 +1366,15 @@ const ConfigPanel = ({
                   <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
                     <CheckCircle className="text-white" size={20} />
                   </div>
+                  {/* Detach button on hover */}
+                  <button
+                    onClick={() => detachPost({ postid: post.postid })}
+                    disabled={isDetaching}
+                    className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    title="Detach post"
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -1501,6 +1512,100 @@ const ConfigPanel = ({
           />
         </div>
       )}
+
+      {selectedNode?.data.subType === "IS_FOLLOWER" && (
+        <div className="space-y-4">
+          {/* Send Follow Prompt Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Send Follow Prompt
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Send a button template when user is not following
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  sendFollowPrompt: !formData.sendFollowPrompt,
+                })
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                formData.sendFollowPrompt !== false
+                  ? "bg-green-500"
+                  : "bg-gray-300 dark:bg-neutral-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formData.sendFollowPrompt !== false
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Prompt Message */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Prompt Message
+            </label>
+            <textarea
+              value={
+                formData.promptMessage ||
+                "Hey! Follow us to stay updated with our latest content!"
+              }
+              onChange={(e) =>
+                setFormData({ ...formData, promptMessage: e.target.value })
+              }
+              placeholder="Message to show non-followers"
+              rows={3}
+              maxLength={640}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              {(formData.promptMessage || "").length}/640 characters
+            </p>
+          </div>
+
+          {/* Button Text */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Button Text
+            </label>
+            <input
+              type="text"
+              value={formData.buttonText || "Follow Us"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  buttonText: e.target.value.substring(0, 20),
+                })
+              }
+              placeholder="Follow Us"
+              maxLength={20}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              {(formData.buttonText || "Follow Us").length}/20 characters
+            </p>
+          </div>
+
+          {/* Save Button */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isPending}
+            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {isPending ? "Saving..." : "Save Configuration"}
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -1560,7 +1665,7 @@ const ConfigPanel = ({
     <div
       className={cn(
         "w-80 bg-white dark:bg-neutral-900 border-l border-gray-200 dark:border-neutral-800 flex flex-col",
-        className
+        className,
       )}
     >
       {/* Header */}
@@ -1614,7 +1719,7 @@ const AutomationControls = ({
   const { isPending: isDeleting, mutate: deleteAutomation } =
     useDeleteAutomation(automationId);
   const [name, setName] = useState(
-    automationData?.name || "Untitled Automation"
+    automationData?.name || "Untitled Automation",
   );
 
   useEffect(() => {
@@ -1631,7 +1736,7 @@ const AutomationControls = ({
   const handleDeleteAutomation = () => {
     if (
       confirm(
-        "Are you sure you want to delete this automation? This action cannot be undone."
+        "Are you sure you want to delete this automation? This action cannot be undone.",
       )
     ) {
       deleteAutomation(
@@ -1643,7 +1748,7 @@ const AutomationControls = ({
             const slug = pathParts[2];
             window.location.href = `/dashboard/${slug}/automations`;
           },
-        }
+        },
       );
     }
   };
@@ -1702,7 +1807,7 @@ const AutomationControls = ({
             <div
               className={cn(
                 "w-2 h-2 rounded-full",
-                automationData?.active ? "bg-green-500" : "bg-gray-400"
+                automationData?.active ? "bg-green-500" : "bg-gray-400",
               )}
             />
             <span className="text-sm font-medium text-gray-900 dark:text-white">

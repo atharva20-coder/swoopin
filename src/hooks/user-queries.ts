@@ -249,6 +249,7 @@ export const useQueryAutomation = (id: string) => {
   return useQuery<AutomationApiResponse>({
     queryKey: ["automation-info", id],
     queryFn: () => fetchAutomationInfo(id),
+    staleTime: 30 * 1000, // Cache for 30 seconds to prevent infinite refetches
   });
 };
 

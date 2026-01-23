@@ -917,6 +917,8 @@ export const checkIfFollower = async (
   token: string,
 ): Promise<boolean | null> => {
   try {
+    console.log(`[checkIfFollower] Checking ${userIgsid} for page ${pageId}`);
+
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userIgsid}`,
       {
@@ -930,12 +932,24 @@ export const checkIfFollower = async (
       },
     );
 
+    console.log(
+      `[checkIfFollower] API Response:`,
+      JSON.stringify(response.data, null, 2),
+    );
+
     if (typeof response.data?.is_user_follow_business === "boolean") {
+      console.log(
+        `[checkIfFollower] Result: ${response.data.is_user_follow_business}`,
+      );
       return response.data.is_user_follow_business;
     }
+
+    console.log(
+      `[checkIfFollower] is_user_follow_business field not found in response`,
+    );
     return null;
   } catch (error) {
-    console.error("Error checking follower status:", error);
+    console.error("[checkIfFollower] Error checking follower status:", error);
     return null;
   }
 };

@@ -46,6 +46,38 @@ const receiver = new Receiver({
   nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
 });
 
+// =================================================================
+// COMMENT DEDUPLICATION
+// In-memory tracking of processed comments to prevent duplicate replies.
+// Uses Map with timestamps for TTL-based cleanup (1 hour retention).
+// =================================================================
+const processedComments = new Map<string, number>();
+const COMMENT_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function isCommentProcessed(commentId: string): boolean {
+  const timestamp = processedComments.get(commentId);
+  if (!timestamp) return false;
+  // Check if TTL expired
+  if (Date.now() - timestamp > COMMENT_TTL_MS) {
+    processedComments.delete(commentId);
+    return false;
+  }
+  return true;
+}
+
+function markCommentProcessed(commentId: string): void {
+  processedComments.set(commentId, Date.now());
+  // Cleanup old entries periodically (every 100 entries)
+  if (processedComments.size > 100) {
+    const now = Date.now();
+    for (const [id, ts] of processedComments.entries()) {
+      if (now - ts > COMMENT_TTL_MS) {
+        processedComments.delete(id);
+      }
+    }
+  }
+}
+
 export async function POST(req: NextRequest) {
   // Verify request is from QStash
   const signature = req.headers.get("upstash-signature");
@@ -158,6 +190,7 @@ export async function POST(req: NextRequest) {
       const change = webhook_payload.entry[0].changes[0];
       const pageId = webhook_payload.entry[0].id;
       const senderId = change?.value?.from?.id;
+      const parentId = change?.value?.parent_id;
 
       // Infinite loop protection: Ignore comments from the page itself
       if (senderId === pageId) {
@@ -166,6 +199,34 @@ export async function POST(req: NextRequest) {
           { message: "Self-comment ignored" },
           { status: 200 },
         );
+      }
+
+      // Infinite loop protection: Ignore comment REPLIES (has parent_id)
+      // These are sub-comments, which include bot's own replies to user comments
+      if (parentId) {
+        console.log(
+          "Skipping comment reply (sub-comment) - infinite loop protection",
+        );
+        return NextResponse.json(
+          { message: "Comment reply ignored" },
+          { status: 200 },
+        );
+      }
+
+      // Deduplication: Skip if this comment was already processed
+      const commentId = change?.value?.id;
+      if (commentId && isCommentProcessed(commentId)) {
+        console.log(`Comment ${commentId} already processed - skipping`);
+        return NextResponse.json(
+          { message: "Comment already processed" },
+          { status: 200 },
+        );
+      }
+
+      // Mark comment as processed BEFORE attempting to reply
+      // This prevents race conditions where multiple webhook deliveries could trigger
+      if (commentId) {
+        markCommentProcessed(commentId);
       }
 
       const commentText = change?.value?.text;
@@ -240,9 +301,11 @@ export async function POST(req: NextRequest) {
           mediaId: isComment
             ? webhook_payload.entry[0].changes[0].value.media?.id
             : undefined,
-          triggerType: (matcher as any).isCatchAll
-            ? ((isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT")
-            : "KEYWORDS",
+          triggerType: ((matcher as any).isCatchAll
+            ? isMessage
+              ? "DM"
+              : "COMMENT"
+            : "KEYWORDS") as "DM" | "COMMENT" | "KEYWORDS",
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };

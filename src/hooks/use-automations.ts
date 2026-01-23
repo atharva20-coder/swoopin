@@ -42,7 +42,7 @@ async function saveListener(
   listener: string,
   prompt: string,
   reply: string,
-  carouselTemplateId?: string
+  carouselTemplateId?: string,
 ) {
   const res = await fetch(`/api/v1/automations/${automationId}/listener`, {
     method: "POST",
@@ -59,13 +59,21 @@ async function savePosts(
     caption?: string;
     media: string;
     mediaType: string;
-  }>
+  }>,
 ) {
   const res = await fetch(`/api/v1/automations/${automationId}/posts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ posts }),
   });
+  return res.json();
+}
+
+async function detachPost(automationId: string, postid: string) {
+  const res = await fetch(
+    `/api/v1/automations/${automationId}/posts/${encodeURIComponent(postid)}`,
+    { method: "DELETE" },
+  );
   return res.json();
 }
 
@@ -80,7 +88,7 @@ async function saveTrigger(automationId: string, types: string[]) {
 
 async function updateAutomationName(
   automationId: string,
-  data: { name: string }
+  data: { name: string },
 ) {
   const res = await fetch(`/api/v1/automations/${automationId}`, {
     method: "PATCH",
@@ -94,7 +102,7 @@ export const useCreateAutomation = (id?: string) => {
   const { isPending, mutate } = useMutationData(
     ["create-automation"],
     () => createAutomations(id),
-    "user-automations"
+    "user-automations",
   );
 
   return { isPending, mutate };
@@ -103,7 +111,7 @@ export const useDeleteAutomation = (id: string) => {
   const { isPending, mutate } = useMutationData(
     ["delete-automation"],
     () => deleteAutomations(id),
-    "user-automations"
+    "user-automations",
   );
 
   return { isPending, mutate };
@@ -119,7 +127,7 @@ export const useEditAutomation = (automationId: string) => {
     (data: { name: string }) =>
       updateAutomationName(automationId, { name: data.name }),
     "automation-info",
-    disableEdit
+    disableEdit,
   );
 
   useEffect(() => {
@@ -180,14 +188,23 @@ export const useAutomationPosts = (id: string) => {
     ["attach-posts"],
     () => savePosts(id, posts),
     "automation-info",
-    () => setPosts([])
+    () => setPosts([]),
   );
   return { posts, onSelectPost, mutate, isPending };
 };
 
+export const useDetachPost = (automationId: string) => {
+  const { mutate, isPending } = useMutationData(
+    ["detach-post"],
+    (data: { postid: string }) => detachPost(automationId, data.postid),
+    "automation-info",
+  );
+  return { detach: mutate, isDetaching: isPending };
+};
+
 export const useTriggers = (id: string) => {
   const types = useAppSelector(
-    (state) => state.AutomationReducer.trigger?.types
+    (state) => state.AutomationReducer.trigger?.types,
   );
 
   const dispatch: AppDispatch = useDispatch();
@@ -198,7 +215,7 @@ export const useTriggers = (id: string) => {
   const { isPending, mutate } = useMutationData(
     ["add-trigger"],
     (data: { types: string[] }) => saveTrigger(id, data.types),
-    "automation-info"
+    "automation-info",
   );
 
   const onSaveTrigger = () => mutate({ types });
@@ -213,7 +230,7 @@ export const useKeywords = (id: string) => {
     ["add-keyword"],
     (data: { keyword: string }) => saveKeyword(id, data.keyword),
     "automation-info",
-    () => setKeyword("")
+    () => setKeyword(""),
   );
 
   const onKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -226,7 +243,7 @@ export const useKeywords = (id: string) => {
   const { mutate: deleteMutation } = useMutationData(
     ["delete-keyword"],
     (data: { id: string }) => deleteKeyword(data.id),
-    "automation-info"
+    "automation-info",
   );
 
   return { keyword, onValueChange, onKeyPress, deleteMutation };
@@ -251,14 +268,14 @@ export const useListener = (id: string) => {
         listener || "MESSAGE",
         data.prompt,
         data.reply,
-        data.carouselTemplateId
+        data.carouselTemplateId,
       ),
-    "automation-info"
+    "automation-info",
   );
 
   const { errors, onFormSubmit, register, reset, watch } = useZodForm(
     promptSchema,
-    mutate
+    mutate,
   );
 
   const onSetListener = (type: "SMARTAI" | "MESSAGE" | "CAROUSEL") =>

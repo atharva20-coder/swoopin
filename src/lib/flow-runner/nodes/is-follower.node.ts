@@ -2,6 +2,7 @@
  * ============================================
  * CONDITION: IS FOLLOWER
  * Checks if the sender is following the page.
+ * If not following, sends a button template with Follow button.
  * ============================================
  */
 
@@ -12,7 +13,11 @@ import type {
   NodeExecutionResult,
   ExecutionLogEntry,
 } from "../types";
-import { checkIfFollower, getUserProfile } from "@/lib/fetch";
+import {
+  checkIfFollower,
+  getUserProfile,
+  sendButtonTemplate,
+} from "@/lib/fetch";
 import {
   getContact,
   updateFollowerStatus,
@@ -25,7 +30,7 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
   readonly description = "Check if user is following the page";
 
   async execute(
-    _config: Record<string, unknown>,
+    config: Record<string, unknown>,
     items: ItemData[],
     context: ExecutionContext,
   ): Promise<NodeExecutionResult> {
@@ -34,15 +39,24 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
 
     const { token, pageId, senderId } = context;
 
+    // Configurable settings with defaults
+    const sendFollowPrompt = config.sendFollowPrompt !== false; // Default: true
+    const promptMessage =
+      (config.promptMessage as string) ||
+      "Hey! Follow us to stay updated with our latest content!";
+    const buttonText = (config.buttonText as string) || "Follow Us";
+
     logs.push({
       timestamp: startTime,
       level: "info",
       message: "Checking if user is follower",
-      data: { senderId },
+      data: { senderId, sendFollowPrompt },
     });
 
     try {
       let isFollower = false;
+      let username: string | undefined;
+
       const apiResult = await checkIfFollower(pageId, senderId, token);
 
       if (apiResult !== null) {
@@ -50,18 +64,12 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
         isFollower = apiResult;
 
         // Sync state to DB
-        // We might need to fetch profile if we don't have basic details, but for now just update status
         try {
-          // We upsert to ensure record exists. We try to get profile for name/username if possible
-          // But to keep it fast, we might just update status if contact exists, or create minimal contact.
-          // Let's attempt to get profile only if we are creating.
-          // Ideally, webhook created it.
-
           await updateFollowerStatus(senderId, pageId, isFollower).catch(
             async () => {
               // If update fails (does not exist), we need to create it.
-              // Fetch profile first
               const profile = await getUserProfile(senderId, token);
+              username = profile?.username;
               await upsertContact(senderId, pageId, {
                 name: profile?.name,
                 username: profile?.username,
@@ -90,6 +98,73 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
           message: `API Failed. DB Fallback: ${isFollower}`,
           data: { source: "DB", isFollower, dbRecordFound: !!contact },
         });
+      }
+
+      // If NOT a follower and sendFollowPrompt is enabled, send button template
+      if (!isFollower && sendFollowPrompt) {
+        logs.push({
+          timestamp: Date.now(),
+          level: "info",
+          message: "User is not a follower - sending follow prompt",
+        });
+
+        try {
+          // Fetch page's Instagram username to build profile URL
+          const pageProfile = await getUserProfile(pageId, token);
+          const pageUsername = pageProfile?.username;
+
+          if (pageUsername) {
+            const followUrl = `https://www.instagram.com/${pageUsername}`;
+
+            const result = await sendButtonTemplate(
+              pageId,
+              senderId,
+              promptMessage,
+              [
+                {
+                  type: "web_url",
+                  title: buttonText.substring(0, 20), // Max 20 chars
+                  url: followUrl,
+                },
+              ],
+              token,
+            );
+
+            if (result.success) {
+              logs.push({
+                timestamp: Date.now(),
+                level: "info",
+                message: "Follow prompt sent successfully",
+                data: { messageId: result.messageId, followUrl },
+              });
+            } else {
+              logs.push({
+                timestamp: Date.now(),
+                level: "warn",
+                message: "Failed to send follow prompt",
+                data: { error: result.error },
+              });
+            }
+          } else {
+            logs.push({
+              timestamp: Date.now(),
+              level: "warn",
+              message: "Could not determine page username for follow URL",
+            });
+          }
+        } catch (followError) {
+          logs.push({
+            timestamp: Date.now(),
+            level: "error",
+            message: "Exception sending follow prompt",
+            data: {
+              error:
+                followError instanceof Error
+                  ? followError.message
+                  : String(followError),
+            },
+          });
+        }
       }
 
       logs.push({
