@@ -367,10 +367,17 @@ export class WorkflowRunner {
   private findTriggerNode(): FlowNodeRuntime | undefined {
     const nodeArray = Array.from(this.nodes.values());
     for (const node of nodeArray) {
-      if (
-        node.type === "trigger" &&
-        node.subType === this.context.triggerType
-      ) {
+      // Logic update: Allow "filter" nodes like KEYWORDS to be triggers
+      // if they match the context trigger type.
+      // This respects the "Valve as Source" metaphor when the valve IS the event.
+      const isMatchingTrigger =
+        node.type === "trigger" && node.subType === this.context.triggerType;
+
+      const isMatchingFilter =
+        (node.type === "filter" || node.subType === "KEYWORDS") &&
+        node.subType === this.context.triggerType;
+
+      if (isMatchingTrigger || isMatchingFilter) {
         return node;
       }
     }

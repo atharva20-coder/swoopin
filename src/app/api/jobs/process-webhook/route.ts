@@ -155,7 +155,20 @@ export async function POST(req: NextRequest) {
 
     // Match keywords for Comment
     if (!matcher && webhook_payload.entry[0].changes) {
-      const commentText = webhook_payload.entry[0].changes[0]?.value?.text;
+      const change = webhook_payload.entry[0].changes[0];
+      const pageId = webhook_payload.entry[0].id;
+      const senderId = change?.value?.from?.id;
+
+      // Infinite loop protection: Ignore comments from the page itself
+      if (senderId === pageId) {
+        console.log("Skipping comment from self (infinite loop protection)");
+        return NextResponse.json(
+          { message: "Self-comment ignored" },
+          { status: 200 },
+        );
+      }
+
+      const commentText = change?.value?.text;
       if (commentText) {
         matcher = await matchKeyword(commentText, "COMMENT");
       }
@@ -227,7 +240,9 @@ export async function POST(req: NextRequest) {
           mediaId: isComment
             ? webhook_payload.entry[0].changes[0].value.media?.id
             : undefined,
-          triggerType: (isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT",
+          triggerType: (matcher as any).isCatchAll
+            ? ((isMessage ? "DM" : "COMMENT") as "DM" | "COMMENT")
+            : "KEYWORDS",
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };

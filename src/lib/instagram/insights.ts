@@ -76,16 +76,16 @@ export interface InsightsResponse<T> {
 export async function getAccountInsights(
   userId: string,
   token: string,
-  period: "day" | "week" | "days_28" = "days_28"
+  period: "day" | "week" | "days_28" = "days_28",
 ): Promise<InsightsResponse<AccountInsights>> {
   return await getOrSetCache(
     `user:${userId}:insights`,
     async () => {
       try {
         // Valid metrics for v21.0 (from API error response)
+        // NOTE: removed follower_count as it causes errors with 'days_28' period
         const metrics = [
           "reach",
-          "follower_count",
           "profile_views",
           "website_clicks",
           "total_interactions",
@@ -103,7 +103,7 @@ export async function getAccountInsights(
               Authorization: `Bearer ${token}`,
             },
             timeout: 10000,
-          }
+          },
         );
 
         const data = response.data.data as InsightMetric[];
@@ -115,7 +115,7 @@ export async function getAccountInsights(
 
         const insights: AccountInsights = {
           reach: getValue("reach"),
-          followerCount: getValue("follower_count"),
+          followerCount: 0, // Fetched via Profile API separately
           profileViews: getValue("profile_views"),
           websiteClicks: getValue("website_clicks"),
           totalInteractions: getValue("total_interactions"),
@@ -124,6 +124,19 @@ export async function getAccountInsights(
 
         return { success: true, data: insights };
       } catch (error) {
+        // Detailed Logging for Debugging
+        if (axios.isAxiosError(error)) {
+          console.error("[Insights API Error] Status:", error.response?.status);
+          console.error("[Insights API Error] URL:", error.config?.url);
+          console.error("[Insights API Error] Params:", error.config?.params);
+          console.error(
+            "[Insights API Error] Response:",
+            JSON.stringify(error.response?.data, null, 2),
+          );
+        } else {
+          console.error("[Insights API Error] Unknown:", error);
+        }
+
         // 403 errors are expected when permission not granted - handle silently
         if (!is403PermissionError(error)) {
           console.error("Error fetching account insights:", error);
@@ -131,7 +144,7 @@ export async function getAccountInsights(
         return { success: false, error: getErrorMessage(error) };
       }
     },
-    300 // 5 minutes TTL
+    300, // 5 minutes TTL
   );
 }
 
@@ -146,7 +159,7 @@ export async function getAccountInsights(
  */
 export async function getAudienceInsights(
   userId: string,
-  token: string
+  token: string,
 ): Promise<InsightsResponse<AudienceInsights>> {
   try {
     // Valid demographic metrics for v21.0
@@ -168,14 +181,12 @@ export async function getAudienceInsights(
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
     const data = response.data.data as InsightMetric[];
 
-    const parseDemographic = (
-      metricName: string
-    ): AudienceDemographic[] => {
+    const parseDemographic = (metricName: string): AudienceDemographic[] => {
       const metric = data.find((m) => m.name === metricName);
       if (!metric?.values[0]?.value) return [];
 
@@ -183,9 +194,9 @@ export async function getAudienceInsights(
         string,
         number
       >;
-      
+
       if (typeof breakdown !== "object") return [];
-      
+
       const total = Object.values(breakdown).reduce((a, b) => a + b, 0);
 
       return Object.entries(breakdown)
@@ -224,17 +235,11 @@ export async function getAudienceInsights(
  */
 export async function getMediaInsights(
   mediaId: string,
-  token: string
+  token: string,
 ): Promise<InsightsResponse<MediaInsight>> {
   try {
     // Valid media metrics for v21.0
-    const metrics = [
-      "reach",
-      "likes",
-      "comments",
-      "saves",
-      "shares",
-    ].join(",");
+    const metrics = ["reach", "likes", "comments", "saves", "shares"].join(",");
 
     const response = await axios.get(
       `${process.env.INSTAGRAM_BASE_URL}/v21.0/${mediaId}/insights`,
@@ -244,7 +249,7 @@ export async function getMediaInsights(
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
     const data = response.data.data as InsightMetric[];
@@ -267,9 +272,8 @@ export async function getMediaInsights(
       comments,
       saves,
       shares,
-      engagement: reach > 0
-        ? ((likes + comments + saves + shares) / reach) * 100
-        : 0,
+      engagement:
+        reach > 0 ? ((likes + comments + saves + shares) / reach) * 100 : 0,
     };
 
     return { success: true, data: insight };
@@ -297,7 +301,7 @@ export interface FollowerGrowthPoint {
  */
 export async function getFollowerGrowth(
   userId: string,
-  token: string
+  token: string,
 ): Promise<InsightsResponse<FollowerGrowthPoint[]>> {
   try {
     const response = await axios.get(
@@ -311,7 +315,7 @@ export async function getFollowerGrowth(
           Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-      }
+      },
     );
 
     const metric = response.data.data?.[0] as InsightMetric | undefined;
@@ -320,24 +324,25 @@ export async function getFollowerGrowth(
     }
 
     let previousValue = 0;
-    const growthData: FollowerGrowthPoint[] = metric.values.map(
-      (v, index) => {
-        const val = typeof v.value === "number" ? v.value : 0;
-        const change = index === 0 ? 0 : val - previousValue;
-        previousValue = val;
-        return {
-          date: v.end_time || new Date().toISOString(),
-          followers: val,
-          change,
-        };
-      }
-    );
+    const growthData: FollowerGrowthPoint[] = metric.values.map((v, index) => {
+      const val = typeof v.value === "number" ? v.value : 0;
+      const change = index === 0 ? 0 : val - previousValue;
+      previousValue = val;
+      return {
+        date: v.end_time || new Date().toISOString(),
+        followers: val,
+        change,
+      };
+    });
 
     return { success: true, data: growthData };
   } catch (error) {
     // 403 errors are expected when permission not granted - handle silently
     if (!is403PermissionError(error)) {
-      console.error("Error fetching follower growth: Require App Review from meta", error);
+      console.error(
+        "Error fetching follower growth: Require App Review from meta",
+        error,
+      );
     }
     return { success: false, error: getErrorMessage(error) };
   }

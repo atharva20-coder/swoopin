@@ -50,7 +50,7 @@ export interface ExecutionContext {
   messageText?: string;
   commentId?: string;
   mediaId?: string;
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION";
+  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
   isStoryReply?: boolean;
 
   // User subscription (for feature gating)
@@ -174,7 +174,7 @@ export interface FlowExecutionResult {
 export interface TestRunRequest {
   nodes: FlowNodeRuntime[];
   edges: FlowEdgeRuntime[];
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION";
+  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
   /** Mock input data for testing */
   mockInput?: {
     messageText?: string;

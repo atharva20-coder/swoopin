@@ -106,6 +106,7 @@ export class KeywordsNodeExecutor implements INodeExecutor {
             ...item.json,
             keywordMatched: true,
             keywordMatchedWord: matchedKeyword,
+            conditionResult: true, // Required for 'condition' node type execution logic
           },
         })),
         message: `Keyword matched: ${matchedKeyword}`,

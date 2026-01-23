@@ -63,6 +63,12 @@ export function getExecutor(
 export function getExecutorForNode(
   node: FlowNodeRuntime,
 ): INodeExecutor | undefined {
+  // Special handling for KEYWORDS: it's registered as "filter" but might be stored
+  // as "trigger" or "condition" in the DB depending on where it was dragged from.
+  if (node.subType === "KEYWORDS") {
+    return getExecutor("filter", "KEYWORDS");
+  }
+
   return getExecutor(node.type, node.subType);
 }
 

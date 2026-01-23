@@ -57,14 +57,7 @@ const TRIGGERS: NodeDefinition[] = [
     type: "DM",
     tier: "FREE",
   },
-  {
-    id: "keyword-reply",
-    label: "Keyword Match",
-    description: "Trigger on specific keyword",
-    icon: <Reply className="w-5 h-5" />,
-    type: "KEYWORDS",
-    tier: "FREE",
-  },
+
   {
     id: "select-posts",
     label: "Select Posts",
@@ -215,6 +208,14 @@ const CONDITIONS: NodeDefinition[] = [
     tier: "FREE",
   },
   {
+    id: "keyword-reply",
+    label: "Keyword Match",
+    description: "Continue if keyword matches",
+    icon: <Reply className="w-5 h-5" />,
+    type: "KEYWORDS",
+    tier: "FREE",
+  },
+  {
     id: "is-follower",
     label: "Is Follower",
     description: "Coming soon - Beta",
@@ -222,7 +223,6 @@ const CONDITIONS: NodeDefinition[] = [
     type: "IS_FOLLOWER",
     tier: "PRO",
     beta: true,
-    disabled: true,
   },
   {
     id: "delay",
@@ -379,7 +379,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   const onDragStart = (
     e: React.DragEvent,
     nodeType: "trigger" | "action" | "condition",
-    item: NodeDefinition
+    item: NodeDefinition,
   ) => {
     // Check if node is disabled (beta/coming soon)
     if (item.disabled) {
@@ -415,7 +415,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
         subType: item.type,
         label: item.label,
         description: item.description,
-      })
+      }),
     );
     e.dataTransfer.effectAllowed = "move";
   };
@@ -423,7 +423,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   const renderItem = (
     item: NodeDefinition,
     nodeType: "trigger" | "action" | "condition",
-    colorClass: string
+    colorClass: string,
   ) => {
     const usage = getUsageForNode(item.usageKey);
     const isDisabled = item.disabled;
@@ -437,7 +437,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
           "p-3 bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 transition-all",
           isDisabled
             ? "opacity-50 cursor-not-allowed"
-            : "cursor-grab hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 active:cursor-grabbing"
+            : "cursor-grab hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 active:cursor-grabbing",
         )}
       >
         <div className="flex items-center gap-2 mb-1">
@@ -470,7 +470,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
     <div
       className={cn(
         "w-64 bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col",
-        className
+        className,
       )}
     >
       <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
@@ -543,7 +543,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
           {expandedSections.conditions && (
             <div className="space-y-2">
               {CONDITIONS.map((c) =>
-                renderItem(c, "condition", "text-yellow-500")
+                renderItem(c, "condition", "text-yellow-500"),
               )}
             </div>
           )}
