@@ -213,22 +213,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Deduplication: Skip if this comment was already processed
-      const commentId = change?.value?.id;
-      if (commentId && isCommentProcessed(commentId)) {
-        console.log(`Comment ${commentId} already processed - skipping`);
-        return NextResponse.json(
-          { message: "Comment already processed" },
-          { status: 200 },
-        );
-      }
-
-      // Mark comment as processed BEFORE attempting to reply
-      // This prevents race conditions where multiple webhook deliveries could trigger
-      if (commentId) {
-        markCommentProcessed(commentId);
-      }
-
       const commentText = change?.value?.text;
       if (commentText) {
         matcher = await matchKeyword(commentText, "COMMENT");

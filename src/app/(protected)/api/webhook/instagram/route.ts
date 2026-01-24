@@ -5,34 +5,41 @@ import {
   verifyInstagramSignature,
   verifySubscription,
 } from "@/lib/instagram-webhook";
+import { getRedis } from "@/lib/redis";
 
 // =================================================================
-// COMMENT DEDUPLICATION (Global Map with TTL)
+// COMMENT DEDUPLICATION (Redis with TTL)
 // Prevents same comment from being queued multiple times
+// Uses Set-If-Not-Exists (NX) with 1 hour expiry
 // =================================================================
-const processedCommentsAtEntry = new Map<string, number>();
-const ENTRY_COMMENT_TTL_MS = 60 * 60 * 1000; // 1 hour
+const IDEMPOTENCY_TTL_SECONDS = 60 * 60; // 1 hour
 
-function isCommentProcessedAtEntry(commentId: string): boolean {
-  const timestamp = processedCommentsAtEntry.get(commentId);
-  if (!timestamp) return false;
-  if (Date.now() - timestamp > ENTRY_COMMENT_TTL_MS) {
-    processedCommentsAtEntry.delete(commentId);
-    return false;
+async function checkAndMarkProcessed(commentId: string): Promise<boolean> {
+  const redis = getRedis();
+
+  // If Redis is not configured, fall back to allow (better to process than drop)
+  // or implement in-memory fallback if critical.
+  // Ideally infrastructure is robust.
+  if (!redis) {
+    console.warn("Redis not configured - skipping deduplication check");
+    return false; // False means "not processed yet", so we proceed
   }
-  return true;
-}
 
-function markCommentProcessedAtEntry(commentId: string): void {
-  processedCommentsAtEntry.set(commentId, Date.now());
-  // Cleanup old entries every 100 entries
-  if (processedCommentsAtEntry.size > 100) {
-    const now = Date.now();
-    for (const [id, ts] of processedCommentsAtEntry.entries()) {
-      if (now - ts > ENTRY_COMMENT_TTL_MS) {
-        processedCommentsAtEntry.delete(id);
-      }
-    }
+  const key = `processed:comment:${commentId}`;
+
+  try {
+    // SET key 1 EX 3600 NX
+    // Returns "OK" (or 1 depending on client) if set, null if already exists
+    const result = await redis.set(key, "1", {
+      ex: IDEMPOTENCY_TTL_SECONDS,
+      nx: true,
+    });
+
+    // If result is null, key existed -> Already processed
+    return result === null;
+  } catch (error) {
+    console.error("Redis error checking deduplication:", error);
+    return false; // Fail open to ensure processing
   }
 }
 /**
@@ -127,18 +134,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Skip already processed comments (using global Set with 1h TTL)
-    if (commentId && isCommentProcessedAtEntry(commentId)) {
-      console.log(`Instagram webhook: Comment ${commentId} already processed`);
+    // Skip already processed comments (Redis persistent check)
+    // checkAndMarkProcessed returns true if the key existed (already processed)
+    // and sets it if it didn't exist (marking it as processed)
+    if (commentId && (await checkAndMarkProcessed(commentId))) {
+      console.log(
+        `Instagram webhook: Comment ${commentId} already processed (Redis)`,
+      );
       return NextResponse.json(
         { message: "Comment already processed" },
         { status: 200 },
       );
-    }
-
-    // Mark comment as processed BEFORE queueing
-    if (commentId) {
-      markCommentProcessedAtEntry(commentId);
     }
   }
 
