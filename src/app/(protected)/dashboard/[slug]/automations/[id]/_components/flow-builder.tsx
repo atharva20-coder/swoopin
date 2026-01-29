@@ -616,18 +616,18 @@ const FlowManager = ({ automationId, slug }: Props) => {
               )}
             </Button>
           </div>
-        </div>
 
-        {/* Right panel - Configuration */}
-        <ConfigPanel
-          id={automationId}
-          selectedNode={selectedNode}
-          onUpdateNode={handleUpdateNode}
-          onDeleteNode={handleDeleteNode}
-        />
+          {/* Right panel - Configuration (Floating) */}
+          <ConfigPanel
+            id={automationId}
+            selectedNode={selectedNode}
+            onUpdateNode={handleUpdateNode}
+            onDeleteNode={handleDeleteNode}
+            className="absolute right-4 top-4 z-20"
+          />
+        </div>
       </div>
     </div>
   );
 };
-
 export default FlowManager;

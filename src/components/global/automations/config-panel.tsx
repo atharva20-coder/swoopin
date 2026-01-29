@@ -25,6 +25,8 @@ import {
   ImageIcon,
   Edit2,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import CarouselTemplateForm from "../carouselTemplateForm";
 import Image from "next/image";
@@ -65,7 +67,8 @@ const ConfigPanel = ({
     useListener(id);
 
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [expanded, setExpanded] = useState(true);
+  // Use expanded for the node config sections if needed, but we need a panel-level collapse
+  const [isPanelExpanded, setIsPanelExpanded] = useState(true);
 
   const isPro = userData?.data?.subscription?.plan === "PRO";
 
@@ -73,6 +76,8 @@ const ConfigPanel = ({
   useEffect(() => {
     if (selectedNode?.data?.config) {
       setFormData(selectedNode.data.config);
+      // Auto-expand panel when a node is selected
+      setIsPanelExpanded(true);
     } else {
       setFormData({});
     }
@@ -1782,46 +1787,115 @@ const ConfigPanel = ({
     }
   };
 
+  // When collapsed, we only show the floating button
+  // When expanded, we show the full panel
+
+  // When collapsed, we show the floating button (via CSS)
+  // When expanded, we show the full panel
+
   return (
     <div
       className={cn(
-        "w-80 bg-white dark:bg-neutral-900 border-l border-gray-200 dark:border-neutral-800 flex flex-col",
-        className,
+        "flex flex-col transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]", // Custom easing for cleaner feel
+        isPanelExpanded
+          ? "w-96 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-2xl rounded-xl h-[calc(100vh-2rem)]"
+          : "w-12 h-12 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-lg rounded-full cursor-pointer hover:scale-110 active:scale-95", // Added active state
+        className, // This contains 'absolute right-4 top-4 z-20'
       )}
+      onClick={(e) => {
+        // If collapsed, clicking anywhere expands it
+        if (!isPanelExpanded) {
+          setIsPanelExpanded(true);
+        }
+      }}
+      style={{
+        // If expanded, fit to screen height minus margins
+        maxHeight: isPanelExpanded ? "calc(100vh - 2rem)" : "3rem",
+        bottom: isPanelExpanded ? "1rem" : "auto",
+        overflow: "hidden", // Important for masking content during resize
+      }}
     >
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {selectedNode ? "Configure Node" : "Configuration"}
-        </h2>
-        {selectedNode && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {selectedNode.data.type === "trigger" ? "Trigger" : "Action"}:{" "}
-            {selectedNode.data.label}
-          </p>
-        )}
-      </div>
+      <div className="relative w-full h-full">
+        {/* Collapsed State Icon - Absolute Center */}
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
+            isPanelExpanded
+              ? "opacity-0 pointer-events-none delay-0"
+              : "opacity-100 delay-100",
+          )}
+        >
+          <Edit2 size={20} className="text-gray-500 dark:text-gray-400" />
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {selectedNode ? (
-          <div className="space-y-4">
-            {renderConfigForm()}
+        {/* Expanded State Content - Absolute Cover or Relative */}
+        {/* Use min-w-[24rem] (96) to prevent reflow during width animation */}
+        <div
+          className={cn(
+            "w-96 h-full flex flex-col transition-opacity duration-300",
+            isPanelExpanded
+              ? "opacity-100 delay-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none",
+          )}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between shrink-0 h-16">
+            <div className="overflow-hidden flex items-center gap-2">
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400 shrink-0">
+                <Edit2 size={16} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                  {selectedNode ? "Configure Node" : "Configuration"}
+                </h2>
+                {selectedNode && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                    {selectedNode.data.type === "trigger"
+                      ? "Trigger"
+                      : "Action"}
+                    : {selectedNode.data.label}
+                  </p>
+                )}
+              </div>
+            </div>
 
-            {/* Delete Node Button */}
-            {onDeleteNode && (
-              <button
-                onClick={() => onDeleteNode(selectedNode.id)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Delete Node
-              </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPanelExpanded(false);
+              }}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 dark:text-gray-400 transition-colors shrink-0"
+              title="Collapse"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 w-full">
+            {selectedNode ? (
+              <div className="space-y-4">
+                {renderConfigForm()}
+
+                {/* Delete Node Button */}
+                {onDeleteNode && (
+                  <button
+                    onClick={() => onDeleteNode(selectedNode.id)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Delete Node
+                  </button>
+                )}
+              </div>
+            ) : (
+              <AutomationControls
+                automationId={id}
+                automationData={data?.data}
+              />
             )}
           </div>
-        ) : (
-          <AutomationControls automationId={id} automationData={data?.data} />
-        )}
+        </div>
       </div>
     </div>
   );

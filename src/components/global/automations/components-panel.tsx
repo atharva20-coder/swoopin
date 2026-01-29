@@ -13,6 +13,7 @@ import {
   MessageCircleReply,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   CheckCircle,
   XCircle,
   ImagePlus,
@@ -334,6 +335,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
     conditions: true,
   });
   const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -428,6 +430,29 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
     const usage = getUsageForNode(item.usageKey);
     const isDisabled = item.disabled;
 
+    if (isCollapsed) {
+      // Minimized view - Icon only with tooltip behavior (via title)
+      return (
+        <div
+          key={item.id}
+          draggable={!isDisabled}
+          onDragStart={(e) => onDragStart(e, nodeType, item)}
+          title={item.label}
+          className={cn(
+            "w-10 h-10 flex items-center justify-center bg-white dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700 transition-all",
+            isDisabled
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-grab hover:shadow-md hover:border-gray-300 dark:hover:border-neutral-600 active:cursor-grabbing hover:scale-105",
+          )}
+        >
+          <div className={cn(colorClass, isDisabled && "opacity-50")}>
+            {item.icon}
+          </div>
+        </div>
+      );
+    }
+
+    // Expanded view
     return (
       <div
         key={item.id}
@@ -469,79 +494,156 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   return (
     <div
       className={cn(
-        "w-64 bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col",
+        "bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col transition-all duration-300 ease-in-out pt-20",
+        isCollapsed ? "w-16 items-center" : "w-64",
         className,
       )}
     >
-      <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Components
-        </h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Drag to canvas to add
-        </p>
+      <div
+        className={cn(
+          "p-4 border-b border-gray-200 dark:border-neutral-800 flex items-center shrink-0 h-14",
+          isCollapsed ? "justify-center px-0" : "justify-between",
+        )}
+      >
+        {!isCollapsed && (
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Components
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Drag to canvas
+            </p>
+          </div>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={cn(
+            "p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg text-gray-500 dark:text-gray-400 transition-colors",
+            isCollapsed && "mx-auto",
+          )}
+          title={isCollapsed ? "Expand" : "Collapse"}
+        >
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <div>
-          <button
-            onClick={() => toggleSection("triggers")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
-          >
-            <span className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-500"></div>Triggers
-            </span>
-            {expandedSections.triggers ? (
-              <ChevronDown size={16} />
-            ) : (
-              <ChevronRight size={16} />
-            )}
-          </button>
-          {expandedSections.triggers && (
-            <div className="space-y-2">
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto p-4 space-y-6",
+          isCollapsed && "px-2 space-y-4",
+        )}
+      >
+        {/* Triggers Section */}
+        <div className={cn(isCollapsed && "flex flex-col items-center")}>
+          {!isCollapsed ? (
+            <button
+              onClick={() => toggleSection("triggers")}
+              className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>Triggers
+              </span>
+              {expandedSections.triggers ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </button>
+          ) : (
+            <div
+              className="w-3 h-3 rounded-full bg-blue-500 mb-2 opacity-50"
+              title="Triggers"
+            ></div>
+          )}
+
+          {(expandedSections.triggers || isCollapsed) && (
+            <div
+              className={cn(
+                "space-y-2",
+                isCollapsed && "flex flex-col gap-2 space-y-0",
+              )}
+            >
               {TRIGGERS.map((t) => renderItem(t, "trigger", "text-blue-500"))}
             </div>
           )}
         </div>
 
-        <div>
-          <button
-            onClick={() => toggleSection("actions")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
-          >
-            <span className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>Actions
-            </span>
-            {expandedSections.actions ? (
-              <ChevronDown size={16} />
-            ) : (
-              <ChevronRight size={16} />
-            )}
-          </button>
-          {expandedSections.actions && (
-            <div className="space-y-2">
+        {/* Actions Section */}
+        <div
+          className={cn(
+            isCollapsed &&
+              "flex flex-col items-center pt-2 border-t border-gray-200 dark:border-neutral-800",
+          )}
+        >
+          {!isCollapsed ? (
+            <button
+              onClick={() => toggleSection("actions")}
+              className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>Actions
+              </span>
+              {expandedSections.actions ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </button>
+          ) : (
+            <div
+              className="w-3 h-3 rounded-full bg-green-500 mb-2 opacity-50"
+              title="Actions"
+            ></div>
+          )}
+
+          {(expandedSections.actions || isCollapsed) && (
+            <div
+              className={cn(
+                "space-y-2",
+                isCollapsed && "flex flex-col gap-2 space-y-0",
+              )}
+            >
               {ACTIONS.map((a) => renderItem(a, "action", "text-green-500"))}
             </div>
           )}
         </div>
 
-        <div>
-          <button
-            onClick={() => toggleSection("conditions")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
-          >
-            <span className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              Conditions
-            </span>
-            {expandedSections.conditions ? (
-              <ChevronDown size={16} />
-            ) : (
-              <ChevronRight size={16} />
-            )}
-          </button>
-          {expandedSections.conditions && (
-            <div className="space-y-2">
+        {/* Conditions Section */}
+        <div
+          className={cn(
+            isCollapsed &&
+              "flex flex-col items-center pt-2 border-t border-gray-200 dark:border-neutral-800",
+          )}
+        >
+          {!isCollapsed ? (
+            <button
+              onClick={() => toggleSection("conditions")}
+              className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                Conditions
+              </span>
+              {expandedSections.conditions ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </button>
+          ) : (
+            <div
+              className="w-3 h-3 rounded-full bg-yellow-500 mb-2 opacity-50"
+              title="Conditions"
+            ></div>
+          )}
+
+          {(expandedSections.conditions || isCollapsed) && (
+            <div
+              className={cn(
+                "space-y-2",
+                isCollapsed && "flex flex-col gap-2 space-y-0",
+              )}
+            >
               {CONDITIONS.map((c) =>
                 renderItem(c, "condition", "text-yellow-500"),
               )}
