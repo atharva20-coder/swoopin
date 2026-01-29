@@ -168,10 +168,13 @@ class AutomationService {
 
   /**
    * Get automation by ID with full user data for internal webhook processing
-   * NOTE: This bypasses IDOR checks - ONLY use for server-to-server webhook processing
+   * IDOR PROTECTED: Verifies the automation's user owns the Instagram page
+   * @param automationId - The automation to fetch
+   * @param pageId - Instagram page ID from webhook payload (used for ownership verification)
+   * @returns Automation data or null if not found/unauthorized
    */
-  async getByIdForWebhook(automationId: string) {
-    return await client.automation.findUnique({
+  async getByIdForWebhook(automationId: string, pageId: string) {
+    const automation = await client.automation.findUnique({
       where: { id: automationId },
       include: {
         keywords: true,
@@ -190,12 +193,39 @@ class AutomationService {
           select: {
             id: true,
             subscription: { select: { plan: true } },
-            integrations: { select: { token: true } },
+            integrations: {
+              where: { name: "INSTAGRAM" },
+              select: { token: true, instagramId: true },
+            },
             openAiKey: true,
           },
         },
       },
     });
+
+    // Guard: Automation must exist and be active
+    if (!automation || !automation.active) {
+      console.warn("[IDOR] Automation not found or inactive", { automationId });
+      return null;
+    }
+
+    // IDOR CHECK: Verify the automation's user owns the Instagram page
+    const userOwnsPage = automation.User?.integrations.some(
+      (integration) => integration.instagramId === pageId,
+    );
+
+    if (!userOwnsPage) {
+      console.warn("[IDOR] getByIdForWebhook - Page ownership mismatch", {
+        automationId,
+        pageId,
+        userIntegrations: automation.User?.integrations.map(
+          (i) => i.instagramId,
+        ),
+      });
+      return null;
+    }
+
+    return automation;
   }
 
   /**
@@ -706,9 +736,16 @@ class AutomationService {
 
   /**
    * Get flow execution path for a trigger type
-   * Used by webhook processor to determine action sequence
+   * IDOR PROTECTED: Verifies the automation's user owns the Instagram page
+   * @param automationId - The automation to fetch
+   * @param triggerType - DM or COMMENT trigger
+   * @param pageId - Instagram page ID for ownership verification
    */
-  async getExecutionPath(automationId: string, triggerType: "DM" | "COMMENT") {
+  async getExecutionPath(
+    automationId: string,
+    triggerType: "DM" | "COMMENT",
+    pageId: string,
+  ) {
     const automation = await client.automation.findUnique({
       where: { id: automationId },
       include: {
@@ -719,9 +756,29 @@ class AutomationService {
         carouselTemplates: {
           include: { elements: { include: { buttons: true } } },
         },
+        User: {
+          select: {
+            integrations: {
+              where: { name: "INSTAGRAM" },
+              select: { instagramId: true },
+            },
+          },
+        },
       },
     });
-    if (!automation) return null;
+    if (!automation || !automation.active) return null;
+
+    // IDOR CHECK: Verify the automation's user owns the Instagram page
+    const userOwnsPage = automation.User?.integrations.some(
+      (i) => i.instagramId === pageId,
+    );
+    if (!userOwnsPage) {
+      console.warn("[IDOR] getExecutionPath - Page ownership mismatch", {
+        automationId,
+        pageId,
+      });
+      return null;
+    }
 
     // Check if trigger type matches
     const hasTrigger = automation.trigger.some((t) => t.type === triggerType);

@@ -253,6 +253,76 @@ class WebhookService {
     });
     return integration?.token;
   }
+
+  /**
+   * Get automation for follower recheck with IDOR protection
+   * Returns null if automation doesn't exist, is inactive, or user doesn't own the page
+   * Zero-Patchwork: All validation happens here, caller receives clean data or null
+   */
+  async getAutomationForFollowerRecheck(
+    automationId: string,
+    pageId: string,
+  ): Promise<{
+    id: string;
+    userId: string;
+    flowNodes: unknown;
+    flowEdges: unknown;
+    token: string;
+  } | null> {
+    // Fetch automation with ownership data
+    const automation = await client.automation.findUnique({
+      where: { id: automationId },
+      select: {
+        id: true,
+        userId: true,
+        active: true,
+        flowNodes: true,
+        flowEdges: true,
+        User: {
+          select: {
+            integrations: {
+              where: { name: "INSTAGRAM" },
+              select: { instagramId: true, token: true },
+            },
+          },
+        },
+      },
+    });
+
+    // Guard: Automation must exist and be active
+    if (!automation || !automation.userId || !automation.active) {
+      console.warn("[IDOR] Automation not found or inactive", { automationId });
+      return null;
+    }
+
+    // Guard: User must own this Instagram page
+    const matchingIntegration = automation.User?.integrations.find(
+      (i) => i.instagramId === pageId,
+    );
+    if (!matchingIntegration) {
+      console.warn("[IDOR] Page mismatch - blocked", {
+        automationId,
+        pageId,
+        userPages: automation.User?.integrations.map((i) => i.instagramId),
+      });
+      return null;
+    }
+
+    // Guard: Must have valid flow data
+    if (!automation.flowNodes || !automation.flowEdges) {
+      console.warn("[IDOR] Missing flow data", { automationId });
+      return null;
+    }
+
+    // Return clean, validated data
+    return {
+      id: automation.id,
+      userId: automation.userId,
+      flowNodes: automation.flowNodes,
+      flowEdges: automation.flowEdges,
+      token: matchingIntegration.token,
+    };
+  }
 }
 
 // Export singleton instance

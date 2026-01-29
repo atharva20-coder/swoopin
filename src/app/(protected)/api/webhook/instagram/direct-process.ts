@@ -31,8 +31,8 @@ const trackResponses = webhookService.trackResponses.bind(webhookService);
 const trackAnalytics = async (userId: string, type: "dm" | "comment") => {
   return analyticsService.trackEvent(userId, type);
 };
-const findAutomation = (automationId: string) =>
-  automationService.getByIdForWebhook(automationId);
+const findAutomation = (automationId: string, pageId: string) =>
+  automationService.getByIdForWebhook(automationId, pageId);
 
 export async function processWebhookDirectly(
   webhook_payload: any,
@@ -291,7 +291,11 @@ export async function processWebhookDirectly(
         customer_history.history.length > 0 &&
         customer_history.automationId
       ) {
-        const automation = await findAutomation(customer_history.automationId);
+        const pageId = webhook_payload.entry[0].id;
+        const automation = await findAutomation(
+          customer_history.automationId,
+          pageId,
+        );
 
         if (
           automation?.User?.subscription?.plan === "PRO" &&

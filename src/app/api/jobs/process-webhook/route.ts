@@ -37,8 +37,8 @@ const trackResponses = webhookService.trackResponses.bind(webhookService);
 const trackAnalytics = async (userId: string, type: "dm" | "comment") => {
   return analyticsService.trackEvent(userId, type);
 };
-const findAutomation = (automationId: string) =>
-  automationService.getByIdForWebhook(automationId);
+const findAutomation = (automationId: string, pageId: string) =>
+  automationService.getByIdForWebhook(automationId, pageId);
 
 // Initialize QStash receiver for signature verification
 const receiver = new Receiver({
@@ -156,6 +156,82 @@ export async function POST(req: NextRequest) {
           { message: "Echo message ignored" },
           { status: 200 },
         );
+      }
+      // =================================================================
+      // POSTBACK HANDLING: Follower Recheck
+      // Gateway Pattern: Validate → Guard → Execute → Respond
+      // Zero-Patchwork: All IDOR validation in service layer
+      // =================================================================
+      if (messaging?.postback?.payload) {
+        const payload = messaging.postback.payload as string;
+        const RECHECK_PREFIX = "SWOOPIN_RECHECK_FOLLOWER::";
+
+        if (payload.startsWith(RECHECK_PREFIX)) {
+          // 1. Extract inputs
+          const automationId = payload.replace(RECHECK_PREFIX, "");
+          const pageId = webhook_payload.entry[0].id;
+          const senderId = messaging.sender.id;
+
+          console.log("Follower recheck postback:", {
+            automationId,
+            pageId,
+            senderId,
+          });
+
+          // 2. Validate & Guard (service handles IDOR protection)
+          const automation =
+            await webhookService.getAutomationForFollowerRecheck(
+              automationId,
+              pageId,
+            );
+
+          if (!automation) {
+            return NextResponse.json(
+              { error: { code: "UNAUTHORIZED", message: "Access denied" } },
+              { status: 403 },
+            );
+          }
+
+          // 3. Execute
+          initializeNodeRegistry();
+
+          const context: ExecutionContext = {
+            automationId: automation.id,
+            userId: automation.userId,
+            token: automation.token,
+            pageId,
+            senderId,
+            triggerType: "DM",
+          };
+
+          try {
+            const result = await runWorkflow(
+              automation.flowNodes as FlowNodeRuntime[],
+              automation.flowEdges as FlowEdgeRuntime[],
+              context,
+            );
+
+            // Track analytics
+            await trackAnalytics(automation.userId, "dm").catch(console.error);
+
+            // 4. Respond
+            return NextResponse.json(
+              { message: "Follower recheck executed", success: result.success },
+              { status: 200 },
+            );
+          } catch (flowError) {
+            console.error("Follower recheck flow error:", flowError);
+            return NextResponse.json(
+              {
+                error: {
+                  code: "INTERNAL_SERVER_ERROR",
+                  message: "Flow execution failed",
+                },
+              },
+              { status: 500 },
+            );
+          }
+        }
       }
 
       // Check for story mention
@@ -332,8 +408,19 @@ export async function POST(req: NextRequest) {
 
           console.log("[FlowExecution] New runner result:", flowResult);
 
-          // If new runner succeeded, return result
+          // If new runner succeeded, track analytics and return result
           if (flowResult.success) {
+            // Track analytics for dashboard (Zero-Patchwork: fire-and-forget)
+            const analyticsType =
+              context.triggerType === "COMMENT" ? "comment" : "dm";
+            void trackAnalytics(automation.userId!, analyticsType).catch(
+              console.error,
+            );
+            void trackResponses(
+              matcher.automationId,
+              analyticsType === "dm" ? "DM" : "COMMENT",
+            ).catch(console.error);
+
             return NextResponse.json(
               {
                 message: flowResult.message,
@@ -367,6 +454,19 @@ export async function POST(req: NextRequest) {
               "[FlowExecution] Legacy executor result:",
               legacyResult,
             );
+
+            // Track analytics for dashboard (Zero-Patchwork: fire-and-forget)
+            if (legacyResult.success) {
+              const analyticsType =
+                context.triggerType === "COMMENT" ? "comment" : "dm";
+              void trackAnalytics(automation.userId!, analyticsType).catch(
+                console.error,
+              );
+              void trackResponses(
+                matcher.automationId,
+                analyticsType === "dm" ? "DM" : "COMMENT",
+              ).catch(console.error);
+            }
 
             return NextResponse.json(
               {
@@ -413,7 +513,11 @@ export async function POST(req: NextRequest) {
         customer_history.history.length > 0 &&
         customer_history.automationId
       ) {
-        const automation = await findAutomation(customer_history.automationId);
+        const pageId = webhook_payload.entry[0].id;
+        const automation = await findAutomation(
+          customer_history.automationId,
+          pageId,
+        );
 
         if (
           automation?.User?.subscription?.plan === "PRO" &&

@@ -2,7 +2,7 @@
  * ============================================
  * CONDITION: IS FOLLOWER
  * Checks if the sender is following the page.
- * If not following, sends a button template with Follow button.
+ * If not following, sends a button template with Follow + Recheck buttons.
  * ============================================
  */
 
@@ -24,6 +24,9 @@ import {
   upsertContact,
 } from "@/services/contact.service";
 
+// Postback prefix for recheck functionality
+export const RECHECK_FOLLOWER_PREFIX = "SWOOPIN_RECHECK_FOLLOWER::";
+
 export class IsFollowerNodeExecutor implements INodeExecutor {
   readonly type = "condition";
   readonly subType = "IS_FOLLOWER";
@@ -37,7 +40,7 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
     const logs: ExecutionLogEntry[] = [];
     const startTime = Date.now();
 
-    const { token, pageId, senderId } = context;
+    const { token, pageId, senderId, automationId } = context;
 
     // Configurable settings with defaults
     const sendFollowPrompt = config.sendFollowPrompt !== false; // Default: true
@@ -46,11 +49,16 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
       "Hey! Follow us to stay updated with our latest content!";
     const buttonText = (config.buttonText as string) || "Follow Us";
 
+    // New recheck button configuration
+    const enableRecheckButton = config.enableRecheckButton !== false; // Default: true
+    const recheckButtonText =
+      (config.recheckButtonText as string) || "I've Followed ✓";
+
     logs.push({
       timestamp: startTime,
       level: "info",
       message: "Checking if user is follower",
-      data: { senderId, sendFollowPrompt },
+      data: { senderId, sendFollowPrompt, enableRecheckButton },
     });
 
     try {
@@ -105,7 +113,8 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
         logs.push({
           timestamp: Date.now(),
           level: "info",
-          message: "User is not a follower - sending follow prompt",
+          message:
+            "User is not a follower - sending follow prompt with recheck button",
         });
 
         try {
@@ -116,17 +125,34 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
           if (pageUsername) {
             const followUrl = `https://www.instagram.com/${pageUsername}`;
 
+            // Build buttons array
+            const buttons: Array<{
+              type: "web_url" | "postback";
+              title: string;
+              url?: string;
+              payload?: string;
+            }> = [
+              {
+                type: "web_url",
+                title: buttonText.substring(0, 20), // Max 20 chars
+                url: followUrl,
+              },
+            ];
+
+            // Add recheck button if enabled
+            if (enableRecheckButton && automationId) {
+              buttons.push({
+                type: "postback",
+                title: recheckButtonText.substring(0, 20), // Max 20 chars
+                payload: `${RECHECK_FOLLOWER_PREFIX}${automationId}`,
+              });
+            }
+
             const result = await sendButtonTemplate(
               pageId,
               senderId,
               promptMessage,
-              [
-                {
-                  type: "web_url",
-                  title: buttonText.substring(0, 20), // Max 20 chars
-                  url: followUrl,
-                },
-              ],
+              buttons,
               token,
             );
 
@@ -134,8 +160,13 @@ export class IsFollowerNodeExecutor implements INodeExecutor {
               logs.push({
                 timestamp: Date.now(),
                 level: "info",
-                message: "Follow prompt sent successfully",
-                data: { messageId: result.messageId, followUrl },
+                message: "Follow prompt with recheck button sent successfully",
+                data: {
+                  messageId: result.messageId,
+                  followUrl,
+                  buttonCount: buttons.length,
+                  recheckEnabled: enableRecheckButton,
+                },
               });
             } else {
               logs.push({

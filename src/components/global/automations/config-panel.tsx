@@ -1515,6 +1515,29 @@ const ConfigPanel = ({
 
       {selectedNode?.data.subType === "IS_FOLLOWER" && (
         <div className="space-y-4">
+          {/* Default Settings Info */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">
+              Default Settings
+            </h4>
+            <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+              <li>
+                • <strong>Follow Prompt:</strong> Enabled
+              </li>
+              <li>
+                • <strong>Message:</strong> &quot;Hey! Follow us to stay
+                updated...&quot;
+              </li>
+              <li>
+                • <strong>Follow Button:</strong> &quot;Follow Us&quot;
+              </li>
+              <li>
+                • <strong>Recheck Button:</strong> Enabled, &quot;I&apos;ve
+                Followed ✓&quot;
+              </li>
+            </ul>
+          </div>
+
           {/* Send Follow Prompt Toggle */}
           <div className="flex items-center justify-between">
             <div>
@@ -1575,7 +1598,7 @@ const ConfigPanel = ({
           {/* Button Text */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Button Text
+              Follow Button Text
             </label>
             <input
               type="text"
@@ -1594,6 +1617,104 @@ const ConfigPanel = ({
               {(formData.buttonText || "Follow Us").length}/20 characters
             </p>
           </div>
+
+          {/* Follow Button URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Instagram Profile URL
+            </label>
+            <input
+              type="url"
+              value={formData.followUrl || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  followUrl: e.target.value,
+                })
+              }
+              placeholder="https://instagram.com/yourprofile"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              URL opened when user clicks &quot;Follow Us&quot; button
+            </p>
+          </div>
+
+          {/* Recheck Button Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Enable Recheck Button
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Add a button to verify follow again
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  enableRecheckButton: !formData.enableRecheckButton,
+                })
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                formData.enableRecheckButton !== false
+                  ? "bg-green-500"
+                  : "bg-gray-300 dark:bg-neutral-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formData.enableRecheckButton !== false
+                    ? "translate-x-6"
+                    : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Recheck Button Text */}
+          {formData.enableRecheckButton !== false && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Recheck Button Text
+              </label>
+              <input
+                type="text"
+                value={formData.recheckButtonText || "I've Followed ✓"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    recheckButtonText: e.target.value.substring(0, 20),
+                  })
+                }
+                placeholder="I've Followed ✓"
+                maxLength={20}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {(formData.recheckButtonText || "I've Followed ✓").length}/20
+                characters
+              </p>
+            </div>
+          )}
+
+          {/* Postback Payload Preview (Read-only) */}
+          {formData.enableRecheckButton !== false && (
+            <div className="bg-gray-50 dark:bg-neutral-800 p-3 rounded-lg border border-gray-200 dark:border-neutral-700">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                Postback Payload (Auto-generated)
+              </label>
+              <code className="text-xs text-gray-700 dark:text-gray-300 font-mono break-all">
+                SWOOPIN_RECHECK_FOLLOWER::{"{"}&lt;automationId&gt;{"}"}
+              </code>
+              <p className="text-xs text-gray-400 mt-2">
+                This payload triggers re-verification when the user clicks the
+                recheck button
+              </p>
+            </div>
+          )}
 
           {/* Save Button */}
           <button

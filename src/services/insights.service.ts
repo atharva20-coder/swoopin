@@ -1,10 +1,5 @@
 import { client } from "@/lib/prisma";
 import {
-  getAccountInsights,
-  getAudienceInsights,
-  getFollowerGrowth,
-} from "@/lib/instagram/insights";
-import {
   InstagramInsightsDataSchema,
   type InstagramInsightsData,
 } from "@/schemas/insights.schema";
@@ -12,48 +7,79 @@ import {
 /**
  * ============================================
  * INSIGHTS SERVICE
- * Business logic for Instagram insights
- * Uses parallel API calls for performance
+ * Computes insights from local Analytics data
+ * No external API calls - uses database only
  * ============================================
  */
 
 class InsightsService {
   /**
-   * Get Instagram insights for a user
-   * Fetches account, audience, and follower growth data in parallel
+   * Get insights for a user computed from local Analytics data
+   * Returns activity metrics based on tracked DMs and comments
    */
   async getInsights(
-    userId: string
+    userId: string,
   ): Promise<InstagramInsightsData | { error: string }> {
-    // Get user's integration
-    const integration = await client.integrations.findFirst({
-      where: {
-        userId,
-        name: "INSTAGRAM",
-      },
-    });
-
-    if (!integration?.token || !integration?.instagramId) {
-      return {
-        account: null,
-        audience: null,
-        followerGrowth: [],
-        cachedAt: null,
-      };
-    }
-
     try {
-      // Fetch all insights in parallel for best performance
-      const [accountResult, audienceResult, growthResult] = await Promise.all([
-        getAccountInsights(integration.instagramId, integration.token),
-        getAudienceInsights(integration.instagramId, integration.token),
-        getFollowerGrowth(integration.instagramId, integration.token),
+      // Get last 30 days of analytics data
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [analytics, automations] = await Promise.all([
+        client.analytics.findMany({
+          where: {
+            userId,
+            date: { gte: thirtyDaysAgo },
+          },
+          orderBy: { date: "asc" },
+        }),
+        client.automation.findMany({
+          where: { userId },
+          include: { listener: true },
+        }),
       ]);
 
+      // Calculate totals from automations (lifetime counts)
+      const totalDms = automations.reduce(
+        (sum, auto) => sum + (auto.listener?.dmCount || 0),
+        0,
+      );
+      const totalComments = automations.reduce(
+        (sum, auto) => sum + (auto.listener?.commentCount || 0),
+        0,
+      );
+
+      // Calculate 30-day activity from analytics
+      const recentDms = analytics.reduce((sum, a) => sum + a.dmCount, 0);
+      const recentComments = analytics.reduce(
+        (sum, a) => sum + a.commentCount,
+        0,
+      );
+
+      // Build account insights from local data
+      const account = {
+        followers_count: 0, // Not available without Instagram API
+        follows_count: 0,
+        media_count: 0,
+        impressions: totalDms + totalComments, // Total interactions
+        profile_views: 0, // Not available without Instagram API
+        reach: recentDms + recentComments, // 30-day reach approximation
+        website_clicks: 0,
+      };
+
+      // Activity growth data (last 30 days)
+      const followerGrowth = analytics.map((a) => ({
+        date: a.date.toISOString().split("T")[0],
+        value: a.dmCount + a.commentCount,
+      }));
+
+      // Audience demographics not available locally
+      const audience = null;
+
       const insightsData = {
-        account: accountResult.success ? accountResult.data ?? null : null,
-        audience: audienceResult.success ? audienceResult.data ?? null : null,
-        followerGrowth: growthResult.success ? growthResult.data ?? [] : [],
+        account,
+        audience,
+        followerGrowth,
         cachedAt: new Date(),
       };
 
@@ -71,10 +97,10 @@ class InsightsService {
       return validated.data;
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error("Error fetching insights:", error.message);
+        console.error("Error computing local insights:", error.message);
         return { error: error.message };
       }
-      return { error: "Failed to fetch insights" };
+      return { error: "Failed to compute insights" };
     }
   }
 }
