@@ -14,7 +14,7 @@ class WebhookService {
    */
   async matchKeyword(
     messageText: string,
-    triggerType: "DM" | "COMMENT" = "DM",
+    triggerType: "DM" | "COMMENT" | "MENTION" = "DM",
   ) {
     // Guard against undefined/null messageText
     if (!messageText || typeof messageText !== "string") {

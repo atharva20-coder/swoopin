@@ -9,22 +9,25 @@ const CANVA_TOKEN_URL = "https://api.canva.com/rest/v1/oauth/token";
 // Required scopes for accessing designs
 const CANVA_SCOPES = [
   "design:meta:read",
-  "design:content:read", 
+  "design:content:read",
   "asset:read",
   "profile:read",
 ].join(" ");
 
 // Generate PKCE code verifier and challenge
-export function generatePKCE(): { codeVerifier: string; codeChallenge: string } {
+export function generatePKCE(): {
+  codeVerifier: string;
+  codeChallenge: string;
+} {
   // Generate a random 32-byte string
   const codeVerifier = crypto.randomBytes(32).toString("base64url");
-  
+
   // Create SHA-256 hash and base64url encode it
   const codeChallenge = crypto
     .createHash("sha256")
     .update(codeVerifier)
     .digest("base64url");
-  
+
   return { codeVerifier, codeChallenge };
 }
 
@@ -32,11 +35,16 @@ export function generatePKCE(): { codeVerifier: string; codeChallenge: string } 
 export function getCanvaAuthUrl(
   redirectUri: string,
   state: string,
-  codeChallenge: string
+  codeChallenge: string,
 ): string {
+  const clientId = process.env.CANVA_CLIENT_ID;
+  if (!clientId) {
+    throw new Error("CANVA_CLIENT_ID is not defined in environment variables");
+  }
+
   const params = new URLSearchParams({
     response_type: "code",
-    client_id: process.env.CANVA_CLIENT_ID || "",
+    client_id: clientId,
     redirect_uri: redirectUri,
     scope: CANVA_SCOPES,
     state: state,
@@ -51,7 +59,7 @@ export function getCanvaAuthUrl(
 export async function exchangeCodeForTokens(
   code: string,
   codeVerifier: string,
-  redirectUri: string
+  redirectUri: string,
 ): Promise<{
   accessToken: string;
   refreshToken?: string;
@@ -59,14 +67,14 @@ export async function exchangeCodeForTokens(
   tokenType: string;
 }> {
   const credentials = Buffer.from(
-    `${process.env.CANVA_CLIENT_ID}:${process.env.CANVA_CLIENT_SECRET}`
+    `${process.env.CANVA_CLIENT_ID}:${process.env.CANVA_CLIENT_SECRET}`,
   ).toString("base64");
 
   const response = await fetch(CANVA_TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Basic ${credentials}`,
+      Authorization: `Basic ${credentials}`,
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
@@ -98,14 +106,14 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
   expiresIn: number;
 }> {
   const credentials = Buffer.from(
-    `${process.env.CANVA_CLIENT_ID}:${process.env.CANVA_CLIENT_SECRET}`
+    `${process.env.CANVA_CLIENT_ID}:${process.env.CANVA_CLIENT_SECRET}`,
   ).toString("base64");
 
   const response = await fetch(CANVA_TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Basic ${credentials}`,
+      Authorization: `Basic ${credentials}`,
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
@@ -128,7 +136,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
 // Get user's designs from Canva
 export async function getUserDesigns(
   accessToken: string,
-  options?: { limit?: number; continuation?: string }
+  options?: { limit?: number; continuation?: string },
 ): Promise<{
   designs: Array<{
     id: string;
@@ -145,7 +153,7 @@ export async function getUserDesigns(
   if (options?.continuation) params.set("continuation", options.continuation);
 
   const url = `${CANVA_API_BASE}/designs${params.toString() ? `?${params}` : ""}`;
-  
+
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -168,7 +176,7 @@ export async function getUserDesigns(
 // Get a specific design by ID
 export async function getDesign(
   accessToken: string,
-  designId: string
+  designId: string,
 ): Promise<{
   id: string;
   title: string;
@@ -193,20 +201,22 @@ export async function getDesign(
 export async function exportDesign(
   accessToken: string,
   designId: string,
-  format: "png" | "jpg" | "pdf" = "png"
+  format: "png" | "jpg" | "pdf" = "png",
 ): Promise<{
   exportId: string;
   status: "in_progress" | "completed" | "failed";
   urls?: string[];
 }> {
   // Start export job
-  const response = await fetch(`${CANVA_API_BASE}/designs/${designId}/export`, {
+  // Correct endpoint: https://api.canva.com/rest/v1/exports
+  const response = await fetch(`${CANVA_API_BASE}/exports`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      design_id: designId,
       format: format,
     }),
   });
@@ -227,20 +237,18 @@ export async function exportDesign(
 // Check export job status
 export async function getExportStatus(
   accessToken: string,
-  designId: string,
-  exportId: string
+  designId: string, // Kept for interface compatibility, but unused in new endpoint
+  exportId: string,
 ): Promise<{
   status: "in_progress" | "completed" | "failed";
   urls?: string[];
 }> {
-  const response = await fetch(
-    `${CANVA_API_BASE}/designs/${designId}/export/${exportId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  // Correct endpoint: https://api.canva.com/rest/v1/exports/{exportId}
+  const response = await fetch(`${CANVA_API_BASE}/exports/${exportId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to check export status");

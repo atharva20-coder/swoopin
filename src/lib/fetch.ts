@@ -1010,3 +1010,114 @@ export const getUserProfile = async (
     return null;
   }
 };
+
+/**
+ * Reply to an Instagram Mention (Caption or Comment)
+ * POST /{ig-user-id}/mentions
+ */
+export const replyToMention = async (
+  userId: string,
+  mediaId: string | undefined,
+  commentId: string | undefined,
+  message: string,
+  token: string,
+): Promise<{ success: boolean; id?: string; error?: string }> => {
+  try {
+    if (!mediaId && !commentId) {
+      return {
+        success: false,
+        error: "Either mediaId or commentId is required",
+      };
+    }
+
+    const payload: any = { message };
+    if (mediaId) payload.media_id = mediaId;
+    if (commentId) payload.comment_id = commentId;
+
+    const response = await axios.post(
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${userId}/mentions`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return { success: true, id: response.data?.id };
+  } catch (error) {
+    console.error("Error replying to mention:", error);
+    let errorMessage = "Failed to reply to mention";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.error?.message || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
+ * Get details of a mentioned comment
+ * GET /{comment-id}
+ */
+export const getMentionedComment = async (
+  commentId: string,
+  token: string,
+): Promise<{ success: boolean; data?: any; error?: string }> => {
+  try {
+    const response = await axios.get(
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${commentId}`,
+      {
+        params: {
+          fields:
+            "id,text,timestamp,from{id,username},media{id,media_url,permalink}",
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching mentioned comment:", error);
+    let errorMessage = "Failed to fetch mentioned comment";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.error?.message || error.message;
+    }
+    return { success: false, error: errorMessage };
+  }
+};
+
+/**
+ * Get details of a mentioned media
+ * GET /{media-id}
+ */
+export const getMentionedMedia = async (
+  mediaId: string,
+  token: string,
+): Promise<{ success: boolean; data?: any; error?: string }> => {
+  try {
+    const response = await axios.get(
+      `${process.env.INSTAGRAM_BASE_URL}/v21.0/${mediaId}`,
+      {
+        params: {
+          fields:
+            "id,caption,media_type,media_url,permalink,timestamp,owner{id,username}",
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error fetching mentioned media:", error);
+    let errorMessage = "Failed to fetch mentioned media";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.error?.message || error.message;
+    }
+    return { success: false, error: errorMessage };
+  }
+};

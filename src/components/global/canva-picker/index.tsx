@@ -48,18 +48,20 @@ interface CanvaDesign {
 }
 
 interface CanvaPickerProps {
-  onSelect: (imageUrl: string, designTitle: string) => void;
+  onSelect: (designs: Array<{ url: string; title: string }>) => void;
   onCancel?: () => void;
 }
 
 export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
+  /* State */
   const [designs, setDesigns] = useState<CanvaDesign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [exporting, setExporting] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [continuation, setContinuation] = useState<string | undefined>();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  /* Effects */
   useEffect(() => {
     checkConnectionAndFetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,24 +113,31 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
     }
   };
 
-  const handleSelectDesign = async (design: CanvaDesign) => {
-    setExporting(design.id);
-    try {
-      const result = await exportCanvaDesign(design.id, "png");
-      // REST API returns { success: boolean, data: { urls: string[] } }
-      if (!result.success) {
-        toast.error(result.error?.message || "Failed to export design");
-        return;
-      }
-      if (result.data?.urls && result.data.urls.length > 0) {
-        onSelect(result.data.urls[0], design.title);
-        toast.success("Design imported!");
-      }
-    } catch (error) {
-      toast.error("Failed to export design");
-    } finally {
-      setExporting(null);
+  const handleToggleSelection = (design: CanvaDesign) => {
+    if (!design.thumbnail?.url) {
+      toast.error("Cannot select design: No preview available");
+      return;
     }
+
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(design.id)) {
+      newSelected.delete(design.id);
+    } else {
+      newSelected.add(design.id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleImport = () => {
+    const selectedDesigns = designs
+      .filter((d) => selectedIds.has(d.id))
+      .map((d) => ({
+        url: d.thumbnail!.url,
+        title: d.title,
+      }));
+
+    if (selectedDesigns.length === 0) return;
+    onSelect(selectedDesigns);
   };
 
   const filteredDesigns = designs.filter((d) =>
@@ -206,9 +215,12 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
               {filteredDesigns.map((design) => (
                 <button
                   key={design.id}
-                  onClick={() => handleSelectDesign(design)}
-                  disabled={exporting === design.id}
-                  className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700 hover:border-purple-500 transition-colors bg-gray-100 dark:bg-neutral-800"
+                  onClick={() => handleToggleSelection(design)}
+                  className={`group relative aspect-square rounded-lg overflow-hidden border-2 transition-colors bg-gray-100 dark:bg-neutral-800 ${
+                    selectedIds.has(design.id)
+                      ? "border-purple-500 ring-2 ring-purple-500/20"
+                      : "border-gray-200 dark:border-neutral-700 hover:border-purple-500"
+                  }`}
                 >
                   {design.thumbnail?.url ? (
                     <Image
@@ -223,18 +235,27 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
                     </div>
                   )}
 
+                  {/* Selection Indicator */}
+                  {selectedIds.has(design.id) && (
+                    <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-md">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2">
-                    {exporting === design.id ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <>
-                        <Download className="w-6 h-6 mb-2" />
-                        <span className="text-xs text-center line-clamp-2">
-                          {design.title}
-                        </span>
-                      </>
+                  <div
+                    className={`absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white p-2 transition-opacity ${
+                      selectedIds.has(design.id)
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
+                    }`}
+                  >
+                    {!selectedIds.has(design.id) && (
+                      <div className="w-8 h-8 rounded-full border-2 border-white mb-2" />
                     )}
+                    <span className="text-xs text-center line-clamp-2 font-medium drop-shadow-md">
+                      {design.title}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -252,17 +273,27 @@ export default function CanvaPicker({ onSelect, onCancel }: CanvaPickerProps) {
         )}
       </div>
 
-      {/* Footer */}
-      {onCancel && (
-        <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
+      {/* Footer Actions */}
+      <div className="p-4 border-t border-gray-200 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-900 z-10 relative">
+        <div className="text-sm text-gray-500">{selectedIds.size} selected</div>
+        <div className="flex gap-2">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Cancel
+            </button>
+          )}
           <button
-            onClick={onCancel}
-            className="w-full py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+            onClick={handleImport}
+            disabled={selectedIds.size === 0}
+            className="px-6 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            Cancel
+            Import {selectedIds.size > 0 ? `(${selectedIds.size})` : ""}
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

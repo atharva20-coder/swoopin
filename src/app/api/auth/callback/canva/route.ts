@@ -51,13 +51,20 @@ export async function GET(req: NextRequest) {
 
     // Get current user from Better Auth session
     const session = await auth.api.getSession({ headers: await headers() });
+
     if (!session?.user?.id) {
       return NextResponse.redirect(new URL("/sign-in", url.origin));
     }
 
     // Build redirect URI (must match what was sent in authorization request)
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || `${url.protocol}//${url.host}`;
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+    if (!baseUrl) {
+      baseUrl =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3000"
+          : "https://swoopin.vercel.app";
+    }
     const redirectUri = `${baseUrl}/api/auth/callback/canva`;
 
     // Exchange code for tokens

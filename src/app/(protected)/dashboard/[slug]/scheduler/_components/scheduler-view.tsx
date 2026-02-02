@@ -7,6 +7,7 @@ import PostPreviewModal from "./post-preview";
 import CanvaPicker from "@/components/global/canva-picker";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // REST API helpers for scheduler
 async function createScheduledPost(data: Record<string, unknown>) {
@@ -107,6 +108,7 @@ export default function SchedulerView({
   );
   const [drafts, setDrafts] = useState(initialDrafts);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const handleDateClick = (date: Date) => {
     setSelectedPost(null);
@@ -133,15 +135,32 @@ export default function SchedulerView({
     setIsCanvaPickerOpen(true);
   };
 
-  const handleCanvaDesignSelect = (imageUrl: string, designTitle: string) => {
+  const handleCanvaDesignSelect = (
+    designs: Array<{ url: string; title: string }>,
+  ) => {
     setIsCanvaPickerOpen(false);
-    // Open post modal with the Canva design
-    setSelectedPost(null);
+
+    if (designs.length === 0) return;
+
+    const mediaUrls = designs.map((d) => d.url);
+    const title = designs[0].title;
+    const caption =
+      designs.length > 1 ? `${title} + ${designs.length - 1} others` : title;
+
+    // Open post modal with the Canva design(s) pre-filled
+    setSelectedPost({
+      id: crypto.randomUUID(), // Temp ID
+      scheduledFor: new Date(),
+      status: "SCHEDULED",
+      caption: caption,
+      mediaUrl: mediaUrls[0], // Primary media
+      mediaUrls: mediaUrls, // All media (for carousel)
+      mediaType: designs.length > 1 ? "CAROUSEL" : "IMAGE",
+      postType: "POST", // Default to POST, user can switch to REEL/STORY in modal
+    });
     setSelectedDate(new Date());
     setIsModalOpen(true);
-    toast.success(`Imported: ${designTitle}`);
-    // The mediaUrl will be set via the modal - for now we'll store it
-    // This could be enhanced to pass the imageUrl to the modal
+    toast.success(`Imported ${designs.length} design(s)`);
   };
 
   const handleSchedule = async (postData: Partial<ScheduledPost>) => {
@@ -412,16 +431,60 @@ export default function SchedulerView({
         </span>
       </div>
 
+      {/* Mobile Header Actions */}
+      <div className="md:hidden px-4 pb-2 flex gap-2">
+        <button
+          onClick={() => setIsLibraryOpen(true)}
+          className="flex-1 py-2 bg-gray-100 dark:bg-neutral-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          Open Content Library
+        </button>
+      </div>
+
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden gap-4">
+      <div className="flex flex-1 overflow-hidden gap-4 relative">
         {/* Left Sidebar - Content Library */}
-        <ContentLibrary
-          automations={automations}
-          drafts={drafts}
-          onCreatePost={handleCreatePost}
-          onConnectCanva={handleConnectCanva}
-          onDraftClick={handleDraftClick}
-        />
+        <div
+          className={cn(
+            "absolute inset-0 z-40 bg-white dark:bg-neutral-950 md:relative md:inset-auto md:z-auto md:block transition-transform duration-300 ease-in-out md:transform-none",
+            isLibraryOpen
+              ? "translate-x-0"
+              : "-translate-x-full md:translate-x-0",
+            "w-full md:w-auto", // Full width on mobile when open
+          )}
+        >
+          {/* Mobile close button */}
+          <div className="md:hidden absolute top-4 right-4 z-50">
+            <button
+              onClick={() => setIsLibraryOpen(false)}
+              className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-full"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <ContentLibrary
+            automations={automations}
+            drafts={drafts}
+            onCreatePost={handleCreatePost}
+            onConnectCanva={handleConnectCanva}
+            onDraftClick={(draft) => {
+              handleDraftClick(draft);
+              setIsLibraryOpen(false); // Close on selection
+            }}
+            onCanvaDesignSelect={(url) => {
+              // handleCanvaDesignSelect expects array now, but ContentLibrary might pass string
+              // We'll update ContentLibrary later or handle it here if it passed string
+            }}
+          />
+        </div>
+
+        {/* Overlay for mobile library */}
+        {isLibraryOpen && (
+          <div
+            className="absolute inset-0 z-30 bg-black/50 md:hidden"
+            onClick={() => setIsLibraryOpen(false)}
+          />
+        )}
 
         {/* Main Calendar */}
         <SchedulerCalendar

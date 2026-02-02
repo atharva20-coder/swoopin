@@ -90,7 +90,10 @@ export const SmartAIActionConfigSchema = z
   .object({
     // Allow either 'message' or 'prompt' for flexibility
     message: z.string().optional(),
-    prompt: z.string().optional(),
+    prompt: z
+      .string()
+      .max(750, "Context must be 750 characters or less")
+      .optional(),
   })
   .refine((data) => !!data.message || !!data.prompt, {
     message: "Either message or prompt is required for Smart AI",

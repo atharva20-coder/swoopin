@@ -147,7 +147,7 @@ export default function ContentLibrary({
   };
 
   return (
-    <div className="w-72 shrink-0 flex flex-col h-full bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 overflow-hidden">
+    <div className="w-full md:w-72 shrink-0 flex flex-col h-full bg-white dark:bg-neutral-950 md:rounded-2xl shadow-sm border-r md:border border-gray-200 dark:border-neutral-800 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-neutral-800">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">

@@ -27,6 +27,7 @@ type Props = {
   onEdgesChange?: (edges: Edge[]) => void;
   onNodeClick?: (node: Node<FlowNodeData>) => void;
   onSelectionChange?: (nodeId: string | null) => void;
+  readOnly?: boolean;
 };
 
 const nodeTypes = {
@@ -34,17 +35,20 @@ const nodeTypes = {
 };
 
 // Validation: check if connection is valid
-const isValidConnection = (connection: Connection, nodes: Node<FlowNodeData>[]) => {
-  const sourceNode = nodes.find(n => n.id === connection.source);
-  const targetNode = nodes.find(n => n.id === connection.target);
-  
+const isValidConnection = (
+  connection: Connection,
+  nodes: Node<FlowNodeData>[],
+) => {
+  const sourceNode = nodes.find((n) => n.id === connection.source);
+  const targetNode = nodes.find((n) => n.id === connection.target);
+
   if (!sourceNode || !targetNode) return false;
-  
+
   // No self-connections
   if (connection.source === connection.target) {
     return false;
   }
-  
+
   // All other connections are allowed:
   // - Trigger → Trigger (e.g., DM AND Comment)
   // - Trigger → Action
@@ -52,7 +56,7 @@ const isValidConnection = (connection: Connection, nodes: Node<FlowNodeData>[]) 
   // - Action → Action (chaining)
   // - Action → Condition
   // - Condition → Action
-  
+
   return true;
 };
 
@@ -64,11 +68,13 @@ const FlowCanvasInner = ({
   onEdgesChange: onEdgesChangeProp,
   onNodeClick,
   onSelectionChange,
+  readOnly = false,
 }: Props) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
   const idCounter = useRef(initialNodes.length);
 
   const onConnect = useCallback(
@@ -78,15 +84,20 @@ const FlowCanvasInner = ({
         console.warn("Invalid connection attempted:", params);
         return;
       }
-      
-      setEdges((eds) => addEdge({ 
-        ...params, 
-        animated: true, 
-        style: { stroke: '#6366f1', strokeWidth: 2 },
-        type: 'smoothstep',
-      }, eds));
+
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...params,
+            animated: true,
+            style: { stroke: "#6366f1", strokeWidth: 2 },
+            type: "smoothstep",
+          },
+          eds,
+        ),
+      );
     },
-    [setEdges, nodes]
+    [setEdges, nodes],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -124,7 +135,7 @@ const FlowCanvasInner = ({
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, setNodes],
   );
 
   // Track last synced data to detect when parent updates
@@ -136,51 +147,71 @@ const FlowCanvasInner = ({
   // Sync nodes from parent when they change (DB load or config update)
   React.useEffect(() => {
     if (initialNodes.length === 0) return;
-    
+
     // Create signatures to detect changes
-    const nodeIdsSignature = initialNodes.map(n => n.id).sort().join(",");
-    const nodeDataSignature = JSON.stringify(initialNodes.map(n => ({ id: n.id, data: n.data })));
-    
+    const nodeIdsSignature = initialNodes
+      .map((n) => n.id)
+      .sort()
+      .join(",");
+    const nodeDataSignature = JSON.stringify(
+      initialNodes.map((n) => ({ id: n.id, data: n.data })),
+    );
+
     // Sync if node IDs change (new nodes from DB)
     if (nodeIdsSignature !== lastSyncedNodeIds.current) {
-      console.log("[FlowCanvas] Syncing nodes from parent (new nodes):", initialNodes.length);
+      console.log(
+        "[FlowCanvas] Syncing nodes from parent (new nodes):",
+        initialNodes.length,
+      );
       isSyncingFromParent.current = true;
       setNodes(initialNodes);
       lastSyncedNodeIds.current = nodeIdsSignature;
       lastSyncedNodeData.current = nodeDataSignature;
-      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
+      setTimeout(() => {
+        isSyncingFromParent.current = false;
+      }, 0);
     }
     // Sync if node data/config changes (config update from parent)
     else if (nodeDataSignature !== lastSyncedNodeData.current) {
       console.log("[FlowCanvas] Syncing node data from parent (config update)");
       isSyncingFromParent.current = true;
       // Update data only, preserve canvas positions
-      setNodes(prevNodes => 
-        prevNodes.map(node => {
-          const updatedNode = initialNodes.find(n => n.id === node.id);
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => {
+          const updatedNode = initialNodes.find((n) => n.id === node.id);
           if (updatedNode) {
             return { ...node, data: updatedNode.data };
           }
           return node;
-        })
+        }),
       );
       lastSyncedNodeData.current = nodeDataSignature;
-      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
+      setTimeout(() => {
+        isSyncingFromParent.current = false;
+      }, 0);
     }
   }, [initialNodes, setNodes]);
 
   // Sync edges from parent when they change
   React.useEffect(() => {
     if (initialEdges.length === 0) return;
-    
-    const edgeIdsSignature = initialEdges.map(e => e.id).sort().join(",");
-    
+
+    const edgeIdsSignature = initialEdges
+      .map((e) => e.id)
+      .sort()
+      .join(",");
+
     if (edgeIdsSignature !== lastSyncedEdgeIds.current) {
-      console.log("[FlowCanvas] Syncing edges from parent:", initialEdges.length);
+      console.log(
+        "[FlowCanvas] Syncing edges from parent:",
+        initialEdges.length,
+      );
       isSyncingFromParent.current = true;
       setEdges(initialEdges);
       lastSyncedEdgeIds.current = edgeIdsSignature;
-      setTimeout(() => { isSyncingFromParent.current = false; }, 0);
+      setTimeout(() => {
+        isSyncingFromParent.current = false;
+      }, 0);
     }
   }, [initialEdges, setEdges]);
 
@@ -206,7 +237,7 @@ const FlowCanvasInner = ({
         onSelectionChange(node.id);
       }
     },
-    [onNodeClick, onSelectionChange]
+    [onNodeClick, onSelectionChange],
   );
 
   const handlePaneClick = useCallback(() => {
@@ -225,9 +256,9 @@ const FlowCanvasInner = ({
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
+        onConnect={readOnly ? undefined : onConnect}
+        onDrop={readOnly ? undefined : onDrop}
+        onDragOver={readOnly ? undefined : onDragOver}
         onInit={setReactFlowInstance}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
@@ -237,10 +268,16 @@ const FlowCanvasInner = ({
         fitViewOptions={{ padding: 0.2 }}
         className="bg-white dark:bg-neutral-950"
         defaultEdgeOptions={{
-          type: 'smoothstep',
+          type: "smoothstep",
           animated: true,
-          style: { stroke: '#6366f1', strokeWidth: 2 },
+          style: { stroke: "#6366f1", strokeWidth: 2 },
         }}
+        nodesDraggable={!readOnly}
+        nodesConnectable={!readOnly}
+        elementsSelectable={!readOnly}
+        // Keep pan/zoom enabled for "preview"
+        // Also disable attribution for cleaner preview if desired
+        proOptions={{ hideAttribution: true }}
       >
         <Background
           variant={BackgroundVariant.Dots}
@@ -249,7 +286,10 @@ const FlowCanvasInner = ({
           color="#d1d5db"
           className="dark:[&>svg>pattern>circle]:fill-neutral-500"
         />
-        <Controls className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg" />
+        <Controls
+          showInteractive={!readOnly}
+          className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg"
+        />
       </ReactFlow>
     </div>
   );

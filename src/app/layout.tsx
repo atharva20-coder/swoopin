@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from '@/contexts/theme-context';
+import { ThemeProvider } from "@/contexts/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import ReduxProvider from "@/providers/redux-provider";
 import ServiceWorkerProvider from "@/providers/service-worker-provider";
-import CookieConsent from '@/components/global/cookie-consent';
+import CookieConsent from "@/components/global/cookie-consent";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ninthnode.com'),
-  title: "NinthNode - AI-Powered Social Media Automation for Creators & Influencers",
-  description: "Automate your social media marketing with AI-powered conversations, smart replies, and promotional automation. Perfect for creators, influencers, and businesses looking to scale their social media presence.",
-  keywords: "social media automation, Instagram automation, WhatsApp marketing, Messenger bot, AI chatbot, influencer marketing tools, content creator tools, social media management, automated DM responses, ChatGPT integration, Gemini AI integration, conversation automation, smart replies, promotional automation, lead generation automation, social media engagement, AI marketing tools, influencer automation, customer support automation, social media ROI, automated messaging, social media scheduling, AI-powered marketing, social media analytics, Instagram DM automation, WhatsApp business automation, social media CRM, social media lead generation, automated customer service, social media conversion, digital marketing automation, social media optimization, content automation, social commerce automation, automated engagement, social media workflow automation, AI conversation bot, social media sales automation, influencer campaign automation, automated follow-up messages, social media growth tools",
+  metadataBase: new URL("https://ninthnode.com"),
+  title:
+    "NinthNode - AI-Powered Social Media Automation for Creators & Influencers",
+  description:
+    "Automate your social media marketing with AI-powered conversations, smart replies, and promotional automation. Perfect for creators, influencers, and businesses looking to scale their social media presence.",
+  keywords:
+    "social media automation, Instagram automation, WhatsApp marketing, Messenger bot, AI chatbot, influencer marketing tools, content creator tools, social media management, automated DM responses, ChatGPT integration, Gemini AI integration, conversation automation, smart replies, promotional automation, lead generation automation, social media engagement, AI marketing tools, influencer automation, customer support automation, social media ROI, automated messaging, social media scheduling, AI-powered marketing, social media analytics, Instagram DM automation, WhatsApp business automation, social media CRM, social media lead generation, automated customer service, social media conversion, digital marketing automation, social media optimization, content automation, social commerce automation, automated engagement, social media workflow automation, AI conversation bot, social media sales automation, influencer campaign automation, automated follow-up messages, social media growth tools",
   authors: [{ name: "NinthNode" }],
   creator: "NinthNode",
   publisher: "NinthNode",
@@ -24,37 +27,42 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://ninthnode.com",
     siteName: "NinthNode",
-    title: "NinthNode - AI-Powered Social Media & Influencer Marketing Automation",
-    description: "Transform your social media presence with AI-powered automation. Leverage ChatGPT and Gemini AI for smart conversations, automated promotions, and intelligent customer engagement across Instagram, WhatsApp, and Messenger.",
-    images: [{
-      url: "/header/robot avatar.svg",
-      width: 1200,
-      height: 630,
-      alt: "NinthNode AI-Powered Social Media Automation Platform"
-    }]
+    title:
+      "NinthNode - AI-Powered Social Media & Influencer Marketing Automation",
+    description:
+      "Transform your social media presence with AI-powered automation. Leverage ChatGPT and Gemini AI for smart conversations, automated promotions, and intelligent customer engagement across Instagram, WhatsApp, and Messenger.",
+    images: [
+      {
+        url: "/header/robot avatar.svg",
+        width: 1200,
+        height: 630,
+        alt: "NinthNode AI-Powered Social Media Automation Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "NinthNode - Smart Social Media Automation for Creators",
-    description: "AI-powered social media automation platform featuring ChatGPT & Gemini integration for intelligent conversations, promotional automation, and enhanced customer engagement.",
+    description:
+      "AI-powered social media automation platform featuring ChatGPT & Gemini integration for intelligent conversations, promotional automation, and enhanced customer engagement.",
     images: ["/header/robot avatar.svg"],
-    creator: "@ninthnode"
+    creator: "@ninthnode",
   },
   alternates: {
-    canonical: "https://ninthnode.com"
-  }
+    canonical: "https://ninthnode.com",
+  },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#4F46E5"
+  themeColor: "#4F46E5",
 };
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -64,6 +72,40 @@ export default function RootLayout({
             <ThemeProvider>
               <ServiceWorkerProvider>
                 {children}
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                      "@context": "https://schema.org",
+                      "@graph": [
+                        {
+                          "@type": "Organization",
+                          name: "NinthNode",
+                          url: "https://ninthnode.com",
+                          logo: "https://ninthnode.com/icon.svg",
+                          sameAs: [
+                            "https://twitter.com/ninthnode",
+                            "https://www.linkedin.com/company/ninthnode",
+                            "https://www.instagram.com/ninthnode",
+                          ],
+                        },
+                        {
+                          "@type": "SoftwareApplication",
+                          name: "NinthNode",
+                          applicationCategory: "BusinessApplication",
+                          operatingSystem: "Web",
+                          offers: {
+                            "@type": "Offer",
+                            price: "0",
+                            priceCurrency: "USD",
+                          },
+                          description:
+                            "AI-powered social media automation platform for creators and businesses.",
+                        },
+                      ],
+                    }),
+                  }}
+                />
               </ServiceWorkerProvider>
               <Toaster />
               <CookieConsent />

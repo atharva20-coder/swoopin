@@ -414,8 +414,12 @@ const ConfigPanel = ({
           onBlur={(e) => handleAutoSave("prompt", e.target.value)}
           placeholder="Describe how you communicate, your brand voice, and what you want AI to help with..."
           rows={5}
+          maxLength={750}
           className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
         />
+        <p className="text-xs text-gray-400 mt-1 text-right">
+          {(formData.prompt || "").length}/750 characters
+        </p>
       </div>
 
       {/* Example Prompts */}

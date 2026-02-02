@@ -117,7 +117,21 @@ const FlowManager = ({ automationId, slug }: Props) => {
     valid: boolean;
     errors: string[];
   }>({ valid: true, errors: [] });
+  const [isMobile, setIsMobile] = useState(false);
   const hasInitialized = React.useRef(false);
+
+  // Handle window resize for mobile check
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    // Check on mount
+    checkMobile();
+
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Load flow - try localStorage cache first, then FlowNode/FlowEdge tables
   useEffect(() => {
@@ -581,8 +595,12 @@ const FlowManager = ({ automationId, slug }: Props) => {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel - Components */}
-        <ComponentsPanel />
+        {/* Left panel - Components (Hidden on mobile) */}
+        {!isMobile && (
+          <div className="hidden lg:block h-full">
+            <ComponentsPanel />
+          </div>
+        )}
 
         {/* Center panel - Canvas */}
         <div className="flex-1 relative">
@@ -594,37 +612,51 @@ const FlowManager = ({ automationId, slug }: Props) => {
             onEdgesChange={handleEdgesChange}
             onNodeClick={handleNodeClick}
             onSelectionChange={handleSelectionChange}
+            readOnly={isMobile}
           />
 
-          {/* Save Button */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-            <Button
-              onClick={handleSaveFlow}
-              disabled={isSaving}
-              className="shadow-lg"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Flow
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Save Button (Hidden on mobile read-only) */}
+          {!isMobile && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 hidden lg:flex">
+              <Button
+                onClick={handleSaveFlow}
+                disabled={isSaving}
+                className="shadow-lg"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Flow
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
 
-          {/* Right panel - Configuration (Floating) */}
-          <ConfigPanel
-            id={automationId}
-            selectedNode={selectedNode}
-            onUpdateNode={handleUpdateNode}
-            onDeleteNode={handleDeleteNode}
-            className="absolute right-4 top-4 z-20"
-          />
+          {/* Mobile Read-only Indicator */}
+          {isMobile && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 lg:hidden px-4 py-2 bg-neutral-900/80 backdrop-blur-sm text-white text-xs rounded-full pointer-events-none">
+              Preview Mode (Read-only)
+            </div>
+          )}
+
+          {/* Right panel - Configuration (Floating) - Hidden on mobile */}
+          {!isMobile && (
+            <div className="hidden lg:block">
+              <ConfigPanel
+                id={automationId}
+                selectedNode={selectedNode}
+                onUpdateNode={handleUpdateNode}
+                onDeleteNode={handleDeleteNode}
+                className="absolute right-4 top-4 z-20"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

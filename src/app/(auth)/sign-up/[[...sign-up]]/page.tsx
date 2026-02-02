@@ -6,9 +6,20 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Mail, Lock, User, Eye, EyeOff, CheckCircle } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 
 import NinthNodeLogo from "@/components/global/ninth-node-logo";
+import { SignUpSchema } from "@/schemas/auth.schema";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -30,13 +41,16 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+    setIsLoading(true);
+
+    const check = SignUpSchema.safeParse({ name, email, password });
+
+    if (!check.success) {
+      const firstError = check.error.errors[0]?.message;
+      toast.error(firstError || "Invalid details");
+      setIsLoading(false);
       return;
     }
-    
-    setIsLoading(true);
 
     try {
       const result = await authClient.signUp.email({
@@ -49,13 +63,63 @@ export default function SignUpPage() {
         toast.error(result.error.message || "Sign up failed");
       } else {
         setShowSuccess(true);
-        toast.success("Account created! Check your email for verification link.");
+        toast.success(
+          "Account created! Check your email for verification link.",
+        );
       }
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const PasswordStrengthIndicator = () => {
+    const rules = [
+      { label: "At least 8 characters", valid: password.length >= 8 },
+      { label: "One uppercase letter", valid: /[A-Z]/.test(password) },
+      { label: "One number", valid: /[0-9]/.test(password) },
+      {
+        label: "One special character",
+        valid: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      },
+      {
+        label: "Cannot contain your name",
+        valid:
+          name.length > 0 &&
+          !password.toLowerCase().includes(name.toLowerCase()),
+      },
+    ];
+
+    if (!password) return null;
+
+    return (
+      <div className="mt-3 space-y-2 p-3 bg-gray-50 dark:bg-neutral-800/50 rounded-lg border border-gray-100 dark:border-neutral-800">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          Password must have:
+        </p>
+        <div className="grid grid-cols-1 gap-1.5">
+          {rules.map((rule, index) => (
+            <div key={index} className="flex items-center gap-2 text-xs">
+              {rule.valid ? (
+                <CheckCircle className="w-3 h-3 text-green-500" />
+              ) : (
+                <div className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-600" />
+              )}
+              <span
+                className={
+                  rule.valid
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-gray-500 dark:text-gray-500"
+                }
+              >
+                {rule.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const handleGoogleSignUp = async () => {
@@ -87,11 +151,14 @@ export default function SignUpPage() {
             <p className="text-gray-500 dark:text-[#8c8c8c]">
               We sent a verification link to
             </p>
-            <p className="text-gray-900 dark:text-white font-medium mt-1">{email}</p>
+            <p className="text-gray-900 dark:text-white font-medium mt-1">
+              {email}
+            </p>
           </div>
 
           <p className="text-gray-500 dark:text-[#8c8c8c] text-sm text-center mb-6">
-            Click the link in the email to verify your account and complete registration.
+            Click the link in the email to verify your account and complete
+            registration.
           </p>
 
           <div className="space-y-3">
@@ -108,7 +175,7 @@ export default function SignUpPage() {
             >
               Resend verification email
             </Button>
-            
+
             <Link href="/sign-in">
               <Button
                 variant="ghost"
@@ -217,7 +284,7 @@ export default function SignUpPage() {
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-gray-900 dark:text-white">{email}</span>
               </button>
-              
+
               <div className="relative">
                 <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#8c8c8c]" />
                 <Input
@@ -230,7 +297,7 @@ export default function SignUpPage() {
                   autoFocus
                 />
               </div>
-              
+
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#8c8c8c]" />
                 <Input
@@ -247,24 +314,42 @@ export default function SignUpPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:text-[#8c8c8c] dark:hover:text-white"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
-              
+
+              <PasswordStrengthIndicator />
+
               <Button
                 type="submit"
                 disabled={isLoading}
                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 dark:bg-[#0d99ff] dark:hover:bg-[#0b87e3] text-white rounded-lg font-medium"
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
                 Create account
               </Button>
-              
+
               <p className="text-gray-400 dark:text-[#5c5c5c] text-xs text-center">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="underline underline-offset-4 hover:text-primary">Terms of Service</Link>
-                {" "}and{" "}
-                <Link href="/privacy_policy" className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white">Privacy Policy</Link>
+                <Link
+                  href="/terms"
+                  className="underline underline-offset-4 hover:text-primary"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy_policy"
+                  className="text-gray-500 hover:text-gray-900 dark:text-[#8c8c8c] dark:hover:text-white"
+                >
+                  Privacy Policy
+                </Link>
               </p>
             </form>
           )}
@@ -273,7 +358,10 @@ export default function SignUpPage() {
         {/* Sign in link */}
         <p className="text-center text-gray-500 dark:text-[#8c8c8c] mt-6">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-blue-600 hover:text-blue-700 dark:text-[#0d99ff] dark:hover:text-[#0b87e3] font-medium transition-colors">
+          <Link
+            href="/sign-in"
+            className="text-blue-600 hover:text-blue-700 dark:text-[#0d99ff] dark:hover:text-[#0b87e3] font-medium transition-colors"
+          >
             Sign in
           </Link>
         </p>

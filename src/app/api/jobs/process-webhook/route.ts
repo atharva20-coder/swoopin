@@ -10,6 +10,8 @@ import {
   sendCarouselMessage,
   getUserProfile,
   checkIfFollower,
+  getMentionedComment,
+  getMentionedMedia,
 } from "@/lib/fetch";
 import { upsertContact } from "@/services/contact.service";
 import { generateGeminiResponse } from "@/lib/gemini";
@@ -261,37 +263,82 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Match keywords for Comment
+    // Match keywords for Comment & Mentions
     if (!matcher && webhook_payload.entry[0].changes) {
       const change = webhook_payload.entry[0].changes[0];
       const pageId = webhook_payload.entry[0].id;
-      const senderId = change?.value?.from?.id;
-      const parentId = change?.value?.parent_id;
 
-      // Infinite loop protection: Ignore comments from the page itself
-      if (senderId === pageId) {
-        console.log("Skipping comment from self (infinite loop protection)");
-        return NextResponse.json(
-          { message: "Self-comment ignored" },
-          { status: 200 },
-        );
+      // Handle Mentions
+      if (change.field === "mentions") {
+        console.log("Processing mention webhook:", change.value);
+        const { comment_id, media_id } = change.value;
+        const token = await webhookService.getIntegrationToken(pageId);
+
+        if (token) {
+          let text = "";
+          let senderId = "";
+
+          if (comment_id) {
+            const commentRes = await getMentionedComment(comment_id, token);
+            if (commentRes.success && commentRes.data) {
+              text = commentRes.data.text || "";
+              senderId = commentRes.data.from?.id;
+            }
+          } else if (media_id) {
+            const mediaRes = await getMentionedMedia(media_id, token);
+            if (mediaRes.success && mediaRes.data) {
+              text = mediaRes.data.caption || "";
+              senderId = mediaRes.data.owner?.id;
+            }
+          }
+
+          if (text) {
+            // Check for specific MENTION automation first
+            matcher = await matchKeyword(text, "MENTION");
+
+            // Allow Mention to fallback to generic keywords if needed?
+            // For now, let's keep it strict to what matchKeyword supports.
+            // But we should inject the senderId back into the payload or context if we found it
+            // because subsequent logic expects senderId in payload for context construction.
+            // We'll handle this in context construction.
+            if (senderId) {
+              (change.value as any).sender_id_fetched = senderId;
+            }
+            (change.value as any).text_fetched = text;
+          }
+        }
       }
 
-      // Infinite loop protection: Ignore comment REPLIES (has parent_id)
-      // These are sub-comments, which include bot's own replies to user comments
-      if (parentId) {
-        console.log(
-          "Skipping comment reply (sub-comment) - infinite loop protection",
-        );
-        return NextResponse.json(
-          { message: "Comment reply ignored" },
-          { status: 200 },
-        );
-      }
+      // Handle Comments (existing logic)
+      if (change.field === "comments") {
+        const senderId = change?.value?.from?.id;
+        const parentId = change?.value?.parent_id;
 
-      const commentText = change?.value?.text;
-      if (commentText) {
-        matcher = await matchKeyword(commentText, "COMMENT");
+        // Infinite loop protection: Ignore comments from the page itself
+        if (senderId === pageId) {
+          console.log("Skipping comment from self (infinite loop protection)");
+          return NextResponse.json(
+            { message: "Self-comment ignored" },
+            { status: 200 },
+          );
+        }
+
+        // Infinite loop protection: Ignore comment REPLIES (has parent_id)
+        // These are sub-comments, which include bot's own replies to user comments
+        if (parentId) {
+          console.log(
+            "Skipping comment reply (sub-comment) - infinite loop protection",
+          );
+          return NextResponse.json(
+            { message: "Comment reply ignored" },
+            { status: 200 },
+          );
+        }
+
+        const commentText = change?.value?.text;
+        if (commentText) {
+          matcher = await matchKeyword(commentText, "COMMENT");
+        }
       }
     }
 
@@ -315,6 +362,13 @@ export async function POST(req: NextRequest) {
         const isComment = !!webhook_payload.entry[0].changes?.find(
           (c: any) => c.field === "comments",
         );
+
+        const isMention = !!webhook_payload.entry[0].changes?.find(
+          (c: any) => c.field === "mentions",
+        );
+        const mentionChange = isMention
+          ? webhook_payload.entry[0].changes[0]
+          : null;
 
         // Check post attachment for comments
         if (isComment) {
@@ -343,29 +397,65 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        // Determine Sender ID
+        let senderId = "";
+        if (isMessage) {
+          senderId = webhook_payload.entry[0].messaging[0].sender.id;
+        } else if (isComment) {
+          senderId = webhook_payload.entry[0].changes[0].value.from.id;
+        } else if (isMention && mentionChange) {
+          senderId = (mentionChange.value as any).sender_id_fetched;
+        }
+
+        // Determine Message Text
+        let messageText = "";
+        if (isMessage) {
+          messageText = webhook_payload.entry[0].messaging[0].message.text;
+        } else if (isComment) {
+          messageText = webhook_payload.entry[0].changes[0].value.text;
+        } else if (isMention && mentionChange) {
+          messageText = (mentionChange.value as any).text_fetched;
+        }
+
+        // Detect Story Mention (Message Attachment)
+        const isStoryMention =
+          isMessage &&
+          webhook_payload.entry[0].messaging[0].message.attachments?.some(
+            (a: any) => a.type === "story_mention",
+          );
+
+        if (isStoryMention && !messageText) {
+          messageText = "[Story Mention]";
+        }
+
         // Build execution context (shared by both new and old executors)
         const context = {
           automationId: matcher.automationId,
           userId: automation.userId!,
           token: integration.token,
           pageId: webhook_payload.entry[0].id,
-          senderId: isMessage
-            ? webhook_payload.entry[0].messaging[0].sender.id
-            : webhook_payload.entry[0].changes[0].value.from.id,
-          messageText: isMessage
-            ? webhook_payload.entry[0].messaging[0].message.text
-            : webhook_payload.entry[0].changes[0].value.text,
+          senderId,
+          messageText,
+          isStoryMention,
           commentId: isComment
             ? webhook_payload.entry[0].changes[0].value.id
-            : undefined,
+            : isMention
+              ? mentionChange.value.comment_id
+              : undefined,
           mediaId: isComment
             ? webhook_payload.entry[0].changes[0].value.media?.id
-            : undefined,
+            : isMention
+              ? mentionChange.value.media_id
+              : undefined,
           triggerType: ((matcher as any).isCatchAll
             ? isMessage
-              ? "DM"
-              : "COMMENT"
-            : "KEYWORDS") as "DM" | "COMMENT" | "KEYWORDS",
+              ? isStoryMention
+                ? "MENTION"
+                : "DM" // Story Mentions now map to MENTION trigger
+              : isMention
+                ? "MENTION"
+                : "COMMENT"
+            : "KEYWORDS") as "DM" | "COMMENT" | "KEYWORDS" | "MENTION",
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };

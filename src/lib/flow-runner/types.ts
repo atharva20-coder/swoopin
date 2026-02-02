@@ -52,6 +52,7 @@ export interface ExecutionContext {
   mediaId?: string;
   triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
   isStoryReply?: boolean;
+  isStoryMention?: boolean;
 
   // User subscription (for feature gating)
   userSubscription?: string;

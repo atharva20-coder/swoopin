@@ -1,10 +1,35 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  X, ChevronLeft, ChevronRight, Clock, MapPin, Hash, Music2, Users, AtSign, 
-  Zap, Calendar, Send, Save, Image as ImageIcon, Film, Plus, Trash2,
-  User, Heart, MessageCircle, Bookmark, MoreHorizontal, Play, Layers, Battery, Wifi, Signal, Package
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Hash,
+  Music2,
+  Users,
+  AtSign,
+  Zap,
+  Calendar,
+  Send,
+  Save,
+  Image as ImageIcon,
+  Film,
+  Plus,
+  Trash2,
+  User,
+  Heart,
+  MessageCircle,
+  Bookmark,
+  MoreHorizontal,
+  Play,
+  Layers,
+  Battery,
+  Wifi,
+  Signal,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -88,7 +113,9 @@ export default function PostPreviewModal({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [productTags, setProductTags] = useState<ProductTag[]>([]);
   const [showProductPicker, setShowProductPicker] = useState(false);
-  const [catalogAvailable, setCatalogAvailable] = useState<boolean | null>(null);
+  const [catalogAvailable, setCatalogAvailable] = useState<boolean | null>(
+    null,
+  );
   const [paidPartnership, setPaidPartnership] = useState(false);
   const [paidPartnershipLabel, setPaidPartnershipLabel] = useState("");
 
@@ -96,7 +123,7 @@ export default function PostPreviewModal({
   useEffect(() => {
     const checkCatalog = async () => {
       try {
-        const res = await fetch('/api/instagram/catalog-products?limit=1');
+        const res = await fetch("/api/instagram/catalog-products?limit=1");
         const data = await res.json();
         // Catalog is available if we don't have an error or we have products
         setCatalogAvailable(!data.error || data.products?.length > 0);
@@ -199,7 +226,12 @@ export default function PostPreviewModal({
     caption,
     mediaUrl: mediaUrls[0],
     mediaUrls,
-    mediaType: mediaUrls.length > 1 ? "CAROUSEL" : postType === "REEL" ? "VIDEO" : "IMAGE",
+    mediaType:
+      mediaUrls.length > 1
+        ? "CAROUSEL"
+        : postType === "REEL"
+          ? "VIDEO"
+          : "IMAGE",
     location,
     hashtags,
     music,
@@ -208,7 +240,11 @@ export default function PostPreviewModal({
     automationId: selectedAutomation || undefined,
     scheduledFor: getScheduledDateTime(),
     status: "SCHEDULED",
-    productTags: productTags.map(t => ({ productId: t.productId, x: t.x, y: t.y })),
+    productTags: productTags.map((t) => ({
+      productId: t.productId,
+      x: t.x,
+      y: t.y,
+    })),
   });
 
   const handleSchedule = () => {
@@ -233,7 +269,10 @@ export default function PostPreviewModal({
     onClose();
   };
 
-  const currentTime = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const currentTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   // Instagram Post Preview
   const InstagramPostPreview = () => (
@@ -247,7 +286,9 @@ export default function PostPreviewModal({
             </div>
           </div>
           <div>
-            <span className="text-xs font-semibold text-gray-900 dark:text-white">your_account</span>
+            <span className="text-xs font-semibold text-gray-900 dark:text-white">
+              your_account
+            </span>
             <input
               type="text"
               value={location}
@@ -259,22 +300,32 @@ export default function PostPreviewModal({
         </div>
         <MoreHorizontal className="w-4 h-4 text-gray-400" />
       </div>
-      
+
       {/* Media Area */}
       <div className="aspect-square bg-gray-50 dark:bg-neutral-900 relative flex-shrink-0">
         {mediaUrls.length > 0 ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={mediaUrls[currentSlide]} alt="Post media" className="w-full h-full object-cover" />
+            <img
+              src={mediaUrls[currentSlide]}
+              alt="Post media"
+              className="w-full h-full object-cover"
+            />
             {mediaUrls.length > 1 && (
               <>
                 {currentSlide > 0 && (
-                  <button onClick={() => setCurrentSlide(c => c - 1)} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center">
+                  <button
+                    onClick={() => setCurrentSlide((c) => c - 1)}
+                    className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center"
+                  >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                 )}
                 {currentSlide < mediaUrls.length - 1 && (
-                  <button onClick={() => setCurrentSlide(c => c + 1)} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center">
+                  <button
+                    onClick={() => setCurrentSlide((c) => c + 1)}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/90 flex items-center justify-center"
+                  >
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 )}
@@ -284,17 +335,29 @@ export default function PostPreviewModal({
                 </div>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                   {mediaUrls.map((_, i) => (
-                    <div key={i} className={cn("w-1.5 h-1.5 rounded-full", i === currentSlide ? "bg-blue-500" : "bg-white/60")} />
+                    <div
+                      key={i}
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        i === currentSlide ? "bg-blue-500" : "bg-white/60",
+                      )}
+                    />
                   ))}
                 </div>
               </>
             )}
-            <button onClick={() => removeMedia(currentSlide)} className="absolute top-2 left-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => removeMedia(currentSlide)}
+              className="absolute top-2 left-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+            >
               <Trash2 className="w-3 h-3 text-white" />
             </button>
           </>
         ) : (
-          <button onClick={() => setShowMediaInput(true)} className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-gray-600">
+          <button
+            onClick={() => setShowMediaInput(true)}
+            className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-gray-600"
+          >
             <ImageIcon className="w-10 h-10" />
             <span className="text-xs">Add Media</span>
           </button>
@@ -304,12 +367,26 @@ export default function PostPreviewModal({
       {/* Thumbnails */}
       <div className="flex gap-1 p-2 bg-gray-50 dark:bg-neutral-900 overflow-x-auto">
         {mediaUrls.map((url, i) => (
-          <button key={i} onClick={() => setCurrentSlide(i)} className={cn("w-10 h-10 rounded shrink-0 overflow-hidden", i === currentSlide && "ring-2 ring-blue-500")}>
+          <button
+            key={i}
+            onClick={() => setCurrentSlide(i)}
+            className={cn(
+              "w-10 h-10 rounded shrink-0 overflow-hidden",
+              i === currentSlide && "ring-2 ring-blue-500",
+            )}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
+            <img
+              src={url}
+              alt="Thumbnail"
+              className="w-full h-full object-cover"
+            />
           </button>
         ))}
-        <button onClick={() => setShowMediaInput(true)} className="w-10 h-10 shrink-0 rounded border border-dashed border-gray-300 flex items-center justify-center hover:border-blue-400">
+        <button
+          onClick={() => setShowMediaInput(true)}
+          className="w-10 h-10 shrink-0 rounded border border-dashed border-gray-300 flex items-center justify-center hover:border-blue-400"
+        >
           <Plus className="w-4 h-4 text-gray-400" />
         </button>
       </div>
@@ -317,8 +394,18 @@ export default function PostPreviewModal({
       {showMediaInput && (
         <div className="p-2 bg-gray-100 dark:bg-neutral-800">
           <div className="flex gap-1">
-            <input type="url" value={newMediaUrl} onChange={(e) => setNewMediaUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMediaUrl()} placeholder="Paste URL..." className="flex-1 px-2 py-1 text-xs rounded border" autoFocus />
-            <Button size="sm" className="h-7 text-xs" onClick={addMediaUrl}>Add</Button>
+            <input
+              type="url"
+              value={newMediaUrl}
+              onChange={(e) => setNewMediaUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addMediaUrl()}
+              placeholder="Paste URL..."
+              className="flex-1 px-2 py-1 text-xs rounded border"
+              autoFocus
+            />
+            <Button size="sm" className="h-7 text-xs" onClick={addMediaUrl}>
+              Add
+            </Button>
           </div>
         </div>
       )}
@@ -337,32 +424,89 @@ export default function PostPreviewModal({
       <div className="px-3 flex-1 overflow-y-auto">
         <div className="flex gap-1 text-xs">
           <span className="font-semibold">your_account</span>
-          <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write caption..." rows={2} className="flex-1 bg-transparent outline-none resize-none placeholder:text-gray-400 text-xs" />
+          <textarea
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Write caption..."
+            rows={2}
+            className="flex-1 bg-transparent outline-none resize-none placeholder:text-gray-400 text-xs"
+          />
         </div>
-        
+
         {/* Hashtags */}
         <div className="flex flex-wrap gap-1 mt-1">
           {hashtags.map((h, i) => (
-            <button key={i} onClick={() => setHashtags(hashtags.filter((_, idx) => idx !== i))} className="text-[10px] text-blue-500">#{h}</button>
+            <button
+              key={i}
+              onClick={() =>
+                setHashtags(hashtags.filter((_, idx) => idx !== i))
+              }
+              className="text-[10px] text-blue-500"
+            >
+              #{h}
+            </button>
           ))}
-          <input type="text" value={newHashtag} onChange={(e) => setNewHashtag(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addHashtag())} placeholder="#tag" className="text-[10px] text-blue-500 w-12 bg-transparent outline-none placeholder:text-blue-300" />
+          <input
+            type="text"
+            value={newHashtag}
+            onChange={(e) => setNewHashtag(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addHashtag())
+            }
+            placeholder="#tag"
+            className="text-[10px] text-blue-500 w-12 bg-transparent outline-none placeholder:text-blue-300"
+          />
         </div>
 
         {/* Tags & Collabs */}
         <div className="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-100 dark:border-neutral-800">
           <AtSign className="w-3 h-3 text-gray-400" />
           {taggedUsers.map((u, i) => (
-            <button key={i} onClick={() => setTaggedUsers(taggedUsers.filter((_, idx) => idx !== i))} className="text-[10px] text-blue-600 bg-blue-50 px-1 rounded">@{u}</button>
+            <button
+              key={i}
+              onClick={() =>
+                setTaggedUsers(taggedUsers.filter((_, idx) => idx !== i))
+              }
+              className="text-[10px] text-blue-600 bg-blue-50 px-1 rounded"
+            >
+              @{u}
+            </button>
           ))}
-          <input type="text" value={newTag} onChange={(e) => setNewTag(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTaggedUser())} placeholder="@user" className="text-[10px] w-12 bg-transparent outline-none placeholder:text-gray-400" />
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addTaggedUser())
+            }
+            placeholder="@user"
+            className="text-[10px] w-12 bg-transparent outline-none placeholder:text-gray-400"
+          />
         </div>
 
         <div className="flex flex-wrap gap-1 mt-2">
           <Users className="w-3 h-3 text-gray-400" />
           {collaborators.map((c, i) => (
-            <button key={i} onClick={() => setCollaborators(collaborators.filter((_, idx) => idx !== i))} className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded">@{c}</button>
+            <button
+              key={i}
+              onClick={() =>
+                setCollaborators(collaborators.filter((_, idx) => idx !== i))
+              }
+              className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded"
+            >
+              @{c}
+            </button>
           ))}
-          <input type="text" value={newCollab} onChange={(e) => setNewCollab(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCollaborator())} placeholder="@collab" className="text-[10px] w-12 bg-transparent outline-none placeholder:text-gray-400" />
+          <input
+            type="text"
+            value={newCollab}
+            onChange={(e) => setNewCollab(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && (e.preventDefault(), addCollaborator())
+            }
+            placeholder="@collab"
+            className="text-[10px] w-12 bg-transparent outline-none placeholder:text-gray-400"
+          />
         </div>
       </div>
     </div>
@@ -375,7 +519,11 @@ export default function PostPreviewModal({
       <div className="absolute inset-0">
         {mediaUrls.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={mediaUrls[0]} alt="Reel preview" className="w-full h-full object-cover" />
+          <img
+            src={mediaUrls[0]}
+            alt="Reel preview"
+            className="w-full h-full object-cover"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
             <div className="text-center">
@@ -423,7 +571,9 @@ export default function PostPreviewModal({
             </div>
           </div>
           <span className="text-white text-xs font-semibold">your_account</span>
-          <button className="px-3 py-1 rounded border border-white text-white text-[10px]">Follow</button>
+          <button className="px-3 py-1 rounded border border-white text-white text-[10px]">
+            Follow
+          </button>
         </div>
 
         {/* Caption */}
@@ -461,7 +611,12 @@ export default function PostPreviewModal({
               className="w-full px-3 py-2 bg-gray-800 text-white text-sm rounded-lg outline-none"
             />
             <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setShowMediaInput(false)} className="flex-1 text-white border-gray-700">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMediaInput(false)}
+                className="flex-1 text-white border-gray-700"
+              >
                 Cancel
               </Button>
               <Button size="sm" onClick={addMediaUrl} className="flex-1">
@@ -493,7 +648,9 @@ export default function PostPreviewModal({
             </div>
           </div>
           <div>
-            <span className="text-white text-xs font-semibold">your_account</span>
+            <span className="text-white text-xs font-semibold">
+              your_account
+            </span>
             <span className="text-white/50 text-[10px] ml-2">Just now</span>
           </div>
         </div>
@@ -504,7 +661,11 @@ export default function PostPreviewModal({
       <div className="absolute inset-0 flex items-center justify-center">
         {mediaUrls.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={mediaUrls[0]} alt="Story preview" className="w-full h-full object-cover" />
+          <img
+            src={mediaUrls[0]}
+            alt="Story preview"
+            className="w-full h-full object-cover"
+          />
         ) : (
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
@@ -557,7 +718,12 @@ export default function PostPreviewModal({
               className="w-full px-3 py-2 bg-gray-800 text-white text-sm rounded-lg outline-none"
             />
             <div className="flex gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={() => setShowMediaInput(false)} className="flex-1 text-white border-gray-700">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMediaInput(false)}
+                className="flex-1 text-white border-gray-700"
+              >
                 Cancel
               </Button>
               <Button size="sm" onClick={addMediaUrl} className="flex-1">
@@ -571,10 +737,16 @@ export default function PostPreviewModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="relative flex gap-6 items-start">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex flex-col lg:flex-row gap-6 items-center lg:items-start max-h-[90vh] overflow-y-auto p-4 scrollbar-hide"
+      >
         {/* iPhone Frame */}
-        <div className="relative">
+        <div className="relative shrink-0 scale-[0.8] origin-top sm:scale-90 lg:scale-100 transition-transform">
           {/* iPhone Outer Frame */}
           <div className="relative w-[320px] h-[680px] bg-gray-900 rounded-[50px] p-3 shadow-2xl">
             {/* iPhone Inner Bezel */}
@@ -584,10 +756,12 @@ export default function PostPreviewModal({
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-800" />
                 <div className="w-1.5 h-1.5 rounded-full bg-gray-700" />
               </div>
-              
+
               {/* Status Bar */}
               <div className="absolute top-0 left-0 right-0 h-12 z-10 flex items-end justify-between px-8 pb-1">
-                <span className="text-white text-xs font-semibold">{currentTime}</span>
+                <span className="text-white text-xs font-semibold">
+                  {currentTime}
+                </span>
                 <div className="flex items-center gap-1">
                   <Signal className="w-3.5 h-3.5 text-white" />
                   <Wifi className="w-3.5 h-3.5 text-white" />
@@ -605,7 +779,9 @@ export default function PostPreviewModal({
                       onClick={() => setPostType(type.value)}
                       className={cn(
                         "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-medium transition-all",
-                        postType === type.value ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow" : "text-gray-500"
+                        postType === type.value
+                          ? "bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow"
+                          : "text-gray-500",
                       )}
                     >
                       <type.icon className="w-3 h-3" />
@@ -631,9 +807,11 @@ export default function PostPreviewModal({
         </div>
 
         {/* Side Panel - Schedule & Actions */}
-        <div className="w-72 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="w-full lg:w-72 shrink-0 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl overflow-hidden">
           <div className="p-4 border-b border-gray-100 dark:border-neutral-800">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Schedule Post</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">
+              Schedule Post
+            </h3>
           </div>
 
           <div className="p-4 space-y-4">
@@ -675,7 +853,9 @@ export default function PostPreviewModal({
               >
                 <option value="">None</option>
                 {automations.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -693,7 +873,9 @@ export default function PostPreviewModal({
                   onClick={() => setShowProductPicker(true)}
                 >
                   <Package className="w-4 h-4 mr-2" />
-                  {productTags.length > 0 ? `${productTags.length} products tagged` : "Tag products"}
+                  {productTags.length > 0
+                    ? `${productTags.length} products tagged`
+                    : "Tag products"}
                 </Button>
               </div>
             )}
@@ -725,22 +907,40 @@ export default function PostPreviewModal({
 
           {/* Actions */}
           <div className="p-4 border-t border-gray-100 dark:border-neutral-800 space-y-2">
-            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleSchedule}>
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={handleSchedule}
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Schedule
             </Button>
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1" onClick={handlePostNow}>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={handlePostNow}
+              >
                 <Send className="w-4 h-4 mr-1" />
                 Post Now
               </Button>
-              <Button variant="outline" className="flex-1" onClick={handleSaveDraft}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleSaveDraft}
+              >
                 <Save className="w-4 h-4 mr-1" />
                 Draft
               </Button>
             </div>
             {post?.id && (
-              <Button variant="outline" className="w-full text-red-600 hover:bg-red-50" onClick={() => { onDelete?.(post.id); onClose(); }}>
+              <Button
+                variant="outline"
+                className="w-full text-red-600 hover:bg-red-50"
+                onClick={() => {
+                  onDelete?.(post.id);
+                  onClose();
+                }}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
@@ -748,11 +948,14 @@ export default function PostPreviewModal({
           </div>
 
           {/* Close */}
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-gray-200 transition-colors">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center hover:bg-gray-200 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
-    </div>
+      </div>
 
       {/* Product Picker Modal */}
       {showProductPicker && (

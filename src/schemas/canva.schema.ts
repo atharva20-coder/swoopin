@@ -17,6 +17,11 @@ const nullishStringToNull = z
   .nullish()
   .transform((val): string | null => val ?? null);
 
+const nullishStringToUntitled = z
+  .string()
+  .nullish()
+  .transform((val): string => val || "Untitled Design");
+
 // ============================================
 // CONNECTION STATUS SCHEMA
 // ============================================
@@ -30,9 +35,10 @@ export const CanvaConnectionStatusSchema = z.object({
 // DESIGN SCHEMA
 // ============================================
 
-export const CanvaDesignSchema = z.object({
+// Raw response from Canva API (snake_case)
+const CanvaDesignRawSchema = z.object({
   id: z.string(),
-  title: z.string(),
+  title: z.string().optional().nullable(), // Allow missing title
   owner: z
     .object({
       display_name: z.string().optional(),
@@ -41,14 +47,50 @@ export const CanvaDesignSchema = z.object({
   thumbnail: z
     .object({
       url: z.string().url(),
+      width: z.number().optional(),
+      height: z.number().optional(),
     })
-    .optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+    .optional()
+    .nullable(),
+  urls: z
+    .object({
+      view_url: z.string().optional(),
+      edit_url: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
+  created_at: z.number().optional(), // Canva often returns timestamps as numbers (epoch) or ISO strings
+  updated_at: z.number().optional(),
 });
+
+// Transformed application-level schema (camelCase)
+export const CanvaDesignSchema = CanvaDesignRawSchema.transform((raw) => ({
+  id: raw.id,
+  title: raw.title || "Untitled Design",
+  thumbnail: raw.thumbnail
+    ? {
+        url: raw.thumbnail.url,
+        width: raw.thumbnail.width ?? 0,
+        height: raw.thumbnail.height ?? 0,
+      }
+    : null,
+  urls: raw.urls
+    ? {
+        viewUrl: raw.urls.view_url || "",
+        editUrl: raw.urls.edit_url || "",
+      }
+    : null,
+  createdAt: raw.created_at
+    ? new Date(raw.created_at).toISOString()
+    : new Date().toISOString(),
+  updatedAt: raw.updated_at
+    ? new Date(raw.updated_at).toISOString()
+    : new Date().toISOString(),
+}));
 
 export const CanvaDesignListSchema = z.array(CanvaDesignSchema);
 
+// This matches the Service return type
 export const CanvaDesignsResponseSchema = z.object({
   designs: CanvaDesignListSchema,
   continuation: nullishStringToNull,
@@ -58,10 +100,11 @@ export const CanvaDesignsResponseSchema = z.object({
 // EXPORT SCHEMA
 // ============================================
 
-export const ExportFormatSchema = z.enum(["png", "jpg"]);
+export const ExportFormatSchema = z.enum(["png", "jpg", "pdf"]);
 
 export const ExportStatusSchema = z.enum([
   "pending",
+  "in_progress",
   "processing",
   "completed",
   "failed",
@@ -78,7 +121,7 @@ export const ExportResultSchema = z.object({
 // ============================================
 
 export const GetDesignsRequestSchema = z.object({
-  limit: z.coerce.number().min(1).max(100).default(25).optional(),
+  limit: z.coerce.number().min(1).max(100).default(20),
   continuation: nullishStringToNull,
 });
 

@@ -14,6 +14,7 @@ import type {
   ExecutionLogEntry,
 } from "../types";
 import { z } from "zod";
+import { replyToMention, sendDM } from "@/lib/fetch"; // Updated import
 
 // =============================================================================
 // SCHEMA (Zero-Patchwork Protocol)
@@ -51,21 +52,40 @@ export class ReplyMentionNodeExecutor implements INodeExecutor {
       message: "Starting REPLY_MENTION node execution",
     });
 
-    const { token, pageId, mediaId, commentId } = context;
+    const { token, pageId, mediaId, commentId, isStoryMention, senderId } =
+      context;
 
-    if (!mediaId) {
-      logs.push({
-        timestamp: Date.now(),
-        level: "error",
-        message: "No media ID in context",
-      });
+    // Validate context requirements
+    if (isStoryMention) {
+      if (!senderId) {
+        logs.push({
+          timestamp: Date.now(),
+          level: "error",
+          message: "No senderId context for Story Mention reply",
+        });
+        return {
+          success: false,
+          items: [],
+          message: "No sender to reply to",
+          logs,
+        };
+      }
+    } else {
+      // For standard mentions (posts/comments), we need mediaId or commentId
+      if (!mediaId && !commentId) {
+        logs.push({
+          timestamp: Date.now(),
+          level: "error",
+          message: "No mediaId or commentId in context",
+        });
 
-      return {
-        success: false,
-        items: [],
-        message: "No media to reply to",
-        logs,
-      };
+        return {
+          success: false,
+          items: [],
+          message: "No media or comment to reply to",
+          logs,
+        };
+      }
     }
 
     // Get reply text: prioritize AI response, then config
@@ -98,26 +118,51 @@ export class ReplyMentionNodeExecutor implements INodeExecutor {
     logs.push({
       timestamp: Date.now(),
       level: "info",
-      message: "Sending mention reply",
-      data: { mediaId, replyPreview: replyText.substring(0, 50) },
+      message: isStoryMention
+        ? "Sending story mention reply (DM)"
+        : "Sending mention reply",
+      data: {
+        mediaId,
+        commentId,
+        isStoryMention,
+        replyPreview: replyText.substring(0, 50),
+      },
     });
 
     try {
-      const { replyToMention } = await import("@/lib/instagram/mentions");
-      const result = await replyToMention(
-        pageId,
-        mediaId,
-        replyText,
-        token,
-        commentId,
-      );
+      let success = false;
+      let replyId: string | undefined;
+      let errorMsg: string | undefined;
 
-      if (result.success) {
+      if (isStoryMention) {
+        // Story mentions are in DMs, so we reply with a DM
+        const dmResult = await sendDM(pageId, senderId, replyText, token);
+        if (dmResult.status === 200) {
+          success = true;
+          replyId = dmResult.data?.message_id;
+        } else {
+          errorMsg = "Failed to send DM reply";
+        }
+      } else {
+        // Post/Comment mentions use specific API
+        const result = await replyToMention(
+          pageId, // ig-user-id
+          mediaId,
+          commentId,
+          replyText,
+          token,
+        );
+        success = result.success;
+        replyId = result.id;
+        errorMsg = result.error;
+      }
+
+      if (success) {
         logs.push({
           timestamp: Date.now(),
           level: "info",
           message: "Mention reply sent successfully",
-          data: { executionTimeMs: Date.now() - startTime },
+          data: { executionTimeMs: Date.now() - startTime, id: replyId },
         });
 
         const outputItems: ItemData[] = items.map((item) => ({
@@ -127,6 +172,9 @@ export class ReplyMentionNodeExecutor implements INodeExecutor {
             mentionReplySent: true,
             usedAiResponse,
             mediaId,
+            commentId,
+            replyId,
+            isStoryMention,
           },
         }));
 
@@ -147,13 +195,13 @@ export class ReplyMentionNodeExecutor implements INodeExecutor {
         timestamp: Date.now(),
         level: "error",
         message: "Failed to reply to mention",
-        data: { error: result.error },
+        data: { error: errorMsg },
       });
 
       return {
         success: false,
         items: [],
-        message: result.error || "Failed to reply to mention",
+        message: errorMsg || "Failed to reply to mention",
         logs,
       };
     } catch (error) {

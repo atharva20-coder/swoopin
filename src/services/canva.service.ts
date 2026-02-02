@@ -15,7 +15,6 @@ import {
   type CanvaDesign,
   type GetDesignsRequest,
   type ExportDesignRequest,
-  type ExportFormat,
 } from "@/schemas/canva.schema";
 
 /**
@@ -75,8 +74,15 @@ class CanvaService {
       });
 
       // Use the app URL directly - on production this will be the correct domain
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "https://swoopin.vercel.app";
+      let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+      if (!baseUrl) {
+        baseUrl =
+          process.env.NODE_ENV === "development"
+            ? "http://localhost:3000"
+            : "https://swoopin.vercel.app";
+      }
+
       const redirectUri = `${baseUrl}/api/auth/callback/canva`;
 
       const url = getCanvaAuthUrl(redirectUri, state, codeChallenge);
@@ -135,6 +141,14 @@ class CanvaService {
       } catch (error: unknown) {
         if (error instanceof Error) {
           console.error("Failed to refresh Canva token:", error.message);
+          // If refresh fails, we might as well disconnect/require re-login
+          if (
+            error.message.includes("revoked") ||
+            error.message.includes("invalid_grant")
+          ) {
+            await this.disconnect(userId);
+            return { error: "Session expired. Please reconnect Canva." };
+          }
         }
         return { error: "Session expired. Please reconnect Canva." };
       }
@@ -146,16 +160,29 @@ class CanvaService {
         continuation: input.continuation ?? undefined,
       });
 
-      const validated = CanvaDesignsResponseSchema.safeParse(result);
-      if (validated.success) {
-        return {
-          designs: validated.data.designs,
-          continuation: validated.data.continuation,
-        };
+      // Strict parsing - validation MUST pass
+      const validated = CanvaDesignsResponseSchema.parse(result);
+
+      return {
+        designs: validated.designs,
+        continuation: validated.continuation,
+      };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+
+      // Handle revoked tokens
+      if (
+        msg.includes("revoked_access_token") ||
+        msg.includes("invalid_token")
+      ) {
+        console.warn(
+          "Canva token revoked, disconnecting user integration:",
+          userId,
+        );
+        await this.disconnect(userId);
+        return { error: "Canva connection expired. Please reconnect." };
       }
 
-      return { designs: result.designs || [], continuation: null };
-    } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching Canva designs:", error.message);
       }
@@ -213,6 +240,15 @@ class CanvaService {
 
       return { error: "Export timed out" };
     } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("revoked_access_token") ||
+        msg.includes("invalid_token")
+      ) {
+        await this.disconnect(userId);
+        return { error: "Canva connection expired. Please reconnect." };
+      }
+
       if (error instanceof Error) {
         console.error("Error exporting Canva design:", error.message);
       }

@@ -494,7 +494,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   return (
     <div
       className={cn(
-        "bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col transition-all duration-300 ease-in-out pt-20",
+        "bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 overflow-y-auto flex flex-col transition-all duration-300 ease-in-out pt-20 h-full",
         isCollapsed ? "w-16 items-center" : "w-64",
         className,
       )}
