@@ -1800,7 +1800,7 @@ const ConfigPanel = ({
   return (
     <div
       className={cn(
-        "flex flex-col transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]", // Custom easing for cleaner feel
+        "flex flex-col transition-all duration-300 ease-in-out", // Standard easing for cleaner feel
         isPanelExpanded
           ? "w-96 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-2xl rounded-xl h-[calc(100vh-2rem)]"
           : "w-12 h-12 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-lg rounded-full cursor-pointer hover:scale-110 active:scale-95", // Added active state

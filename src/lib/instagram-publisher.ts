@@ -187,9 +187,12 @@ export async function createMediaContainer(
       requestBody.share_to_feed = shareToFeed;
     }
 
-    // Collaborators
+    // Collaborators - Instagram API expects JSON array format as a string
+    // e.g., "['username1','username2']"
+    // Maximum 3 collaborators allowed per API docs
     if (collaborators && collaborators.length > 0) {
-      requestBody.collaborators = collaborators;
+      const limitedCollabs = collaborators.slice(0, 3);
+      requestBody.collaborators = JSON.stringify(limitedCollabs);
     }
 
     // Audio name for reels
@@ -216,6 +219,12 @@ export async function createMediaContainer(
     return { success: true, containerId: response.data.id };
   } catch (error) {
     console.error("Error creating media container:", error);
+    if (collaborators && collaborators.length > 0) {
+      console.error(
+        "Collaborators being sent:",
+        JSON.stringify(collaborators.slice(0, 3)),
+      );
+    }
 
     let errorMessage = "Failed to create media container";
     if (axios.isAxiosError(error)) {
@@ -269,8 +278,11 @@ export async function createCarouselContainer(
       requestBody.location_id = locationId;
     }
 
+    // Collaborators - Instagram API expects JSON array format as a string
+    // Maximum 3 collaborators allowed per API docs
     if (collaborators && collaborators.length > 0) {
-      requestBody.collaborators = collaborators;
+      const limitedCollabs = collaborators.slice(0, 3);
+      requestBody.collaborators = JSON.stringify(limitedCollabs);
     }
 
     const response = await axios.post<CreateContainerResponse>(
@@ -543,6 +555,7 @@ export async function publishSingleMedia(params: {
   mediaType?: "VIDEO" | "REELS" | "STORIES";
   caption?: string;
   altText?: string;
+  collaborators?: string[];
   trialParams?: { graduationStrategy: GraduationStrategy };
 }): Promise<{ success: boolean; mediaId?: string; error?: string }> {
   const {
@@ -553,10 +566,12 @@ export async function publishSingleMedia(params: {
     mediaType,
     caption,
     altText,
+    collaborators,
     trialParams,
   } = params;
 
   // Step 1: Create container
+  // Note: Collaborators are NOT supported for Stories per Instagram API
   const containerResult = await createMediaContainer({
     instagramAccountId,
     accessToken,
@@ -565,6 +580,7 @@ export async function publishSingleMedia(params: {
     mediaType,
     caption,
     altText,
+    collaborators: mediaType === "STORIES" ? undefined : collaborators,
     trialParams,
   });
 
@@ -615,8 +631,10 @@ export async function publishCarousel(params: {
     mediaType?: "VIDEO";
   }>;
   caption?: string;
+  collaborators?: string[];
 }): Promise<{ success: boolean; mediaId?: string; error?: string }> {
-  const { instagramAccountId, accessToken, items, caption } = params;
+  const { instagramAccountId, accessToken, items, caption, collaborators } =
+    params;
 
   if (items.length < 2) {
     return { success: false, error: "Carousels require at least 2 items" };
@@ -670,6 +688,7 @@ export async function publishCarousel(params: {
     accessToken,
     caption,
     children: childContainerIds,
+    collaborators,
   });
 
   if (!carouselResult.success || !carouselResult.containerId) {

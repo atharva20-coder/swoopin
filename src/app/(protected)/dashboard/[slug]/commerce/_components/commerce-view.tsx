@@ -82,7 +82,7 @@ export default function CommerceView({
 }: CommerceViewProps) {
   const [catalog, setCatalog] = useState<ProductCatalog | null>(initialCatalog);
   const [products, setProducts] = useState<Product[]>(
-    initialCatalog?.products || []
+    initialCatalog?.products || [],
   );
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -105,7 +105,7 @@ export default function CommerceView({
         window.location.reload();
       } else {
         toast.error(
-          typeof result.data === "string" ? result.data : "Sync failed"
+          typeof result.data === "string" ? result.data : "Sync failed",
         );
       }
     } catch {
@@ -117,14 +117,14 @@ export default function CommerceView({
 
   const handleStatusUpdate = async (
     productId: string,
-    status: ProductStatus
+    status: ProductStatus,
   ) => {
     setIsLoading(true);
     try {
       const result = await updateProductStatus(productId, status);
       if (result.status === 200) {
         setProducts(
-          products.map((p) => (p.id === productId ? { ...p, status } : p))
+          products.map((p) => (p.id === productId ? { ...p, status } : p)),
         );
         setSelectedProduct(null);
         toast.success("Product status updated");
@@ -166,8 +166,11 @@ export default function CommerceView({
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">
+          <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
             Commerce
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              Beta
+            </span>
           </span>
         </div>
         <Button onClick={handleSync} disabled={isLoading} className="gap-2">
@@ -253,12 +256,12 @@ export default function CommerceView({
                   "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                   filter === status
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300"
+                    : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300",
                 )}
               >
                 {status === "all" ? "All" : STATUS_LABELS[status]}
               </button>
-            )
+            ),
           )}
         </div>
         <div className="flex gap-1 ml-auto">
@@ -319,7 +322,7 @@ export default function CommerceView({
                 <span
                   className={cn(
                     "text-xs px-2 py-1 rounded-full",
-                    STATUS_COLORS[product.status]
+                    STATUS_COLORS[product.status],
                   )}
                 >
                   {STATUS_LABELS[product.status]}
@@ -359,7 +362,7 @@ export default function CommerceView({
                 <span
                   className={cn(
                     "text-xs px-3 py-1 rounded-full",
-                    STATUS_COLORS[product.status]
+                    STATUS_COLORS[product.status],
                   )}
                 >
                   {STATUS_LABELS[product.status]}
@@ -414,7 +417,7 @@ export default function CommerceView({
                 <span
                   className={cn(
                     "text-sm px-3 py-1 rounded-full",
-                    STATUS_COLORS[selectedProduct.status]
+                    STATUS_COLORS[selectedProduct.status],
                   )}
                 >
                   {STATUS_LABELS[selectedProduct.status]}

@@ -82,7 +82,7 @@ export default function CollabsView({
   const [filter, setFilter] = useState<"all" | PartnershipStatus>("all");
 
   const filteredPartnerships = partnerships.filter(
-    (p) => filter === "all" || p.status === filter
+    (p) => filter === "all" || p.status === filter,
   );
 
   const handleSync = async () => {
@@ -95,7 +95,7 @@ export default function CollabsView({
         window.location.reload();
       } else {
         toast.error(
-          typeof result.data === "string" ? result.data : "Sync failed"
+          typeof result.data === "string" ? result.data : "Sync failed",
         );
       }
     } catch {
@@ -112,8 +112,8 @@ export default function CollabsView({
       if (result.status === 200) {
         setPartnerships(
           partnerships.map((p) =>
-            p.id === id ? { ...p, status: "APPROVED" as PartnershipStatus } : p
-          )
+            p.id === id ? { ...p, status: "APPROVED" as PartnershipStatus } : p,
+          ),
         );
         toast.success("Partnership approved");
       }
@@ -131,8 +131,8 @@ export default function CollabsView({
       if (result.status === 200) {
         setPartnerships(
           partnerships.map((p) =>
-            p.id === id ? { ...p, status: "REJECTED" as PartnershipStatus } : p
-          )
+            p.id === id ? { ...p, status: "REJECTED" as PartnershipStatus } : p,
+          ),
         );
         toast.success("Partnership rejected");
       }
@@ -159,7 +159,7 @@ export default function CollabsView({
   };
 
   const pendingCount = partnerships.filter(
-    (p) => p.status === "PENDING"
+    (p) => p.status === "PENDING",
   ).length;
 
   return (
@@ -174,8 +174,11 @@ export default function CollabsView({
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">
+          <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
             Collabs
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              Beta
+            </span>
           </span>
         </div>
         <Button
@@ -242,7 +245,7 @@ export default function CollabsView({
               "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               filter === status
                 ? "bg-blue-600 text-white"
-                : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700"
+                : "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700",
             )}
           >
             {status === "all"
@@ -300,7 +303,7 @@ export default function CollabsView({
                   <span
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium",
-                      STATUS_COLORS[partnership.status]
+                      STATUS_COLORS[partnership.status],
                     )}
                   >
                     {STATUS_ICONS[partnership.status]}

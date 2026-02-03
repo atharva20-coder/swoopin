@@ -108,43 +108,56 @@ export async function POST(req: NextRequest) {
   // COMMENT DEDUPLICATION AT ENTRY POINT
   // Check for comments and skip duplicates BEFORE queueing
   // This prevents the same comment from being queued multiple times
+  // NOTE: Only apply to "comments" field - mentions have different structure
   // =================================================================
   if (webhookPayload.entry?.[0]?.changes) {
     const change = webhookPayload.entry[0].changes[0];
-    const pageId = webhookPayload.entry[0].id;
-    const senderId = change?.value?.from?.id;
-    const parentId = change?.value?.parent_id;
-    const commentId = change?.value?.id;
 
-    // Skip self-comments (from page itself)
-    if (senderId === pageId) {
-      console.log("Instagram webhook: Skipping self-comment");
-      return NextResponse.json(
-        { message: "Self-comment ignored" },
-        { status: 200 },
-      );
+    // Only apply comment-specific deduplication to comments field
+    if (change.field === "comments") {
+      const pageId = webhookPayload.entry[0].id;
+      const senderId = change?.value?.from?.id;
+      const parentId = change?.value?.parent_id;
+      const commentId = change?.value?.id;
+
+      // Skip self-comments (from page itself)
+      if (senderId === pageId) {
+        console.log("Instagram webhook: Skipping self-comment");
+        return NextResponse.json(
+          { message: "Self-comment ignored" },
+          { status: 200 },
+        );
+      }
+
+      // Skip comment replies (sub-comments) - these include bot's own replies
+      if (parentId) {
+        console.log("Instagram webhook: Skipping comment reply (sub-comment)");
+        return NextResponse.json(
+          { message: "Comment reply ignored" },
+          { status: 200 },
+        );
+      }
+
+      // Skip already processed comments (Redis persistent check)
+      // checkAndMarkProcessed returns true if the key existed (already processed)
+      // and sets it if it didn't exist (marking it as processed)
+      if (commentId && (await checkAndMarkProcessed(commentId))) {
+        console.log(
+          `Instagram webhook: Comment ${commentId} already processed (Redis)`,
+        );
+        return NextResponse.json(
+          { message: "Comment already processed" },
+          { status: 200 },
+        );
+      }
     }
 
-    // Skip comment replies (sub-comments) - these include bot's own replies
-    if (parentId) {
-      console.log("Instagram webhook: Skipping comment reply (sub-comment)");
-      return NextResponse.json(
-        { message: "Comment reply ignored" },
-        { status: 200 },
-      );
-    }
-
-    // Skip already processed comments (Redis persistent check)
-    // checkAndMarkProcessed returns true if the key existed (already processed)
-    // and sets it if it didn't exist (marking it as processed)
-    if (commentId && (await checkAndMarkProcessed(commentId))) {
-      console.log(
-        `Instagram webhook: Comment ${commentId} already processed (Redis)`,
-      );
-      return NextResponse.json(
-        { message: "Comment already processed" },
-        { status: 200 },
-      );
+    // Log mentions for debugging
+    if (change.field === "mentions") {
+      console.log("Instagram webhook: Mention received", {
+        comment_id: change?.value?.comment_id,
+        media_id: change?.value?.media_id,
+      });
     }
   }
 

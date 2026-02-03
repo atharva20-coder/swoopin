@@ -140,7 +140,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
 
   // Demo state
   const [demoSheetConfig, setDemoSheetConfig] = useState<SheetConfig | null>(
-    null
+    null,
   );
   const [isDemoExporting, setIsDemoExporting] = useState(false);
   const [demoSuccess, setDemoSuccess] = useState(false);
@@ -259,7 +259,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
     collections: collections.length,
     responses: collections.reduce(
       (acc, c) => acc + (c._count?.responses || 0),
-      0
+      0,
     ),
     active: collections.filter((c) => c.status === "ACTIVE").length,
   };
@@ -276,8 +276,11 @@ export default function DataHubView({ slug }: DataHubViewProps) {
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">
+          <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
             Data Hub
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              Beta
+            </span>
           </span>
         </div>
         <Button onClick={() => setShowCreateModal(true)} className="gap-2">
@@ -316,7 +319,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
               "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition",
               activeTab === tab.id
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-500 hover:text-gray-700",
             )}
           >
             {tab.icon}
@@ -366,7 +369,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                         "px-2 py-1 text-xs font-medium rounded",
                         collection.status === "ACTIVE"
                           ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          : "bg-gray-100 text-gray-600",
                       )}
                     >
                       {collection.status}
@@ -457,8 +460,8 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                     {isDemoExporting
                       ? "Exporting..."
                       : demoSuccess
-                      ? "Exported!"
-                      : "Export Demo Data"}
+                        ? "Exported!"
+                        : "Export Demo Data"}
                   </Button>
 
                   {demoSuccess && (
@@ -520,7 +523,7 @@ export default function DataHubView({ slug }: DataHubViewProps) {
                         "p-4 rounded-xl border text-left transition",
                         selectedSource === source.id
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
+                          : "border-gray-200 dark:border-neutral-700 hover:border-gray-300",
                       )}
                     >
                       <span className="text-2xl mb-2 block">{source.icon}</span>

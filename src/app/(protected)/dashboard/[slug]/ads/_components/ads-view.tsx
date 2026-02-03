@@ -35,7 +35,7 @@ import type { Decimal } from "@prisma/client/runtime/library";
 // REST API calls
 async function updateCampaignStatus(
   campaignId: string,
-  status: CampaignStatus
+  status: CampaignStatus,
 ) {
   const res = await fetch(`/api/v1/ads/campaigns/${campaignId}/status`, {
     method: "PATCH",
@@ -105,7 +105,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [selectedCampaign, setSelectedCampaign] = useState<AdCampaign | null>(
-    null
+    null,
   );
   const [insights, setInsights] = useState<AdInsights | null>(null);
 
@@ -145,8 +145,8 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
       if (result.status === 200) {
         setCampaigns(
           campaigns.map((c) =>
-            c.id === campaign.id ? { ...c, status: newStatus } : c
-          )
+            c.id === campaign.id ? { ...c, status: newStatus } : c,
+          ),
         );
         toast.success(`Campaign ${newStatus.toLowerCase()}`);
       }
@@ -224,7 +224,12 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
             Dashboard
           </a>
           <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-medium">Ads</span>
+          <span className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
+            Ads
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              Beta
+            </span>
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -341,7 +346,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                   <span
                     className={cn(
                       "px-3 py-1 rounded-full text-xs font-medium",
-                      STATUS_COLORS[campaign.status]
+                      STATUS_COLORS[campaign.status],
                     )}
                   >
                     {campaign.status}
@@ -435,7 +440,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                             "p-4 rounded-xl border text-left transition-all",
                             formData.objective === obj
                               ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                              : "border-gray-200 dark:border-neutral-700 hover:border-gray-300"
+                              : "border-gray-200 dark:border-neutral-700 hover:border-gray-300",
                           )}
                         >
                           <div className="flex items-center gap-2 mb-1">
@@ -445,7 +450,7 @@ export default function AdsView({ slug, initialCampaigns }: AdsViewProps) {
                             </span>
                           </div>
                         </button>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

@@ -37,10 +37,28 @@ const PRIMARY_NAV = [
 
 // Secondary nav items (shown in "More" menu)
 const SECONDARY_NAV = [
-  { id: "collabs", label: "collabs", icon: Users, name: "Collabs" },
-  { id: "commerce", label: "commerce", icon: ShoppingBag, name: "Commerce" },
-  { id: "ads", label: "ads", icon: Megaphone, name: "Ads" },
-  { id: "data-hub", label: "data-hub", icon: Database, name: "Data Hub" },
+  {
+    id: "collabs",
+    label: "collabs",
+    icon: Users,
+    name: "Collabs",
+    isBeta: true,
+  },
+  {
+    id: "commerce",
+    label: "commerce",
+    icon: ShoppingBag,
+    name: "Commerce",
+    isBeta: true,
+  },
+  { id: "ads", label: "ads", icon: Megaphone, name: "Ads", isBeta: true },
+  {
+    id: "data-hub",
+    label: "data-hub",
+    icon: Database,
+    name: "Data Hub",
+    isBeta: true,
+  },
   {
     id: "integrations",
     label: "integrations",
@@ -120,13 +138,18 @@ const MobileNav = ({ slug }: Props) => {
                 href={path}
                 onClick={() => setIsMenuOpen(false)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-200",
+                  "flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-200 relative",
                   "hover:scale-105 active:scale-95",
                   isActive
                     ? "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 shadow-sm"
                     : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 active:bg-gray-200 dark:active:bg-neutral-700",
                 )}
               >
+                {"isBeta" in item && item.isBeta && (
+                  <span className="absolute -top-1 -right-1 px-1 py-0.5 text-[8px] font-bold rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    Beta
+                  </span>
+                )}
                 <Icon
                   className={cn(
                     "w-6 h-6 transition-transform",

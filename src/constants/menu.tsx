@@ -22,6 +22,7 @@ export type FieldProps = {
 type SideBarProps = {
   icon: React.ReactNode;
   name?: string;
+  isBeta?: boolean;
 } & FieldProps;
 
 export type MenuCategory = {
@@ -77,24 +78,28 @@ export const SIDEBAR_MENU_GROUPED: MenuCategory[] = [
         label: "collabs",
         icon: <Users className="w-5 h-5" />,
         name: "Collabs",
+        isBeta: true,
       },
       {
         id: uuid(),
         label: "commerce",
         icon: <ShoppingBag className="w-5 h-5" />,
         name: "Commerce",
+        isBeta: true,
       },
       {
         id: uuid(),
         label: "ads",
         icon: <Megaphone className="w-5 h-5" />,
         name: "Ads",
+        isBeta: true,
       },
       {
         id: uuid(),
         label: "data-hub",
         icon: <Database className="w-5 h-5" />,
         name: "Data Hub",
+        isBeta: true,
       },
     ],
   },

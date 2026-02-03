@@ -1,5 +1,5 @@
-import { client } from '@/lib/prisma';
-import { deleteCache, getOrSetCache } from '@/lib/cache';
+import { client } from "@/lib/prisma";
+import { deleteCache, getOrSetCache } from "@/lib/cache";
 import {
   ScheduledPostSchema,
   ScheduledPostListSchema,
@@ -17,12 +17,12 @@ import {
   type ScheduledPostCreated,
   type PublishingLimit,
   type PaginatedScheduledPosts,
-} from '@/schemas/scheduler.schema';
+} from "@/schemas/scheduler.schema";
 import {
   publishSingleMedia,
   publishCarousel,
   getPublishingLimit,
-} from '@/lib/instagram-publisher';
+} from "@/lib/instagram-publisher";
 
 /**
  * ============================================
@@ -38,7 +38,7 @@ class SchedulerService {
    */
   async listPosts(
     userId: string,
-    query: ScheduledPostsQuery
+    query: ScheduledPostsQuery,
   ): Promise<PaginatedScheduledPosts> {
     const { cursor, limit, status, fromDate, toDate } = query;
 
@@ -49,7 +49,7 @@ class SchedulerService {
         ...(fromDate && { scheduledFor: { gte: fromDate } }),
         ...(toDate && { scheduledFor: { lte: toDate } }),
       },
-      orderBy: { scheduledFor: 'asc' },
+      orderBy: { scheduledFor: "asc" },
       take: limit + 1,
       ...(cursor && {
         cursor: { id: cursor },
@@ -59,7 +59,7 @@ class SchedulerService {
 
     const hasMore = posts.length > limit;
     const data = hasMore ? posts.slice(0, limit) : posts;
-    const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
+    const nextCursor = hasMore ? (data[data.length - 1]?.id ?? null) : null;
 
     const total = await client.scheduledPost.count({
       where: {
@@ -70,7 +70,10 @@ class SchedulerService {
 
     const validated = ScheduledPostListSchema.safeParse(data);
     if (!validated.success) {
-      console.error('Scheduled posts validation failed:', validated.error.format());
+      console.error(
+        "Scheduled posts validation failed:",
+        validated.error.format(),
+      );
       return { data: [], meta: { nextCursor: null, hasMore: false, total: 0 } };
     }
 
@@ -83,7 +86,10 @@ class SchedulerService {
   /**
    * Get scheduled post by ID with ownership check
    */
-  async getPostById(postId: string, userId: string): Promise<ScheduledPost | null> {
+  async getPostById(
+    postId: string,
+    userId: string,
+  ): Promise<ScheduledPost | null> {
     const post = await client.scheduledPost.findUnique({
       where: { id: postId },
     });
@@ -102,7 +108,7 @@ class SchedulerService {
    */
   async createPost(
     userId: string,
-    input: CreateScheduledPostRequest
+    input: CreateScheduledPostRequest,
   ): Promise<ScheduledPostCreated | null> {
     const post = await client.scheduledPost.create({
       data: {
@@ -121,7 +127,7 @@ class SchedulerService {
         taggedUsers: input.taggedUsers,
         collaborators: input.collaborators,
         carouselItems: input.carouselItems,
-        status: 'SCHEDULED',
+        status: "SCHEDULED",
       },
       select: {
         id: true,
@@ -141,7 +147,7 @@ class SchedulerService {
   async updatePost(
     postId: string,
     userId: string,
-    input: UpdateScheduledPostRequest
+    input: UpdateScheduledPostRequest,
   ): Promise<ScheduledPost | null> {
     // IDOR check
     const existing = await client.scheduledPost.findUnique({
@@ -159,17 +165,23 @@ class SchedulerService {
     if (input.mediaUrl !== undefined) updateData.mediaUrl = input.mediaUrl;
     if (input.mediaType !== undefined) updateData.mediaType = input.mediaType;
     if (input.postType !== undefined) updateData.postType = input.postType;
-    if (input.scheduledFor !== undefined) updateData.scheduledFor = input.scheduledFor;
+    if (input.scheduledFor !== undefined)
+      updateData.scheduledFor = input.scheduledFor;
     if (input.hashtags !== undefined) updateData.hashtags = input.hashtags;
     if (input.status !== undefined) updateData.status = input.status;
-    if (input.automationId !== undefined) updateData.automationId = input.automationId;
-    if (input.carouselItems !== undefined) updateData.carouselItems = input.carouselItems;
+    if (input.automationId !== undefined)
+      updateData.automationId = input.automationId;
+    if (input.carouselItems !== undefined)
+      updateData.carouselItems = input.carouselItems;
     if (input.altText !== undefined) updateData.altText = input.altText;
     if (input.location !== undefined) updateData.location = input.location;
-    if (input.locationId !== undefined) updateData.locationId = input.locationId;
+    if (input.locationId !== undefined)
+      updateData.locationId = input.locationId;
     if (input.music !== undefined) updateData.music = input.music;
-    if (input.taggedUsers !== undefined) updateData.taggedUsers = input.taggedUsers;
-    if (input.collaborators !== undefined) updateData.collaborators = input.collaborators;
+    if (input.taggedUsers !== undefined)
+      updateData.taggedUsers = input.taggedUsers;
+    if (input.collaborators !== undefined)
+      updateData.collaborators = input.collaborators;
 
     const updated = await client.scheduledPost.update({
       where: { id: postId },
@@ -203,7 +215,7 @@ class SchedulerService {
    */
   async publishPost(
     postId: string,
-    userId: string
+    userId: string,
   ): Promise<{ success: boolean; error?: string }> {
     // Get post with user integration
     const post = await client.scheduledPost.findUnique({
@@ -219,14 +231,14 @@ class SchedulerService {
 
     // IDOR check
     if (!post || post.userId !== userId) {
-      return { success: false, error: 'Post not found' };
+      return { success: false, error: "Post not found" };
     }
 
     const token = post.User?.integrations?.[0]?.token;
     const instagramAccountId = post.User?.integrations?.[0]?.instagramId;
 
     if (!token || !instagramAccountId) {
-      return { success: false, error: 'Instagram not connected' };
+      return { success: false, error: "Instagram not connected" };
     }
 
     // Check rate limit
@@ -235,21 +247,39 @@ class SchedulerService {
       accessToken: token,
     });
 
-    if (limitCheck.success && limitCheck.quotaUsage !== undefined && limitCheck.quotaTotal !== undefined) {
+    if (
+      limitCheck.success &&
+      limitCheck.quotaUsage !== undefined &&
+      limitCheck.quotaTotal !== undefined
+    ) {
       if (limitCheck.quotaUsage >= limitCheck.quotaTotal) {
-        await this.updatePostStatus(postId, 'FAILED', 'Daily publishing limit reached');
-        return { success: false, error: 'Daily publishing limit reached (100 posts per 24 hours)' };
+        await this.updatePostStatus(
+          postId,
+          "FAILED",
+          "Daily publishing limit reached",
+        );
+        return {
+          success: false,
+          error: "Daily publishing limit reached (100 posts per 24 hours)",
+        };
       }
     }
 
     try {
       let result: { success: boolean; mediaId?: string; error?: string };
 
-      if (post.mediaType === 'CAROUSEL') {
-        const carouselItems = (post.carouselItems as Array<{ imageUrl?: string; videoUrl?: string }>) || [];
-        
+      if (post.mediaType === "CAROUSEL") {
+        const carouselItems =
+          (post.carouselItems as Array<{
+            imageUrl?: string;
+            videoUrl?: string;
+          }>) || [];
+
         if (carouselItems.length < 2) {
-          return { success: false, error: 'Carousels require at least 2 items' };
+          return {
+            success: false,
+            error: "Carousels require at least 2 items",
+          };
         }
 
         result = await publishCarousel({
@@ -257,28 +287,34 @@ class SchedulerService {
           accessToken: token,
           items: carouselItems,
           caption: post.caption || undefined,
+          collaborators: post.collaborators || undefined,
         });
       } else {
-        let mediaType: 'VIDEO' | 'REELS' | 'STORIES' | undefined;
-        
-        if (post.postType === 'REEL') {
-          mediaType = 'REELS';
-        } else if (post.postType === 'STORY') {
-          mediaType = 'STORIES';
-        } else if (post.mediaType === 'VIDEO') {
-          mediaType = 'VIDEO';
+        let mediaType: "VIDEO" | "REELS" | "STORIES" | undefined;
+
+        if (post.postType === "REEL") {
+          mediaType = "REELS";
+        } else if (post.postType === "STORY") {
+          mediaType = "STORIES";
+        } else if (post.mediaType === "VIDEO") {
+          mediaType = "VIDEO";
         }
 
         result = await publishSingleMedia({
           instagramAccountId,
           accessToken: token,
-          imageUrl: post.mediaType === 'IMAGE' ? post.mediaUrl || undefined : undefined,
-          videoUrl: post.mediaType === 'VIDEO' || mediaType === 'REELS' || mediaType === 'STORIES'
-            ? post.mediaUrl || undefined
-            : undefined,
+          imageUrl:
+            post.mediaType === "IMAGE" ? post.mediaUrl || undefined : undefined,
+          videoUrl:
+            post.mediaType === "VIDEO" ||
+            mediaType === "REELS" ||
+            mediaType === "STORIES"
+              ? post.mediaUrl || undefined
+              : undefined,
           mediaType,
           caption: post.caption || undefined,
           altText: post.altText || undefined,
+          collaborators: post.collaborators || undefined,
         });
       }
 
@@ -286,18 +322,23 @@ class SchedulerService {
         await client.scheduledPost.update({
           where: { id: postId },
           data: {
-            status: 'POSTED',
+            status: "POSTED",
             igMediaId: result.mediaId,
           },
         });
         return { success: true };
       } else {
-        await this.updatePostStatus(postId, 'FAILED', result.error || 'Unknown error');
-        return { success: false, error: result.error || 'Failed to publish' };
+        await this.updatePostStatus(
+          postId,
+          "FAILED",
+          result.error || "Unknown error",
+        );
+        return { success: false, error: result.error || "Failed to publish" };
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.updatePostStatus(postId, 'FAILED', errorMessage);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      await this.updatePostStatus(postId, "FAILED", errorMessage);
       return { success: false, error: errorMessage };
     }
   }
@@ -335,8 +376,8 @@ class SchedulerService {
    */
   private async updatePostStatus(
     postId: string,
-    status: 'SCHEDULED' | 'POSTED' | 'FAILED' | 'CANCELLED',
-    errorMessage?: string
+    status: "SCHEDULED" | "POSTED" | "FAILED" | "CANCELLED",
+    errorMessage?: string,
   ): Promise<void> {
     await client.scheduledPost.update({
       where: { id: postId },
@@ -360,10 +401,10 @@ class SchedulerService {
       async () => {
         return client.contentDraft.findMany({
           where: { userId },
-          orderBy: { updatedAt: 'desc' },
+          orderBy: { updatedAt: "desc" },
         });
       },
-      300
+      300,
     );
 
     const validated = ContentDraftListSchema.safeParse(drafts);
@@ -373,7 +414,10 @@ class SchedulerService {
   /**
    * Create draft
    */
-  async createDraft(userId: string, input: CreateDraftRequest): Promise<ContentDraft | null> {
+  async createDraft(
+    userId: string,
+    input: CreateDraftRequest,
+  ): Promise<ContentDraft | null> {
     const draft = await client.contentDraft.create({
       data: {
         userId,
@@ -396,7 +440,7 @@ class SchedulerService {
   async updateDraft(
     draftId: string,
     userId: string,
-    input: UpdateDraftRequest
+    input: UpdateDraftRequest,
   ): Promise<ContentDraft | null> {
     // IDOR check
     const existing = await client.contentDraft.findUnique({

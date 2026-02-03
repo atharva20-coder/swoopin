@@ -252,11 +252,10 @@ export async function POST(req: NextRequest) {
       if (messageText) {
         matcher = await matchKeyword(messageText, "DM");
       } else if (isStoryMention) {
-        // For story mentions without text, match as STORY_REPLY trigger
-        console.log(
-          "Story mention received, checking for STORY_REPLY automation",
-        );
-        // Will be handled by flow execution with STORY_REPLY trigger
+        // Story mentions are @mentions sent via DM when someone mentions you in a story
+        // Match to MENTION trigger type so "New Mention" flows are triggered
+        console.log("Story mention received, matching MENTION automation");
+        matcher = await matchKeyword("[Story Mention]", "MENTION");
       } else if (isPostShare) {
         // Post shares without text - just acknowledge
         console.log("Post share received, no text to match");
