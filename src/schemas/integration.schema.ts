@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * ============================================
@@ -10,13 +10,22 @@ import { z } from 'zod';
 // TRANSFORMERS
 // ============================================
 
-const nullishToNull = z.string().nullish().transform((val): string | null => val ?? null);
+const nullishToNull = z
+  .string()
+  .nullish()
+  .transform((val): string | null => val ?? null);
 
 // ============================================
 // ENUMS
 // ============================================
 
-export const IntegrationTypeSchema = z.enum(['INSTAGRAM', 'LINKEDIN', 'YOUTUBE', 'FACEBOOK', 'TWITTER']);
+export const IntegrationTypeSchema = z.enum([
+  "INSTAGRAM",
+  "LINKEDIN",
+  "YOUTUBE",
+  "FACEBOOK",
+  "TWITTER",
+]);
 
 // ============================================
 // INTEGRATION SCHEMA
@@ -37,7 +46,11 @@ export const IntegrationListSchema = z.array(IntegrationSchema);
 // ============================================
 
 export const ConnectInstagramRequestSchema = z.object({
-  code: z.string().min(1, 'OAuth code is required'),
+  code: z.string().min(1, "OAuth code is required"),
+});
+
+export const ConnectYouTubeRequestSchema = z.object({
+  code: z.string().min(1, "OAuth code is required"),
 });
 
 export const DisconnectRequestSchema = z.object({
@@ -66,7 +79,9 @@ export const OAuthUrlSchema = z.object({
 
 export type IntegrationType = z.infer<typeof IntegrationTypeSchema>;
 export type Integration = z.infer<typeof IntegrationSchema>;
-export type ConnectInstagramRequest = z.infer<typeof ConnectInstagramRequestSchema>;
+export type ConnectInstagramRequest = z.infer<
+  typeof ConnectInstagramRequestSchema
+>;
 export type DisconnectRequest = z.infer<typeof DisconnectRequestSchema>;
 export type IntegrationConnected = z.infer<typeof IntegrationConnectedSchema>;
 export type OAuthUrl = z.infer<typeof OAuthUrlSchema>;

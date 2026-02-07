@@ -26,6 +26,9 @@ import {
   MessageCircle,
   MousePointerClick,
   AtSign,
+  Youtube,
+  Video,
+  Database,
 } from "lucide-react";
 
 // Node definition with pro/enterprise flag
@@ -243,6 +246,78 @@ const CONDITIONS: NodeDefinition[] = [
   },
 ];
 
+// ============================================
+// YOUTUBE NODES
+// Platform-specific nodes for YouTube automation
+// ============================================
+
+const YOUTUBE_TRIGGERS: NodeDefinition[] = [
+  {
+    id: "yt-new-comment",
+    label: "New Comment",
+    description: "Trigger on new YouTube comment",
+    icon: <MessageSquare className="w-5 h-5" />,
+    type: "YT_COMMENT",
+    tier: "PRO",
+  },
+  {
+    id: "yt-select-videos",
+    label: "Select Videos",
+    description: "Attach specific YouTube videos",
+    icon: <Video className="w-5 h-5" />,
+    type: "YT_SELECT_VIDEOS",
+    tier: "PRO",
+  },
+  {
+    id: "yt-mention",
+    label: "@Mention",
+    description: "Trigger on @mention in comment",
+    icon: <AtSign className="w-5 h-5" />,
+    type: "YT_MENTION",
+    tier: "PRO",
+  },
+];
+
+const YOUTUBE_ACTIONS: NodeDefinition[] = [
+  {
+    id: "yt-reply-comment",
+    label: "Reply Comment",
+    description: "Reply to YouTube comment",
+    icon: <MessageCircleReply className="w-5 h-5" />,
+    type: "YT_REPLY_COMMENT",
+    tier: "PRO",
+    usageKey: "dms",
+  },
+  {
+    id: "yt-smart-ai",
+    label: "Smart AI",
+    description: "AI-powered YouTube response",
+    icon: <Bot className="w-5 h-5" />,
+    type: "YT_SMARTAI",
+    tier: "PRO",
+    usageKey: "aiResponses",
+  },
+  {
+    id: "yt-collect-data",
+    label: "Collect Data",
+    description: "Save comment data to database",
+    icon: <Database className="w-5 h-5" />,
+    type: "YT_COLLECT_DATA",
+    tier: "PRO",
+  },
+];
+
+const YOUTUBE_CONDITIONS: NodeDefinition[] = [
+  {
+    id: "yt-keyword",
+    label: "Keyword Match",
+    description: "Match keywords in comment",
+    icon: <Reply className="w-5 h-5" />,
+    type: "YT_KEYWORDS",
+    tier: "PRO",
+  },
+];
+
 // Small circular progress component for nodes
 const NodeProgress = ({
   value,
@@ -333,6 +408,7 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
     triggers: true,
     actions: true,
     conditions: true,
+    youtube: false,
   });
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -647,6 +723,90 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
               {CONDITIONS.map((c) =>
                 renderItem(c, "condition", "text-yellow-500"),
               )}
+            </div>
+          )}
+        </div>
+
+        {/* YouTube Section */}
+        <div
+          className={cn(
+            isCollapsed &&
+              "flex flex-col items-center pt-2 border-t border-gray-200 dark:border-neutral-800",
+          )}
+        >
+          {!isCollapsed ? (
+            <button
+              onClick={() => toggleSection("youtube")}
+              className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-500" />
+                YouTube
+              </span>
+              {expandedSections.youtube ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </button>
+          ) : (
+            <div title="YouTube">
+              <Youtube className="w-4 h-4 text-red-500 mb-2 opacity-70" />
+            </div>
+          )}
+
+          {(expandedSections.youtube || isCollapsed) && (
+            <div className={cn("space-y-4", isCollapsed && "space-y-2")}>
+              {/* YouTube Triggers */}
+              {!isCollapsed && (
+                <p className="text-xs font-medium text-red-500/80 uppercase tracking-wide">
+                  Triggers
+                </p>
+              )}
+              <div
+                className={cn(
+                  "space-y-2",
+                  isCollapsed && "flex flex-col gap-2 space-y-0",
+                )}
+              >
+                {YOUTUBE_TRIGGERS.map((t) =>
+                  renderItem(t, "trigger", "text-red-500"),
+                )}
+              </div>
+
+              {/* YouTube Actions */}
+              {!isCollapsed && (
+                <p className="text-xs font-medium text-red-500/80 uppercase tracking-wide mt-3">
+                  Actions
+                </p>
+              )}
+              <div
+                className={cn(
+                  "space-y-2",
+                  isCollapsed && "flex flex-col gap-2 space-y-0",
+                )}
+              >
+                {YOUTUBE_ACTIONS.map((a) =>
+                  renderItem(a, "action", "text-red-500"),
+                )}
+              </div>
+
+              {/* YouTube Conditions */}
+              {!isCollapsed && (
+                <p className="text-xs font-medium text-red-500/80 uppercase tracking-wide mt-3">
+                  Conditions
+                </p>
+              )}
+              <div
+                className={cn(
+                  "space-y-2",
+                  isCollapsed && "flex flex-col gap-2 space-y-0",
+                )}
+              >
+                {YOUTUBE_CONDITIONS.map((c) =>
+                  renderItem(c, "condition", "text-red-500"),
+                )}
+              </div>
             </div>
           )}
         </div>

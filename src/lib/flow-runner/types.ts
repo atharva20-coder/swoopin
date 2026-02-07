@@ -45,12 +45,24 @@ export interface ExecutionContext {
   token: string;
   pageId: string;
 
+  // YouTube API credentials (when applicable)
+  youtubeToken?: string;
+  youtubeChannelId?: string;
+  youtubeVideoId?: string;
+  youtubeCommentId?: string;
+
   // Trigger data
   senderId: string;
   messageText?: string;
   commentId?: string;
   mediaId?: string;
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
+  triggerType:
+    | "DM"
+    | "COMMENT"
+    | "STORY_REPLY"
+    | "MENTION"
+    | "KEYWORDS"
+    | "YOUTUBE_COMMENT";
   isStoryReply?: boolean;
   isStoryMention?: boolean;
 
@@ -175,7 +187,13 @@ export interface FlowExecutionResult {
 export interface TestRunRequest {
   nodes: FlowNodeRuntime[];
   edges: FlowEdgeRuntime[];
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
+  triggerType:
+    | "DM"
+    | "COMMENT"
+    | "STORY_REPLY"
+    | "MENTION"
+    | "KEYWORDS"
+    | "YOUTUBE_COMMENT";
   /** Mock input data for testing */
   mockInput?: {
     messageText?: string;

@@ -23,6 +23,9 @@ import {
   MessageCircle,
   MousePointerClick,
   AtSign,
+  Youtube,
+  Video,
+  Database,
 } from "lucide-react";
 
 export type FlowNodeData = {
@@ -66,6 +69,14 @@ const iconMap: Record<string, React.ReactNode> = {
   POSTBACK: <MousePointerClick className="w-5 h-5" />,
   MENTION: <AtSign className="w-5 h-5" />,
   REPLY_MENTION: <AtSign className="w-5 h-5" />,
+  // YouTube node types
+  YT_COMMENT: <Youtube className="w-5 h-5" />,
+  YT_SELECT_VIDEOS: <Video className="w-5 h-5" />,
+  YT_MENTION: <AtSign className="w-5 h-5" />,
+  YT_REPLY_COMMENT: <MessageCircleReply className="w-5 h-5" />,
+  YT_SMARTAI: <Bot className="w-5 h-5" />,
+  YT_COLLECT_DATA: <Database className="w-5 h-5" />,
+  YT_KEYWORDS: <Reply className="w-5 h-5" />,
 };
 
 const getNodeColors = (type: string) => {
@@ -117,7 +128,7 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
         "rounded-lg border-2 min-w-[220px] shadow-lg transition-all overflow-hidden",
         colors.bg,
         colors.border,
-        selected && "ring-2 ring-offset-2 ring-indigo-500 dark:ring-indigo-400"
+        selected && "ring-2 ring-offset-2 ring-indigo-500 dark:ring-indigo-400",
       )}
     >
       {/* Target handle at top - ALL nodes can receive connections */}
@@ -131,8 +142,8 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
             data.type === "trigger"
               ? "#3b82f6"
               : data.type === "action"
-              ? "#22c55e"
-              : "#eab308",
+                ? "#22c55e"
+                : "#eab308",
         }}
         isConnectable={true}
       />
@@ -148,8 +159,8 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
             data.type === "trigger"
               ? "#3b82f6"
               : data.type === "action"
-              ? "#22c55e"
-              : "#eab308",
+                ? "#22c55e"
+                : "#eab308",
         }}
         isConnectable={true}
       />
@@ -166,8 +177,8 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
             data.type === "trigger"
               ? "#3b82f6"
               : data.type === "action"
-              ? "#22c55e"
-              : "#eab308",
+                ? "#22c55e"
+                : "#eab308",
         }}
         isConnectable={true}
       />
@@ -184,8 +195,8 @@ const FlowNode = ({ data, selected, id }: NodeProps<FlowNodeData>) => {
             data.type === "trigger"
               ? "#3b82f6"
               : data.type === "action"
-              ? "#22c55e"
-              : "#eab308",
+                ? "#22c55e"
+                : "#eab308",
         }}
         isConnectable={true}
       />

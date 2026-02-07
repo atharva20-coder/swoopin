@@ -21,6 +21,7 @@ import { iceBreakersNodeExecutor } from "./nodes/ice-breakers.node";
 import { persistentMenuNodeExecutor } from "./nodes/persistent-menu.node";
 import { replyMentionNodeExecutor } from "./nodes/reply-mention.node";
 import { logToSheetsNodeExecutor } from "./nodes/log-to-sheets.node";
+import { youtubeReplyCommentNodeExecutor } from "./nodes/youtube-reply-comment.node";
 import {
   typingOnNodeExecutor,
   typingOffNodeExecutor,
@@ -76,7 +77,10 @@ export function initializeNodeRegistry(): void {
   registerNode(yesNodeExecutor);
   registerNode(noNodeExecutor);
 
-  console.log("[FlowRunner] Node registry initialized with all 18 node types");
+  // YouTube Nodes
+  registerNode(youtubeReplyCommentNodeExecutor);
+
+  console.log("[FlowRunner] Node registry initialized with all 19 node types");
 }
 
 // =============================================================================

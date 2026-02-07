@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import GoogleIntegrationCard from "./_components/google-integration-card";
 import InstagramIntegrationCard from "./_components/instagram-integration-card";
+import YouTubeIntegrationCard from "./_components/youtube-integration-card";
 import ComingSoonCard from "./_components/coming-soon-card";
 import CanvaIntegrationCard from "@/components/global/canva-integration-card";
 import { cn } from "@/lib/utils";
@@ -61,14 +62,6 @@ const COMING_SOON_INTEGRATIONS = [
     description: "Build professional connections on LinkedIn",
     icon: <Linkedin className="w-6 h-6 text-[#0A66C2]" />,
     iconBgColor: "bg-blue-100 dark:bg-blue-900/30",
-    category: "social" as const,
-  },
-  {
-    id: "youtube",
-    title: "YouTube",
-    description: "Manage your YouTube channel and engage viewers",
-    icon: <Youtube className="w-6 h-6 text-[#FF0000]" />,
-    iconBgColor: "bg-red-100 dark:bg-red-900/30",
     category: "social" as const,
   },
   {
@@ -234,6 +227,11 @@ export default function IntegrationsPage() {
                 {/* Instagram Integration - Social */}
                 {(activeCategory === "all" || activeCategory === "social") && (
                   <InstagramIntegrationCard />
+                )}
+
+                {/* YouTube Integration - Social */}
+                {(activeCategory === "all" || activeCategory === "social") && (
+                  <YouTubeIntegrationCard />
                 )}
 
                 {/* Google Sheets Integration - Productivity */}

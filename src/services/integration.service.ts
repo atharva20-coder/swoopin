@@ -166,11 +166,141 @@ class IntegrationService {
   }
 
   /**
+   * Get YouTube OAuth URL
+   * Uses same Google OAuth credentials as Sheets/Signin
+   */
+  getYouTubeOAuthUrl(): string {
+    const clientId = process.env.GOOGLE_CLIENT_ID || "";
+    const redirectUri =
+      process.env.YOUTUBE_REDIRECT_URI ||
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/integrations/youtube/oauth`;
+    const scopes = ["https://www.googleapis.com/auth/youtube.force-ssl"];
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: scopes.join(" "),
+      access_type: "offline",
+      prompt: "consent",
+    });
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  }
+
+  /**
+   * Connect YouTube using OAuth code
+   */
+  async connectYouTube(
+    userId: string,
+    code: string,
+  ): Promise<IntegrationConnected | { error: string }> {
+    // Check if user already has YouTube integration
+    const existing = await client.integrations.findFirst({
+      where: {
+        userId,
+        name: "YOUTUBE",
+      },
+    });
+
+    if (existing) {
+      return { error: "YouTube already connected" };
+    }
+
+    try {
+      // Exchange code for tokens (uses same Google credentials)
+      const tokenResponse = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        {
+          code,
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          redirect_uri:
+            process.env.YOUTUBE_REDIRECT_URI ||
+            `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/integrations/youtube/oauth`,
+          grant_type: "authorization_code",
+        },
+      );
+
+      const { access_token, refresh_token, expires_in } = tokenResponse.data;
+
+      // Get YouTube channel ID
+      const channelResponse = await axios.get(
+        "https://www.googleapis.com/youtube/v3/channels",
+        {
+          params: {
+            part: "id",
+            mine: true,
+          },
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        },
+      );
+
+      const channelId = channelResponse.data.items?.[0]?.id;
+
+      if (!channelId) {
+        return { error: "No YouTube channel found for this account" };
+      }
+
+      // Calculate expiry
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + expires_in);
+
+      // Store integration (we'll use instagramId field as a generic platformId)
+      const integration = await client.integrations.create({
+        data: {
+          userId,
+          token: refresh_token || access_token, // Store refresh token for long-term access
+          expiresAt,
+          instagramId: channelId, // Reusing this field for YouTube channel ID
+          name: "YOUTUBE",
+        },
+        select: {
+          id: true,
+          name: true,
+          instagramId: true,
+          expiresAt: true,
+        },
+      });
+
+      // Create notification
+      await notificationService.create(
+        "You have connected your YouTube account",
+        userId,
+      );
+
+      const result = {
+        id: integration.id,
+        platform: integration.name,
+        instagramId: integration.instagramId,
+        expiresAt: integration.expiresAt,
+      };
+
+      const validated = IntegrationConnectedSchema.safeParse(result);
+      return validated.success
+        ? validated.data
+        : { error: "Validation failed" };
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("YouTube OAuth error:", error.response?.data);
+        return {
+          error:
+            error.response?.data?.error_description ||
+            "Failed to connect YouTube",
+        };
+      }
+      return { error: "Failed to connect YouTube" };
+    }
+  }
+
+  /**
    * Get integration by platform for a user
    */
   async getByPlatform(
     userId: string,
-    platform: "INSTAGRAM",
+    platform: "INSTAGRAM" | "YOUTUBE",
   ): Promise<Integration | null> {
     const integration = await client.integrations.findFirst({
       where: {

@@ -8,6 +8,7 @@ import {
   useQueryAutomation,
   useQueryUser,
   useQueryAutomationPosts,
+  useQueryYouTubeVideos,
 } from "@/hooks/user-queries";
 import {
   useListener,
@@ -27,6 +28,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Reply,
 } from "lucide-react";
 import CarouselTemplateForm from "../carouselTemplateForm";
 import Image from "next/image";
@@ -1739,6 +1741,460 @@ const ConfigPanel = ({
     </div>
   );
 
+  // ============================================
+  // YOUTUBE CONFIG FUNCTIONS
+  // ============================================
+
+  const renderYouTubeTriggerConfig = () => (
+    <div className="space-y-4">
+      <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+        <h4 className="font-medium text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+          </svg>
+          {selectedNode?.data.label}
+        </h4>
+        <p className="text-sm text-red-700 dark:text-red-300">
+          {selectedNode?.data.subType === "YT_COMMENT" &&
+            "Triggers when a user comments on your YouTube video"}
+          {selectedNode?.data.subType === "YT_MENTION" &&
+            "Triggers when someone @mentions your channel in a comment"}
+        </p>
+      </div>
+    </div>
+  );
+
+  // YouTube Video Selector Config - using React Query
+  const isSelectVideosNode = selectedNode?.data.subType === "YT_SELECT_VIDEOS";
+  const {
+    data: youtubeVideosData,
+    isLoading: isLoadingVideos,
+    error: videosError,
+  } = useQueryYouTubeVideos(isSelectVideosNode);
+
+  const youtubeVideos = youtubeVideosData?.data?.videos || [];
+
+  const toggleVideoSelection = (videoId: string) => {
+    if (!selectedNode) return;
+    const currentVideos: string[] = formData.selectedVideos || [];
+    const updated = currentVideos.includes(videoId)
+      ? currentVideos.filter((id: string) => id !== videoId)
+      : [...currentVideos, videoId];
+    const newConfig = { ...formData, selectedVideos: updated };
+    setFormData(newConfig);
+    if (onUpdateNode) {
+      onUpdateNode(selectedNode.id, newConfig);
+    }
+  };
+
+  const renderYouTubeSelectVideosConfig = () => {
+    const selectedVideos: string[] = formData.selectedVideos || [];
+
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+          <h4 className="font-medium text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+            </svg>
+            Select Videos
+          </h4>
+          <p className="text-sm text-red-700 dark:text-red-300">
+            Choose which YouTube videos to monitor for comments
+          </p>
+        </div>
+
+        {/* Loading State */}
+        {isLoadingVideos && (
+          <div className="flex items-center justify-center gap-2 py-4 text-gray-500 dark:text-gray-400">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="text-sm">Loading your videos...</span>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {videosError && (
+          <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-lg border border-red-300 dark:border-red-700">
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {videosError instanceof Error
+                ? videosError.message
+                : "Failed to load videos"}
+            </p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              Make sure YouTube is connected in Integrations settings.
+            </p>
+          </div>
+        )}
+
+        {/* Selected Count */}
+        {selectedVideos.length > 0 && (
+          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+            <span className="text-sm font-medium text-green-700 dark:text-green-300">
+              {selectedVideos.length} video
+              {selectedVideos.length !== 1 ? "s" : ""} selected
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const newConfig = { ...formData, selectedVideos: [] };
+                setFormData(newConfig);
+                if (onUpdateNode && selectedNode) {
+                  onUpdateNode(selectedNode.id, newConfig);
+                }
+              }}
+              className="text-xs text-red-600 hover:text-red-700"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
+
+        {/* Video Grid */}
+        {youtubeVideos.length > 0 && (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              Click to select/deselect videos:
+            </p>
+            <div className="grid gap-2">
+              {youtubeVideos.map((video) => {
+                const isSelected = selectedVideos.includes(video.id);
+                return (
+                  <div
+                    key={video.id}
+                    onClick={() => toggleVideoSelection(video.id)}
+                    className={cn(
+                      "flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all",
+                      isSelected
+                        ? "border-red-500 bg-red-50 dark:bg-red-950"
+                        : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600",
+                    )}
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-20 h-12 rounded overflow-hidden bg-gray-100 dark:bg-neutral-800 flex-shrink-0 relative">
+                      {video.thumbnail ? (
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Film className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-red-500/30 flex items-center justify-center">
+                          <CheckCircle className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {video.title}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(video.publishedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    {/* Checkbox indicator */}
+                    <div
+                      className={cn(
+                        "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0",
+                        isSelected
+                          ? "bg-red-500 border-red-500"
+                          : "border-gray-300 dark:border-neutral-600",
+                      )}
+                    >
+                      {isSelected && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || selectedVideos.length === 0}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Selection"}
+        </button>
+      </div>
+    );
+  };
+
+  // YouTube Keywords Config
+  const [newYouTubeKeyword, setNewYouTubeKeyword] = useState("");
+
+  const addYouTubeKeyword = () => {
+    if (!newYouTubeKeyword.trim() || !selectedNode) return;
+    const currentKeywords: string[] = formData.keywords || [];
+    if (!currentKeywords.includes(newYouTubeKeyword.trim())) {
+      const updated = [...currentKeywords, newYouTubeKeyword.trim()];
+      const newConfig = { ...formData, keywords: updated };
+      setFormData(newConfig);
+      if (onUpdateNode) {
+        onUpdateNode(selectedNode.id, newConfig);
+        toast.success("Keyword added!", {
+          description: `"${newYouTubeKeyword.trim()}" will trigger this automation.`,
+        });
+      }
+    }
+    setNewYouTubeKeyword("");
+  };
+
+  const removeYouTubeKeyword = (keyword: string) => {
+    if (!selectedNode) return;
+    const currentKeywords: string[] = formData.keywords || [];
+    const updated = currentKeywords.filter((k: string) => k !== keyword);
+    const newConfig = { ...formData, keywords: updated };
+    setFormData(newConfig);
+    if (onUpdateNode) {
+      onUpdateNode(selectedNode.id, newConfig);
+      toast.success("Keyword removed!", {
+        description: `"${keyword}" has been removed.`,
+      });
+    }
+  };
+
+  const renderYouTubeKeywordsConfig = () => {
+    const keywords: string[] = formData.keywords || [];
+
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+          <h4 className="font-medium text-red-900 dark:text-red-100 mb-2 flex items-center gap-2">
+            <Reply className="w-5 h-5" />
+            Keyword Match
+          </h4>
+          <p className="text-sm text-red-700 dark:text-red-300">
+            Filter comments that contain specific keywords before triggering
+            actions
+          </p>
+        </div>
+
+        {/* Current Keywords */}
+        {keywords.length > 0 && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Active Keywords ({keywords.length})
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((keyword: string, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full text-sm"
+                >
+                  <span>{keyword}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeYouTubeKeyword(keyword)}
+                    className="ml-1 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Add New Keyword */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Add Keywords
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newYouTubeKeyword}
+              onChange={(e) => setNewYouTubeKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addYouTubeKeyword();
+                }
+              }}
+              placeholder="Enter keyword and press Enter..."
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={addYouTubeKeyword}
+              disabled={!newYouTubeKeyword.trim()}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Comments containing any of these keywords will pass this condition.
+          </p>
+        </div>
+
+        {/* Match Mode */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Match Mode
+          </label>
+          <select
+            value={formData.matchMode || "any"}
+            onChange={(e) => handleAutoSave("matchMode", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500"
+          >
+            <option value="any">Match ANY keyword (OR)</option>
+            <option value="all">Match ALL keywords (AND)</option>
+          </select>
+        </div>
+
+        {/* Case Sensitivity */}
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.caseSensitive || false}
+            onChange={(e) => handleAutoSave("caseSensitive", e.target.checked)}
+            className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+          />
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            Case-sensitive matching
+          </span>
+        </label>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isPending || keywords.length === 0}
+          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isPending ? "Saving..." : "Save Configuration"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderYouTubeReplyConfig = () => (
+    <div className="space-y-4">
+      {/* Info box */}
+      <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+        <p className="text-sm text-red-700 dark:text-red-300">
+          💬 This reply will be posted publicly under the user&apos;s comment on
+          your YouTube video.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Comment Reply
+        </label>
+        <textarea
+          value={formData.commentReply || ""}
+          onChange={(e) =>
+            setFormData({ ...formData, commentReply: e.target.value })
+          }
+          onBlur={(e) => handleAutoSave("commentReply", e.target.value)}
+          placeholder="Enter your reply..."
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+        />
+      </div>
+
+      {/* Live Preview */}
+      {formData.commentReply && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Preview
+          </label>
+          <div className="p-3 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700">
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold">
+                Y
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                  Your Channel
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mt-0.5">
+                  {formData.commentReply}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending || !formData.commentReply}
+        className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        {isPending ? "Saving..." : "Save Reply"}
+      </button>
+    </div>
+  );
+
+  const renderYouTubeCollectDataConfig = () => (
+    <div className="space-y-4">
+      <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+        <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
+          📊 Collect Comment Data
+        </h4>
+        <p className="text-sm text-red-700 dark:text-red-300">
+          Save YouTube comment data for analytics and follow-up.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Data to Collect
+        </label>
+        <div className="space-y-2">
+          {["commentText", "authorName", "videoId", "timestamp"].map(
+            (field) => (
+              <label key={field} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.collectFields?.includes(field) ?? true}
+                  onChange={(e) => {
+                    const current = formData.collectFields || [
+                      "commentText",
+                      "authorName",
+                      "videoId",
+                      "timestamp",
+                    ];
+                    const updated = e.target.checked
+                      ? [...current, field]
+                      : current.filter((f: string) => f !== field);
+                    handleAutoSave("collectFields", updated);
+                  }}
+                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                  {field.replace(/([A-Z])/g, " $1").trim()}
+                </span>
+              </label>
+            ),
+          )}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={isPending}
+        className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      >
+        {isPending ? "Saving..." : "Save Configuration"}
+      </button>
+    </div>
+  );
+
   const renderConfigForm = () => {
     if (!selectedNode) return null;
 
@@ -1782,6 +2238,21 @@ const ConfigPanel = ({
       case "DELAY":
       case "HAS_TAG":
         return renderConditionConfig();
+      // YouTube Triggers
+      case "YT_COMMENT":
+      case "YT_MENTION":
+        return renderYouTubeTriggerConfig();
+      case "YT_SELECT_VIDEOS":
+        return renderYouTubeSelectVideosConfig();
+      case "YT_KEYWORDS":
+        return renderYouTubeKeywordsConfig();
+      // YouTube Actions
+      case "YT_REPLY_COMMENT":
+        return renderYouTubeReplyConfig();
+      case "YT_SMARTAI":
+        return renderSmartAIConfig(); // Reuse existing Smart AI config
+      case "YT_COLLECT_DATA":
+        return renderYouTubeCollectDataConfig();
       default:
         return (
           <p className="text-sm text-gray-500 dark:text-gray-400">

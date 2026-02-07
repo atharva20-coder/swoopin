@@ -290,5 +290,70 @@ export const useQueryOnboardingProfile = () => {
   });
 };
 
+/**
+ * ============================================
+ * YOUTUBE VIDEOS QUERY
+ * Following Zero-Patchwork Protocol
+ * ============================================
+ */
+
+// YouTube Video Schema - normalize at gateway
+const YouTubeVideoSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  thumbnail: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  publishedAt: z.string(),
+});
+
+const YouTubeVideosApiResponseSchema = z.object({
+  status: z.number().optional(),
+  data: z
+    .object({
+      videos: z.array(YouTubeVideoSchema).default([]),
+    })
+    .optional(),
+  error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+    })
+    .optional(),
+});
+
+export type YouTubeVideosApiResponse = z.infer<
+  typeof YouTubeVideosApiResponseSchema
+>;
+
+async function fetchYouTubeVideos(): Promise<YouTubeVideosApiResponse> {
+  const res = await fetch("/api/v1/integrations/youtube/videos");
+  const json = await res.json();
+  // Validate at gateway
+  const parsed = YouTubeVideosApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.warn(
+      "[DEBUG] fetchYouTubeVideos parse warning:",
+      parsed.error.format(),
+    );
+    return { data: { videos: [] } };
+  }
+  return parsed.data;
+}
+
+export const useQueryYouTubeVideos = (enabled: boolean = true) => {
+  return useQuery<YouTubeVideosApiResponse>({
+    queryKey: ["youtube-videos"],
+    queryFn: fetchYouTubeVideos,
+    enabled, // Only fetch when enabled
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+};
+
 // Re-export types for consumers
 export type { AutomationListItem, AutomationDetail };

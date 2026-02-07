@@ -131,6 +131,8 @@ class AutomationService {
             integrations: true,
           },
         },
+        flowNodes: true,
+        flowEdges: true,
       },
     });
 
@@ -211,7 +213,8 @@ class AutomationService {
 
     // IDOR CHECK: Verify the automation's user owns the Instagram page
     const userOwnsPage = automation.User?.integrations.some(
-      (integration) => integration.instagramId === pageId,
+      (integration: { instagramId: string | null }) =>
+        integration.instagramId === pageId,
     );
 
     if (!userOwnsPage) {
@@ -219,7 +222,7 @@ class AutomationService {
         automationId,
         pageId,
         userIntegrations: automation.User?.integrations.map(
-          (i) => i.instagramId,
+          (i: { instagramId: string | null }) => i.instagramId,
         ),
       });
       return null;
@@ -380,17 +383,19 @@ class AutomationService {
       return null;
     }
 
-    const existingTypes = automation.trigger.map((t) => t.type);
+    const existingTypes = automation.trigger.map(
+      (t: { type: string }) => t.type,
+    );
     const newTypes = input.triggers as string[];
 
-    const toAdd = newTypes.filter((t) => !existingTypes.includes(t));
+    const toAdd = newTypes.filter((t: string) => !existingTypes.includes(t));
     const toDelete = automation.trigger.filter(
-      (t) => !newTypes.includes(t.type),
+      (t: { type: string; id: string }) => !newTypes.includes(t.type),
     );
 
     if (toDelete.length > 0) {
       await client.trigger.deleteMany({
-        where: { id: { in: toDelete.map((t) => t.id) } },
+        where: { id: { in: toDelete.map((t: { id: string }) => t.id) } },
       });
     }
 
@@ -404,7 +409,7 @@ class AutomationService {
 
     return {
       added: toAdd,
-      deleted: toDelete.map((t) => t.type),
+      deleted: toDelete.map((t: { type: string }) => t.type),
     };
   }
 
@@ -770,7 +775,7 @@ class AutomationService {
 
     // IDOR CHECK: Verify the automation's user owns the Instagram page
     const userOwnsPage = automation.User?.integrations.some(
-      (i) => i.instagramId === pageId,
+      (i: { instagramId: string | null }) => i.instagramId === pageId,
     );
     if (!userOwnsPage) {
       console.warn("[IDOR] getExecutionPath - Page ownership mismatch", {
@@ -781,7 +786,9 @@ class AutomationService {
     }
 
     // Check if trigger type matches
-    const hasTrigger = automation.trigger.some((t) => t.type === triggerType);
+    const hasTrigger = automation.trigger.some(
+      (t: { type: string }) => t.type === triggerType,
+    );
     if (!hasTrigger) return null;
 
     return {

@@ -21,6 +21,9 @@ import {
   type PlanType,
 } from "./flow-validator";
 
+// Import node registry to trigger registration
+import "./nodes";
+
 // =============================================================================
 // WORKFLOW RUNNER CLASS
 // =============================================================================
