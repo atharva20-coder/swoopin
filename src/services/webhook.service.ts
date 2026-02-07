@@ -11,10 +11,14 @@ import { client } from "@/lib/prisma";
 class WebhookService {
   /**
    * Match incoming message to an automation keyword
+   * @param messageText - The message/comment text
+   * @param triggerType - Type of trigger (DM, COMMENT, MENTION)
+   * @param pageId - Instagram page ID (required for MENTION to validate ownership)
    */
   async matchKeyword(
     messageText: string,
     triggerType: "DM" | "COMMENT" | "MENTION" = "DM",
+    pageId?: string,
   ) {
     // Guard against undefined/null messageText
     if (!messageText || typeof messageText !== "string") {
@@ -69,13 +73,54 @@ class WebhookService {
       }
     }
 
-    // No keyword match - find ANY automation with this trigger type
-    // Flow execution will handle all branching logic
-    // This supports:
-    // - Simple: DM → SendDM
-    // - With SmartAI: DM → SmartAI → SendDM
-    // - Mixed: DM → [Keywords + SmartAI branches]
-    // - ANY other combination
+    // No keyword match - find automation with this trigger type
+    // For MENTION type, we MUST validate ownership via pageId
+    if (triggerType === "MENTION") {
+      if (!pageId) {
+        console.warn(
+          "[matchKeyword] MENTION trigger requires pageId for ownership validation",
+        );
+        return null;
+      }
+
+      // Find MENTION triggers that belong to accounts matching this pageId
+      const mentionAutomations = await client.flowNode.findMany({
+        where: {
+          type: "trigger",
+          subType: "MENTION",
+          Automation: {
+            active: true,
+            User: {
+              integrations: {
+                some: {
+                  instagramId: pageId,
+                },
+              },
+            },
+          },
+        },
+        select: {
+          automationId: true,
+        },
+      });
+
+      if (mentionAutomations.length > 0) {
+        console.log(
+          `[matchKeyword] Found MENTION automation for pageId: ${pageId}`,
+        );
+        return {
+          automationId: mentionAutomations[0].automationId,
+          isCatchAll: true,
+        };
+      }
+
+      console.log(
+        `[matchKeyword] No MENTION automation found for pageId: ${pageId}`,
+      );
+      return null;
+    }
+
+    // For other trigger types (DM, COMMENT), use existing logic
     const triggerFlows = await client.flowNode.findMany({
       where: {
         type: "trigger",

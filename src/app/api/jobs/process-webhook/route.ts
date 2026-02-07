@@ -254,8 +254,13 @@ export async function POST(req: NextRequest) {
       } else if (isStoryMention) {
         // Story mentions are @mentions sent via DM when someone mentions you in a story
         // Match to MENTION trigger type so "New Mention" flows are triggered
-        console.log("Story mention received, matching MENTION automation");
-        matcher = await matchKeyword("[Story Mention]", "MENTION");
+        // Pass pageId to validate ownership - only trigger for the account being mentioned
+        const pageId = webhook_payload.entry[0].id;
+        console.log(
+          "Story mention received, matching MENTION automation for pageId:",
+          pageId,
+        );
+        matcher = await matchKeyword("[Story Mention]", "MENTION", pageId);
       } else if (isPostShare) {
         // Post shares without text - just acknowledge
         console.log("Post share received, no text to match");
@@ -293,7 +298,8 @@ export async function POST(req: NextRequest) {
 
           if (text) {
             // Check for specific MENTION automation first
-            matcher = await matchKeyword(text, "MENTION");
+            // Pass pageId to validate ownership - only trigger for the account being mentioned
+            matcher = await matchKeyword(text, "MENTION", pageId);
 
             // Allow Mention to fallback to generic keywords if needed?
             // For now, let's keep it strict to what matchKeyword supports.

@@ -56,16 +56,43 @@ export async function processWebhookDirectly(
         "DM", // Postbacks come through messaging, treated as DM type for matching
       );
     }
+    // Check for story mention
+    else if (
+      messaging?.message?.attachments?.some(
+        (a: any) => a.type === "story_mention",
+      )
+    ) {
+      const pageId = webhook_payload.entry[0].id;
+      console.log(
+        "Story mention received, matching MENTION automation for pageId:",
+        pageId,
+      );
+      matcher = await matchKeyword("[Story Mention]", "MENTION", pageId);
+    }
     // Match keywords for DM
     else if (messaging?.message?.text) {
       matcher = await matchKeyword(messaging.message.text, "DM");
     }
 
-    // Match keywords for Comment
+    // Match keywords for Comment or Mentions
     if (!matcher && webhook_payload.entry[0].changes) {
-      const commentText = webhook_payload.entry[0].changes[0]?.value?.text;
-      if (commentText) {
-        matcher = await matchKeyword(commentText, "COMMENT");
+      const change = webhook_payload.entry[0].changes[0];
+      const pageId = webhook_payload.entry[0].id;
+
+      // Handle Mentions
+      if (change?.field === "mentions") {
+        const commentText = change?.value?.text;
+        if (commentText) {
+          console.log("Mention webhook received, matching for pageId:", pageId);
+          matcher = await matchKeyword(commentText, "MENTION", pageId);
+        }
+      }
+      // Handle Comments
+      else if (change?.field === "comments") {
+        const commentText = change?.value?.text;
+        if (commentText) {
+          matcher = await matchKeyword(commentText, "COMMENT");
+        }
       }
     }
 
