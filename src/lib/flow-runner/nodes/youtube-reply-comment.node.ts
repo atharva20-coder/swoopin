@@ -13,6 +13,7 @@ import type {
   ExecutionLogEntry,
 } from "../types";
 import axios from "axios";
+import { youtubeService } from "@/services/youtube.service";
 
 export class YouTubeReplyCommentNodeExecutor implements INodeExecutor {
   readonly type = "action";
@@ -101,28 +102,16 @@ export class YouTubeReplyCommentNodeExecutor implements INodeExecutor {
     });
 
     try {
-      // YouTube API: Insert a comment reply
-      // https://developers.google.com/youtube/v3/docs/comments/insert
-      const response = await axios.post(
-        "https://www.googleapis.com/youtube/v3/comments",
-        {
-          snippet: {
-            parentId: youtubeCommentId,
-            textOriginal: replyText,
-          },
-        },
-        {
-          params: {
-            part: "snippet",
-          },
-          headers: {
-            Authorization: `Bearer ${youtubeToken}`,
-            "Content-Type": "application/json",
-          },
-        },
+      // Use YouTube Service for business logic (Zero-Patchwork Protocol)
+      const { success, replyId, error } = await youtubeService.replyToComment(
+        youtubeToken,
+        youtubeCommentId,
+        replyText,
       );
 
-      const replyId = response.data?.id;
+      if (!success) {
+        throw new Error(error || "Unknown error in youtubeService");
+      }
 
       logs.push({
         timestamp: Date.now(),
@@ -160,11 +149,8 @@ export class YouTubeReplyCommentNodeExecutor implements INodeExecutor {
         logs,
       };
     } catch (error) {
-      const errorMessage = axios.isAxiosError(error)
-        ? error.response?.data?.error?.message || error.message
-        : error instanceof Error
-          ? error.message
-          : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
 
       logs.push({
         timestamp: Date.now(),

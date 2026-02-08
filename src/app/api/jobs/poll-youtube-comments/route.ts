@@ -130,6 +130,29 @@ export async function POST(req: NextRequest) {
                 youtubeCommentId: commentId,
               };
 
+              // Check for YT_SELECT_VIDEOS node to filter by video ID
+              const selectVideosNode = automation.flowNodes.find(
+                (n: any) => n.subType === "YT_SELECT_VIDEOS",
+              );
+
+              if (selectVideosNode) {
+                const config =
+                  (selectVideosNode.config as Record<string, unknown>) || {};
+                const selectedVideos =
+                  (config.selectedVideos as string[]) || [];
+
+                // If videos are selected, strictly enforce filtering
+                if (
+                  selectedVideos.length > 0 &&
+                  !selectedVideos.includes(thread.snippet.videoId)
+                ) {
+                  console.log(
+                    `[YouTubePoller] Skipping comment for video ${thread.snippet.videoId} (not in selected list)`,
+                  );
+                  continue;
+                }
+              }
+
               const runtimeNodes: FlowNodeRuntime[] = automation.flowNodes.map(
                 (node: any) => ({
                   nodeId: node.nodeId,
