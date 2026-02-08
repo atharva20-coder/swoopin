@@ -31,16 +31,37 @@ const COMMENT_TTL_HOURS = 24;
 
 export async function POST(req: NextRequest) {
   // Verify request is from QStash
+  // Verify request is from QStash OR has valid CRON_SECRET
   const signature = req.headers.get("upstash-signature");
   const body = await req.text();
+  const authHeader = req.headers.get("authorization");
+  const providedSecret = authHeader?.replace("Bearer ", "");
+  const cronSecret = process.env.CRON_SECRET;
 
-  if (process.env.NODE_ENV === "production" && signature) {
-    try {
-      await receiver.verify({ signature, body });
-    } catch (error) {
-      console.error("QStash: Invalid signature", error);
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
+  const isQStashVerified =
+    process.env.NODE_ENV === "production" && signature
+      ? await receiver
+          .verify({ signature, body })
+          .then(() => true)
+          .catch((err) => {
+            console.error("QStash: Invalid signature", err);
+            return false;
+          })
+      : false;
+
+  const isSecretVerified =
+    cronSecret && providedSecret && providedSecret === cronSecret;
+
+  // Allow if:
+  // 1. QStash signature is valid (Production)
+  // 2. CRON_SECRET is valid (GitHub Actions / Manual)
+  // 3. Not in production (Dev mode - optional, but safer to enforce secret even in dev if possible)
+  if (
+    process.env.NODE_ENV === "production" &&
+    !isQStashVerified &&
+    !isSecretVerified
+  ) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   console.log("[YouTubePoller] Starting poll cycle");

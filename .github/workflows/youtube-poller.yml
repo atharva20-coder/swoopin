@@ -1,0 +1,44 @@
+name: YouTube Comment Poller
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  poll-youtube:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger YouTube Poller
+        env:
+          APP_URL: ${{ secrets.APP_URL }} # e.g. https://your-domain.com
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "Error: APP_URL secret is not set"
+            exit 1
+          fi
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Error: CRON_SECRET secret is not set"
+            exit 1
+          fi
+
+          echo "Triggering YouTube Poller at $APP_URL/api/jobs/poll-youtube-comments"
+
+          response=$(curl -s -w "%{http_code}" -X POST "$APP_URL/api/jobs/poll-youtube-comments" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json")
+            
+          http_code=${response: -3}
+          content=${response:0:${#response}-3}
+
+          echo "Response Status: $http_code"
+          echo "Response Body: $content"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "Error: Polling failed with status $http_code"
+            exit 1
+          fi
