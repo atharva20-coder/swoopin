@@ -16,7 +16,7 @@ import axios from "axios";
 
 export class YouTubeReplyCommentNodeExecutor implements INodeExecutor {
   readonly type = "action";
-  readonly subType = "YOUTUBE_REPLY_COMMENT";
+  readonly subType = "YT_REPLY_COMMENT";
   readonly description = "Reply to a YouTube comment";
 
   async execute(

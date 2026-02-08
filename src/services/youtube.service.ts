@@ -282,7 +282,7 @@ class YouTubeService {
         active: true,
         flowNodes: {
           some: {
-            subType: "YOUTUBE_COMMENT",
+            subType: "YT_COMMENT",
           },
         },
       },

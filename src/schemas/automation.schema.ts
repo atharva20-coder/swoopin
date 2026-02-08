@@ -79,6 +79,14 @@ export const AutomationListItemSchema = z.object({
   createdAt: z.coerce.date(),
   keywords: z.array(KeywordSchema).default([]),
   listener: ListenerSchema.nullish().transform((v) => v ?? null),
+  // Flow nodes for platform detection (minimal fields)
+  flowNodes: z
+    .array(
+      z.object({
+        subType: z.string(),
+      }),
+    )
+    .default([]),
 });
 
 export const AutomationListResponseSchema = z.array(AutomationListItemSchema);

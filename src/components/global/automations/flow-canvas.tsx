@@ -265,7 +265,7 @@ const FlowCanvasInner = ({
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
         className="bg-white dark:bg-neutral-950"
         defaultEdgeOptions={{
           type: "smoothstep",

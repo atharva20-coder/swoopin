@@ -44,7 +44,8 @@ type ExecutionContext = {
     | "STORY_REPLY"
     | "MENTION"
     | "KEYWORDS"
-    | "YOUTUBE_COMMENT";
+    | "YOUTUBE_COMMENT"
+    | "YT_COMMENT";
   isStoryReply?: boolean;
   userSubscription?: string;
   userOpenAiKey?: string;

@@ -49,6 +49,10 @@ class AutomationService {
       include: {
         keywords: true,
         listener: true,
+        // Include flowNodes for platform detection (minimal fields)
+        flowNodes: {
+          select: { subType: true },
+        },
       },
     });
 
@@ -152,6 +156,8 @@ class AutomationService {
       posts: automation.posts,
       listener: automation.listener,
       carouselTemplates: automation.carouselTemplates,
+      flowNodes: automation.flowNodes,
+      flowEdges: automation.flowEdges,
       hasProPlan: automation.User?.subscription?.plan === "PRO",
       hasIntegration: (automation.User?.integrations?.length ?? 0) > 0,
     };

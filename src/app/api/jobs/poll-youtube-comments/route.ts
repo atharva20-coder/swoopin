@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                   thread.snippet.topLevelComment.snippet.authorChannelId.value,
                 messageText:
                   thread.snippet.topLevelComment.snippet.textOriginal,
-                triggerType: "YOUTUBE_COMMENT",
+                triggerType: "YT_COMMENT",
                 youtubeToken: accessToken,
                 youtubeChannelId: integration.channelId,
                 youtubeVideoId: thread.snippet.videoId,
