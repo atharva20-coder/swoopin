@@ -264,6 +264,7 @@ const AutomationList = () => {
                   active: false,
                   createdAt: new Date(),
                   listener: null,
+                  flowNodes: [],
                 },
               ],
       };
