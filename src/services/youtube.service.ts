@@ -234,10 +234,9 @@ class YouTubeService {
     const integrations = await client.integrations.findMany({
       where: {
         name: "YOUTUBE",
-        // Zero-Patchwork: Ensure required fields exist at query level
-        userId: { not: null },
-        instagramId: { not: null }, // channelId stored here
-        token: { not: null }, // refresh token stored here
+        // Zero-Patchwork: Filter nullable fields at query level
+        // Note: token is non-nullable in schema, no need to filter
+        NOT: [{ userId: null }, { instagramId: null }],
       },
       select: {
         id: true,

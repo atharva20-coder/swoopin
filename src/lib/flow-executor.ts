@@ -38,7 +38,13 @@ type ExecutionContext = {
   messageText?: string;
   commentId?: string;
   mediaId?: string;
-  triggerType: "DM" | "COMMENT" | "STORY_REPLY" | "MENTION" | "KEYWORDS";
+  triggerType:
+    | "DM"
+    | "COMMENT"
+    | "STORY_REPLY"
+    | "MENTION"
+    | "KEYWORDS"
+    | "YOUTUBE_COMMENT";
   isStoryReply?: boolean;
   userSubscription?: string;
   userOpenAiKey?: string;
