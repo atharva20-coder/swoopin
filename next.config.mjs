@@ -13,6 +13,24 @@ const nextConfig = {
   // Cache headers for edge caching
   async headers() {
     return [
+      // Service Worker - must be served with correct MIME type and no cache
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
       // Static assets - long cache
       {
         source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|mp4|ttf|otf|woff|woff2)",

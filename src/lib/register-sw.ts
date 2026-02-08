@@ -6,43 +6,72 @@
 /**
  * Check if service workers are supported
  */
-const isSupported = () => 
+const isSupported = () =>
   typeof window !== "undefined" && "serviceWorker" in navigator;
 
 /**
  * Register the service worker
  */
-export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
-  if (!isSupported()) {
-    console.log("Service Workers not supported");
-    return null;
-  }
+export const registerServiceWorker =
+  async (): Promise<ServiceWorkerRegistration | null> => {
+    if (!isSupported()) {
+      console.log("Service Workers not supported");
+      return null;
+    }
 
-  try {
-    const registration = await navigator.serviceWorker.register("/sw.js", {
-      scope: "/",
-    });
+    // Service Workers require HTTPS (except localhost)
+    if (
+      typeof window !== "undefined" &&
+      window.location.protocol !== "https:" &&
+      !window.location.hostname.includes("localhost")
+    ) {
+      console.warn("Service Worker requires HTTPS to register");
+      return null;
+    }
 
-    // Handle updates
-    registration.addEventListener("updatefound", () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            // New content is available, you could prompt user to refresh
-            console.log("New content available, refresh to update");
-          }
-        });
+    try {
+      console.log("[SW] Attempting to register service worker...");
+      const registration = await navigator.serviceWorker.register("/sw.js", {
+        scope: "/",
+      });
+
+      // Handle updates
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              // New content is available, you could prompt user to refresh
+              console.log("New content available, refresh to update");
+            }
+          });
+        }
+      });
+
+      console.log(
+        "[SW] Service Worker registered successfully:",
+        registration.scope,
+      );
+      return registration;
+    } catch (error) {
+      // Provide more detailed error information
+      if (error instanceof TypeError) {
+        console.error(
+          "[SW] Service Worker registration failed - Script load error:",
+          error.message,
+        );
+        console.error(
+          "[SW] Possible causes: File not found, incorrect MIME type, or network error",
+        );
+      } else {
+        console.error("[SW] Service Worker registration failed:", error);
       }
-    });
-
-    console.log("Service Worker registered successfully");
-    return registration;
-  } catch (error) {
-    console.error("Service Worker registration failed:", error);
-    return null;
-  }
-};
+      return null;
+    }
+  };
 
 /**
  * Unregister all service workers
@@ -75,13 +104,11 @@ export const clearServiceWorkerCache = async (): Promise<void> => {
     if (registration?.active) {
       registration.active.postMessage("clearCache");
     }
-    
+
     // Also clear from the main thread
     if ("caches" in window) {
       const cacheNames = await caches.keys();
-      await Promise.all(
-        cacheNames.map(name => caches.delete(name))
-      );
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
       console.log("Service Worker caches cleared");
     }
   } catch (error) {
