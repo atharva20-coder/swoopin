@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   Palette,
   BookOpen,
+  MessageCircle,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,14 @@ const COMING_SOON_INTEGRATIONS = [
     description: "Connect with Facebook to expand your reach",
     icon: <Facebook className="w-6 h-6 text-[#1877F2]" />,
     iconBgColor: "bg-blue-100 dark:bg-blue-900/30",
+    category: "social" as const,
+  },
+  {
+    id: "whatsapp",
+    title: "WhatsApp",
+    description: "Connect WhatsApp to engage with your customers",
+    icon: <MessageCircle className="w-6 h-6 text-[#25D366]" />,
+    iconBgColor: "bg-green-100 dark:bg-green-900/30",
     category: "social" as const,
   },
   {

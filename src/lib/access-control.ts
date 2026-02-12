@@ -1,73 +1,96 @@
 /**
  * Access Control Service
- * 
+ *
  * Manages feature access based on subscription plans.
  * Used throughout the application to gate features.
+ *
+ * Tier mapping (DB enum → Display):
+ *   FREE       → Starter (₹0)
+ *   PRO        → Plus (₹1,499/mo)
+ *   ENTERPRISE → Pro (₹2,999/mo)
  */
 
 import { client } from "@/lib/prisma";
 import { SUBSCRIPTION_PLAN } from "@prisma/client";
 
-// Plan limits configuration - Strategic limitations to drive upgrades
+// Plan limits configuration — Strategic limitations to drive upgrades
 export const PLAN_LIMITS = {
   FREE: {
     name: "Starter",
-    dmsPerMonth: 50,           // Very limited - forces upgrade quickly
-    automations: 1,            // Can only test ONE automation
-    scheduledPosts: 0,         // Scheduling is a PRO feature
-    aiResponses: false,        // AI is PRO feature
-    aiResponsesPerMonth: 0,
-    analytics: "basic",
-    analyticsRetentionDays: 7, // Only 7 days of history
+    dmsPerDay: 200,
+    smartAiPerDay: 10,
+    smartAiTrialDays: 7, // AI only available for 1 week after integrating a social media
+    commentRepliesUnlimited: true,
+    automations: 3, // Lifetime cap until upgraded
+    automationsLifetimeCap: true, // Automations don't reset monthly
+    maxActiveAutomations: 3,
+    editsPerAutomation: 1, // 1 edit per automation (lifetime)
+    nodesPerAutomation: -1, // No node limit
+    carouselTemplates: 1, // One-time
+    buttonTemplates: 1, // One-time
+    followerCheckNode: false, // No access
+    scheduledPosts: 0,
+    analytics: "basic" as const,
+    analyticsRetentionDays: 7,
     prioritySupport: false,
     earlyAccess: false,
     apiAccess: false,
-    showBranding: true,        // "Powered by Swoopin" in messages
-    carouselTemplates: 0,      // No carousel templates
-    commentReply: false,       // No comment replies - DM only
+    showBranding: true, // "Powered by NinthNode"
   },
   PRO: {
-    name: "Pro",
-    dmsPerMonth: 1000,         // Generous but capped
-    automations: 10,           // Enough for most users
-    scheduledPosts: 20,        // Good for active creators
-    aiResponses: true,
-    aiResponsesPerMonth: 50,   // Limited AI - not unlimited
-    analytics: "detailed",
-    analyticsRetentionDays: 90, // 90 days history
+    name: "Plus",
+    dmsPerDay: 1000,
+    smartAiPerDay: 100,
+    smartAiTrialDays: -1, // No trial restriction
+    commentRepliesUnlimited: true,
+    automations: 25, // Per month
+    automationsLifetimeCap: false,
+    maxActiveAutomations: 40, // Recent 40
+    editsPerAutomation: -1, // Unlimited
+    nodesPerAutomation: 5, // Limited to 5 per automation
+    carouselTemplates: -1, // Unlimited
+    buttonTemplates: -1, // Unlimited
+    followerCheckNode: true,
+    scheduledPosts: 20,
+    analytics: "detailed" as const,
+    analyticsRetentionDays: 90,
     prioritySupport: true,
     earlyAccess: false,
     apiAccess: false,
-    showBranding: false,       // No branding
-    carouselTemplates: 3,      // Limited templates
-    commentReply: true,        // Full comment reply access
+    showBranding: false,
   },
-  // ENTERPRISE is a custom plan - limits are configured per user by admin
-  // These are defaults that can be overridden with custom limits stored in DB
   ENTERPRISE: {
-    name: "Enterprise",
-    isCustomPlan: true,        // Flag indicating this is a custom, negotiated plan
-    // Default to PRO limits - admin configures actual limits per user
-    dmsPerMonth: 1000,         // Customizable per user
-    automations: 10,           // Customizable per user
-    scheduledPosts: 20,        // Customizable per user
-    aiResponses: true,
-    aiResponsesPerMonth: 50,   // Customizable per user
-    analytics: "detailed",
-    analyticsRetentionDays: 90, // Customizable per user
+    name: "Pro",
+    dmsPerDay: -1, // Unlimited
+    smartAiPerDay: -1, // Unlimited
+    smartAiTrialDays: -1,
+    commentRepliesUnlimited: true,
+    automations: -1, // Unlimited
+    automationsLifetimeCap: false,
+    maxActiveAutomations: -1, // Unlimited
+    editsPerAutomation: -1, // Unlimited
+    nodesPerAutomation: -1, // Unlimited
+    carouselTemplates: -1, // Unlimited
+    buttonTemplates: -1, // Unlimited
+    followerCheckNode: true,
+    scheduledPosts: -1, // Unlimited
+    analytics: "detailed" as const,
+    analyticsRetentionDays: 365,
     prioritySupport: true,
     earlyAccess: true,
-    apiAccess: true,           // Enterprise gets API access
+    apiAccess: true,
     showBranding: false,
-    carouselTemplates: 3,      // Customizable per user
-    commentReply: true,
-    // Enterprise-exclusive features (can be toggled per user)
-    multiAccount: false,       // Configurable per user
-    teamSeats: false,          // Configurable per user  
-    customAiTraining: false,   // Configurable per user
-    dedicatedSupport: true,    // Email/Instagram DM support
   },
 };
+
+export type PlanKey = keyof typeof PLAN_LIMITS;
+
+/**
+ * Get display name for a plan
+ */
+export function getPlanDisplayName(plan: PlanKey): string {
+  return PLAN_LIMITS[plan].name;
+}
 
 /**
  * Get user's current plan and limits by email
@@ -78,7 +101,7 @@ export async function getUserPlanLimitsByEmail(email: string) {
     include: { subscription: true },
   });
 
-  const plan = (user?.subscription?.plan || "FREE") as keyof typeof PLAN_LIMITS;
+  const plan = (user?.subscription?.plan || "FREE") as PlanKey;
   return {
     plan,
     limits: PLAN_LIMITS[plan],
@@ -87,7 +110,7 @@ export async function getUserPlanLimitsByEmail(email: string) {
 }
 
 /**
- * Get user's current plan and limits (legacy - by userId)
+ * Get user's current plan and limits (legacy — by userId)
  */
 export async function getUserPlanLimits(userId: string) {
   const user = await client.user.findUnique({
@@ -95,7 +118,7 @@ export async function getUserPlanLimits(userId: string) {
     include: { subscription: true },
   });
 
-  const plan = (user?.subscription?.plan || "FREE") as keyof typeof PLAN_LIMITS;
+  const plan = (user?.subscription?.plan || "FREE") as PlanKey;
   return {
     plan,
     limits: PLAN_LIMITS[plan],
@@ -108,48 +131,95 @@ export async function getUserPlanLimits(userId: string) {
  */
 export async function canPerformActionByEmail(
   email: string,
-  action: "create_automation" | "send_dm" | "schedule_post" | "use_ai" | "access_api"
+  action:
+    | "create_automation"
+    | "send_dm"
+    | "schedule_post"
+    | "use_ai"
+    | "access_api"
+    | "edit_automation",
+  automationId?: string,
 ): Promise<{ allowed: boolean; reason?: string; upgrade?: string }> {
   const { plan, limits } = await getUserPlanLimitsByEmail(email);
 
   switch (action) {
     case "create_automation": {
       if (limits.automations === -1) return { allowed: true };
-      
+
       const automationCount = await client.automation.count({
         where: { User: { email } },
       });
-      
+
       if (automationCount >= limits.automations) {
         return {
           allowed: false,
-          reason: `Starter plan limited to ${limits.automations} automations`,
-          upgrade: "PRO",
+          reason: `${limits.name} plan limited to ${limits.automations} automations`,
+          upgrade: plan === "FREE" ? "PRO" : "ENTERPRISE",
         };
       }
       return { allowed: true };
     }
 
+    case "edit_automation": {
+      if (limits.editsPerAutomation === -1) return { allowed: true };
+      if (!automationId)
+        return { allowed: false, reason: "Automation ID required" };
+
+      const automation = await client.automation.findFirst({
+        where: { id: automationId, User: { email } },
+        select: { editCount: true, editCountResetAt: true },
+      });
+
+      if (!automation)
+        return { allowed: false, reason: "Automation not found" };
+
+      // For Starter (lifetime cap), no monthly reset — check absolute count
+      if (limits.automationsLifetimeCap) {
+        if (automation.editCount >= limits.editsPerAutomation) {
+          return {
+            allowed: false,
+            reason: `Starter plan allows ${limits.editsPerAutomation} edit per automation. Upgrade to Plus for unlimited edits.`,
+            upgrade: "PRO",
+          };
+        }
+      } else {
+        // Monthly reset for paid plans
+        const now = new Date();
+        const resetAt = automation.editCountResetAt;
+        const currentCount =
+          resetAt && resetAt > now ? automation.editCount : 0;
+
+        if (currentCount >= limits.editsPerAutomation) {
+          return {
+            allowed: false,
+            reason: `You've reached your monthly edit limit of ${limits.editsPerAutomation}`,
+            upgrade: plan === "PRO" ? "ENTERPRISE" : "PRO",
+          };
+        }
+      }
+
+      return { allowed: true };
+    }
+
     case "send_dm": {
-      if (limits.dmsPerMonth === -1) return { allowed: true };
-      
-      // Count DMs sent this month
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      
+      if (limits.dmsPerDay === -1) return { allowed: true };
+
+      // Count DMs sent today
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
       const dmCount = await client.dms.count({
         where: {
           Automation: { User: { email } },
-          createdAt: { gte: startOfMonth },
+          createdAt: { gte: startOfDay },
         },
       });
-      
-      if (dmCount >= limits.dmsPerMonth) {
+
+      if (dmCount >= limits.dmsPerDay) {
         return {
           allowed: false,
-          reason: `You've reached your monthly limit of ${limits.dmsPerMonth} DMs`,
-          upgrade: "PRO",
+          reason: `You've reached your daily limit of ${limits.dmsPerDay} DMs`,
+          upgrade: plan === "FREE" ? "PRO" : "ENTERPRISE",
         };
       }
       return { allowed: true };
@@ -157,29 +227,29 @@ export async function canPerformActionByEmail(
 
     case "schedule_post": {
       if (limits.scheduledPosts === -1) return { allowed: true };
-      
+
       const scheduledCount = await client.scheduledPost.count({
         where: {
           User: { email },
           status: "SCHEDULED",
         },
       });
-      
+
       if (scheduledCount >= limits.scheduledPosts) {
         return {
           allowed: false,
-          reason: `Starter plan limited to ${limits.scheduledPosts} scheduled post`,
-          upgrade: "PRO",
+          reason: `${limits.name} plan limited to ${limits.scheduledPosts} scheduled posts`,
+          upgrade: plan === "FREE" ? "PRO" : "ENTERPRISE",
         };
       }
       return { allowed: true };
     }
 
     case "use_ai": {
-      if (!limits.aiResponses) {
+      if (limits.smartAiPerDay === 0) {
         return {
           allowed: false,
-          reason: "AI responses require Pro plan",
+          reason: "Smart AI requires Plus plan",
           upgrade: "PRO",
         };
       }
@@ -190,7 +260,7 @@ export async function canPerformActionByEmail(
       if (!limits.apiAccess) {
         return {
           allowed: false,
-          reason: "API access requires Enterprise plan",
+          reason: "API access requires Pro plan",
           upgrade: "ENTERPRISE",
         };
       }
@@ -203,19 +273,26 @@ export async function canPerformActionByEmail(
 }
 
 /**
- * Check if user can perform action (legacy - by userId)
+ * Check if user can perform action (legacy — by userId)
  */
 export async function canPerformAction(
   userId: string,
-  action: "create_automation" | "send_dm" | "schedule_post" | "use_ai" | "access_api"
+  action:
+    | "create_automation"
+    | "send_dm"
+    | "schedule_post"
+    | "use_ai"
+    | "access_api"
+    | "edit_automation",
+  automationId?: string,
 ): Promise<{ allowed: boolean; reason?: string; upgrade?: string }> {
   const user = await client.user.findUnique({
     where: { id: userId },
     select: { email: true },
   });
-  
+
   if (!user) return { allowed: false, reason: "User not found" };
-  return canPerformActionByEmail(user.email, action);
+  return canPerformActionByEmail(user.email, action, automationId);
 }
 
 /**
@@ -223,16 +300,15 @@ export async function canPerformAction(
  */
 export async function getUserUsageByEmail(email: string) {
   const { limits } = await getUserPlanLimitsByEmail(email);
-  
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
   const [dmCount, automationCount, scheduledCount] = await Promise.all([
     client.dms.count({
       where: {
         Automation: { User: { email } },
-        createdAt: { gte: startOfMonth },
+        createdAt: { gte: startOfDay },
       },
     }),
     client.automation.count({
@@ -249,8 +325,8 @@ export async function getUserUsageByEmail(email: string) {
   return {
     dms: {
       used: dmCount,
-      limit: limits.dmsPerMonth,
-      unlimited: limits.dmsPerMonth === -1,
+      limit: limits.dmsPerDay,
+      unlimited: limits.dmsPerDay === -1,
     },
     automations: {
       used: automationCount,
@@ -266,21 +342,21 @@ export async function getUserUsageByEmail(email: string) {
 }
 
 /**
- * Get user's current usage stats (legacy - by userId)
+ * Get user's current usage stats (legacy — by userId)
  */
 export async function getUserUsage(userId: string) {
   const user = await client.user.findUnique({
     where: { id: userId },
     select: { email: true },
   });
-  
+
   if (!user) {
     return {
-      dms: { used: 0, limit: 50, unlimited: false },
-      automations: { used: 0, limit: 1, unlimited: false },
+      dms: { used: 0, limit: 200, unlimited: false },
+      automations: { used: 0, limit: 3, unlimited: false },
       scheduledPosts: { used: 0, limit: 0, unlimited: false },
     };
   }
-  
+
   return getUserUsageByEmail(user.email);
 }

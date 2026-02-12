@@ -2,13 +2,29 @@
 
 import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
-import { ChevronRight, Loader2, Check, Instagram } from "lucide-react";
+import {
+  ChevronRight,
+  Loader2,
+  Check,
+  Instagram,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useQueryInstagramProfile } from "@/hooks/user-queries";
 import Image from "next/image";
+import EarlyAccessFormDialog from "./early-access-form-dialog";
+
+// ============================================
+// EARLY ACCESS TOGGLE
+// Set NEXT_PUBLIC_INSTAGRAM_EARLY_ACCESS="true" in .env
+// to intercept the connect flow with the early-access form.
+// Set to "false" or remove to restore normal OAuth.
+// ============================================
+const IS_EARLY_ACCESS_MODE =
+  process.env.NEXT_PUBLIC_INSTAGRAM_EARLY_ACCESS === "true";
 
 // REST API calls
 async function fetchInstagramStatus() {
@@ -31,10 +47,16 @@ async function disconnectInstagram(integrationId: string) {
   return res.json();
 }
 
+async function fetchEarlyAccessStatus() {
+  const res = await fetch("/api/v1/early-access/request");
+  return res.json();
+}
+
 export default function InstagramIntegrationCard() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [showEarlyAccessDialog, setShowEarlyAccessDialog] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["instagram-status"],
@@ -45,6 +67,14 @@ export default function InstagramIntegrationCard() {
 
   // Also fetch Instagram profile for display
   const { data: profileData } = useQueryInstagramProfile();
+
+  // Fetch early access request status (only when toggle is on)
+  const { data: earlyAccessData, refetch: refetchEarlyAccess } = useQuery({
+    queryKey: ["early-access-status"],
+    queryFn: fetchEarlyAccessStatus,
+    enabled: IS_EARLY_ACCESS_MODE,
+    staleTime: 30_000,
+  });
 
   // Force refetch when returning from OAuth callback
   useEffect(() => {
@@ -61,7 +91,20 @@ export default function InstagramIntegrationCard() {
   const integrationId = data?.data?.integrationId;
   const profile = profileData?.status === 200 ? profileData.data : null;
 
+  // Early access state
+  const hasEarlyAccessRequest =
+    IS_EARLY_ACCESS_MODE &&
+    earlyAccessData?.success &&
+    earlyAccessData?.data?.hasRequest;
+  const earlyAccessStatus = earlyAccessData?.data?.request?.status;
+
   const handleConnect = async () => {
+    // When early access is active and user is not connected, show the form dialog
+    if (IS_EARLY_ACCESS_MODE && !isConnected) {
+      setShowEarlyAccessDialog(true);
+      return;
+    }
+
     setIsConnecting(true);
     try {
       const result = await getInstagramOAuthUrl();
@@ -94,12 +137,35 @@ export default function InstagramIntegrationCard() {
     }
   };
 
+  const handleEarlyAccessSuccess = () => {
+    refetchEarlyAccess();
+  };
+
   // Format follower count
   const formatFollowers = (count?: number) => {
     if (!count) return null;
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
     return count.toString();
+  };
+
+  // Subtitle logic
+  const getSubtitle = () => {
+    if (isConnected && profile?.follower_count) {
+      return `${formatFollowers(profile.follower_count)} followers`;
+    }
+    if (isConnected) {
+      return "Connected";
+    }
+    if (IS_EARLY_ACCESS_MODE && hasEarlyAccessRequest) {
+      if (earlyAccessStatus === "ENROLLED") return "Ready to connect!";
+      if (earlyAccessStatus === "CONTACTED") return "We've reached out to you";
+      return "Request submitted — we'll be in touch!";
+    }
+    if (IS_EARLY_ACCESS_MODE) {
+      return "Get early access to Instagram integration";
+    }
+    return "Connect your Instagram account";
   };
 
   if (isLoading) {
@@ -116,72 +182,93 @@ export default function InstagramIntegrationCard() {
   }
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
-        "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
-        "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
-        isConnected &&
-          "ring-2 ring-pink-500/20 border-pink-200 dark:border-pink-500/30",
-        !isConnected && "cursor-pointer",
-      )}
-      onClick={!isConnected ? handleConnect : undefined}
-    >
-      {/* Icon / Profile Picture */}
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center shrink-0 overflow-hidden">
-        {isConnected && profile?.profile_pic ? (
-          <Image
-            src={profile.profile_pic}
-            alt={profile.name || "Profile"}
-            width={48}
-            height={48}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <Instagram className="w-6 h-6 text-white" />
+    <>
+      <div
+        className={cn(
+          "flex items-center gap-4 p-4 rounded-2xl transition-all group border",
+          "bg-white dark:bg-[#252525] border-gray-200 dark:border-neutral-700/50",
+          "hover:bg-gray-50 dark:hover:bg-[#2d2d2d] hover:border-gray-300 dark:hover:border-gray-600",
+          isConnected &&
+            "ring-2 ring-pink-500/20 border-pink-200 dark:border-pink-500/30",
+          !isConnected && "cursor-pointer",
         )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-            {isConnected && profile?.username
-              ? `@${profile.username}`
-              : "Instagram"}
-          </h3>
-          {isConnected && <Check className="w-4 h-4 text-pink-500 shrink-0" />}
-        </div>
-        <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
-          {isConnected && profile?.follower_count
-            ? `${formatFollowers(profile.follower_count)} followers`
-            : isConnected
-              ? "Connected"
-              : "Connect your Instagram account"}
-        </p>
-      </div>
-
-      {/* Toggle/Action */}
-      <div className="flex items-center gap-2 shrink-0">
-        {isConnecting ? (
-          <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-        ) : (
-          <>
-            <Switch
-              checked={isConnected}
-              onCheckedChange={() => {
-                if (isConnected) {
-                  handleDisconnect();
-                } else {
-                  handleConnect();
-                }
-              }}
-              className="data-[state=checked]:bg-pink-600"
+        onClick={!isConnected ? handleConnect : undefined}
+      >
+        {/* Icon / Profile Picture */}
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center shrink-0 overflow-hidden">
+          {isConnected && profile?.profile_pic ? (
+            <Image
+              src={profile.profile_pic}
+              alt={profile.name || "Profile"}
+              width={48}
+              height={48}
+              className="w-full h-full object-cover"
             />
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition" />
-          </>
-        )}
+          ) : (
+            <Instagram className="w-6 h-6 text-white" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+              {isConnected && profile?.username
+                ? `@${profile.username}`
+                : "Instagram"}
+            </h3>
+            {isConnected && (
+              <Check className="w-4 h-4 text-pink-500 shrink-0" />
+            )}
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
+            {getSubtitle()}
+          </p>
+        </div>
+
+        {/* Toggle/Action */}
+        <div className="flex items-center gap-2 shrink-0">
+          {isConnecting ? (
+            <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+          ) : IS_EARLY_ACCESS_MODE && !isConnected && hasEarlyAccessRequest ? (
+            /* Show "Request Sent" badge when early access is active and already submitted */
+            <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+              <Check className="w-3 h-3" />
+              <span>Request Sent</span>
+            </div>
+          ) : IS_EARLY_ACCESS_MODE && !isConnected ? (
+            /* Show "Early Access" badge when toggle is on and no request yet */
+            <div className="flex items-center gap-1 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-xs font-medium">
+              <Sparkles className="w-3 h-3" />
+              <span>Early Access</span>
+            </div>
+          ) : (
+            <>
+              <Switch
+                checked={isConnected}
+                onCheckedChange={() => {
+                  if (isConnected) {
+                    handleDisconnect();
+                  } else {
+                    handleConnect();
+                  }
+                }}
+                className="data-[state=checked]:bg-pink-600"
+              />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition" />
+            </>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Early Access Dialog — rendered outside the card to avoid click propagation */}
+      {IS_EARLY_ACCESS_MODE && (
+        <EarlyAccessFormDialog
+          open={showEarlyAccessDialog}
+          onOpenChange={setShowEarlyAccessDialog}
+          onSuccess={handleEarlyAccessSuccess}
+        />
+      )}
+    </>
   );
 }

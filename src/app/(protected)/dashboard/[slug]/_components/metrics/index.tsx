@@ -123,83 +123,105 @@ const Chart = () => {
       </div>
 
       {/* Chart */}
-      {chartData.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[300px] text-gray-400">
-          <TrendingUp className="w-12 h-12 mb-3 opacity-20" />
-          <p className="text-sm">No activity data yet</p>
-          <p className="text-xs mt-1 text-gray-400">
-            Connect a platform and create automations to start tracking
-          </p>
-        </div>
-      ) : (
-        <ResponsiveContainer height={300} width="100%">
-          <AreaChart
-            data={chartData}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="primaryGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={platformColor} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={platformColor} stopOpacity={0} />
-              </linearGradient>
-              <linearGradient
-                id="secondaryGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor="#10B981" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9CA3AF", fontSize: 12 }}
-              dy={10}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#9CA3AF", fontSize: 12 }}
-              width={40}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                border: "none",
-                borderRadius: "12px",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                padding: "12px 16px",
-              }}
-              labelStyle={{
-                color: "#111",
-                fontWeight: 600,
-                marginBottom: "8px",
-              }}
-              itemStyle={{ color: "#666", padding: "2px 0" }}
-            />
-            <Area
-              type="monotone"
-              dataKey="dmCount"
-              name="Messages"
-              stroke={platformColor}
-              strokeWidth={2.5}
-              fill="url(#primaryGradient)"
-            />
-            <Area
-              type="monotone"
-              dataKey="commentCount"
-              name="Responses"
-              stroke="#10B981"
-              strokeWidth={2}
-              fill="url(#secondaryGradient)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      )}
+      {(() => {
+        // Always show the graph - use sample data if empty
+        const displayData =
+          chartData.length === 0
+            ? [
+                { date: "Day 1", dmCount: 0, commentCount: 0 },
+                { date: "Day 2", dmCount: 0, commentCount: 0 },
+                { date: "Day 3", dmCount: 0, commentCount: 0 },
+                { date: "Day 4", dmCount: 0, commentCount: 0 },
+                { date: "Day 5", dmCount: 0, commentCount: 0 },
+                { date: "Day 6", dmCount: 0, commentCount: 0 },
+                { date: "Day 7", dmCount: 0, commentCount: 0 },
+              ]
+            : chartData;
+
+        return (
+          <ResponsiveContainer height={300} width="100%">
+            <AreaChart
+              data={displayData}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id="primaryGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor={platformColor}
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={platformColor}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <linearGradient
+                  id="secondaryGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                width={40}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "none",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                  padding: "12px 16px",
+                }}
+                labelStyle={{
+                  color: "#111",
+                  fontWeight: 600,
+                  marginBottom: "8px",
+                }}
+                itemStyle={{ color: "#666", padding: "2px 0" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="dmCount"
+                name="Messages"
+                stroke={platformColor}
+                strokeWidth={2.5}
+                fill="url(#primaryGradient)"
+              />
+              <Area
+                type="monotone"
+                dataKey="commentCount"
+                name="Responses"
+                stroke="#10B981"
+                strokeWidth={2}
+                fill="url(#secondaryGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+      })()}
     </div>
   );
 };

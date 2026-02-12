@@ -5,15 +5,9 @@ import {
   useQueryAutomations,
   useQueryInstagramProfile,
 } from "@/hooks/user-queries";
+import { useTelemetry } from "@/hooks/use-telemetry";
 import { useParams } from "next/navigation";
-import {
-  Send,
-  MessageCircle,
-  TrendingUp,
-  Zap,
-  Users,
-  BarChart3,
-} from "lucide-react";
+import { Send, MessageCircle, Calendar, Zap, Users, Gauge } from "lucide-react";
 import { usePlatform } from "@/context/platform-context";
 
 /**
@@ -116,10 +110,14 @@ const AnalyticsSummary = () => {
     useQueryInstagramProfile();
   const { data: automationsData, isLoading: isLoadingAutomations } =
     useQueryAutomations();
+  const { data: telemetry, isLoading: isLoadingTelemetry } = useTelemetry();
   const { activePlatform } = usePlatform();
 
   const isLoading =
-    isLoadingAnalytics || isLoadingProfile || isLoadingAutomations;
+    isLoadingAnalytics ||
+    isLoadingProfile ||
+    isLoadingAutomations ||
+    isLoadingTelemetry;
   const followerCount =
     instagramProfile?.status === 200
       ? (instagramProfile.data?.follower_count ?? 0)
@@ -137,8 +135,8 @@ const AnalyticsSummary = () => {
         totalDms: { value: "0", change: undefined },
         totalComments: { value: "0", change: undefined },
         automations: { value: "0", change: undefined },
-        recentDms: { value: "0", change: undefined },
-        engagementRate: { value: "0%", change: undefined },
+        scheduledPosts: { value: "0", change: undefined },
+        responseRate: { value: "0%", change: undefined },
       };
     }
 
@@ -147,6 +145,10 @@ const AnalyticsSummary = () => {
       ? automationsData.data.length
       : 0;
 
+    // Telemetry data (scheduler stats + response rate)
+    const schedulerTotal = telemetry?.data?.schedulerStats?.total ?? 0;
+    const responseRateValue = telemetry?.data?.summary?.responseRate ?? 0;
+
     // Fallback if no analytics data
     if (!analytics?.data) {
       return {
@@ -154,44 +156,35 @@ const AnalyticsSummary = () => {
         totalDms: { value: "0", change: undefined },
         totalComments: { value: "0", change: undefined },
         automations: { value: automationCount.toString(), change: undefined },
-        recentDms: { value: "0", change: undefined },
-        engagementRate: { value: "0%", change: undefined },
+        scheduledPosts: {
+          value: formatValue(schedulerTotal),
+          change: undefined,
+        },
+        responseRate: { value: `${responseRateValue}%`, change: undefined },
       };
     }
 
     const totalDms = analytics.data.totalDms ?? 0;
     const totalComments = analytics.data.totalComments ?? 0;
-    const totalInteractions = totalDms + totalComments;
-
-    // Calculate engagement rate: (total interactions / followers) * 100
-    const engagementRate =
-      followerCount > 0
-        ? ((totalInteractions / followerCount) * 100).toFixed(2)
-        : "0.00";
-
-    // Calculate 30-day change from chart data if available
-    const chartData = analytics.data.chartData ?? [];
-    let dmChange: number | undefined = undefined;
-
-    if (chartData.length >= 2) {
-      const recent = chartData.slice(-7).reduce((sum, d) => sum + d.dmCount, 0);
-      const previous = chartData
-        .slice(-14, -7)
-        .reduce((sum, d) => sum + d.dmCount, 0);
-      if (previous > 0) {
-        dmChange = ((recent - previous) / previous) * 100;
-      }
-    }
 
     return {
       followers: { value: formatValue(followerCount), change: undefined },
       totalDms: { value: formatValue(totalDms), change: undefined },
       totalComments: { value: formatValue(totalComments), change: undefined },
       automations: { value: automationCount.toString(), change: undefined },
-      recentDms: { value: formatValue(totalDms), change: dmChange },
-      engagementRate: { value: `${engagementRate}%`, change: undefined },
+      scheduledPosts: { value: formatValue(schedulerTotal), change: undefined },
+      responseRate: {
+        value: `${responseRateValue.toFixed(1)}%`,
+        change: undefined,
+      },
     };
-  }, [analytics?.data, automationsData?.data, followerCount, activePlatform]);
+  }, [
+    analytics?.data,
+    automationsData?.data,
+    followerCount,
+    activePlatform,
+    telemetry?.data,
+  ]);
 
   const metrics = [
     {
@@ -223,18 +216,18 @@ const AnalyticsSummary = () => {
       sublabel: "Active",
     },
     {
-      label: "30-Day DMs",
-      ...processedMetrics.recentDms,
-      icon: <TrendingUp className="w-5 h-5 text-white" />,
+      label: "Scheduled Posts",
+      ...processedMetrics.scheduledPosts,
+      icon: <Calendar className="w-5 h-5 text-white" />,
       gradient: "bg-gradient-to-br from-emerald-500 to-emerald-600",
-      sublabel: "Recent activity",
+      sublabel: "All time",
     },
     {
-      label: "Engagement",
-      ...processedMetrics.engagementRate,
-      icon: <BarChart3 className="w-5 h-5 text-white" />,
+      label: "Response Rate",
+      ...processedMetrics.responseRate,
+      icon: <Gauge className="w-5 h-5 text-white" />,
       gradient: "bg-gradient-to-br from-indigo-500 to-indigo-600",
-      sublabel: "Interactions / Followers",
+      sublabel: "Automated / Total",
     },
   ];
 

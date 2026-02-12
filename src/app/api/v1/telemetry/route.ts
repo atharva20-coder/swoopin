@@ -4,13 +4,12 @@ import {
   unauthorized,
   internalError,
   getAuthUser,
+  validateQuery,
   rateLimitByUser,
 } from "@/app/api/v1/_lib";
-import { insightsService } from "@/services/insights.service";
+import { telemetryService } from "@/services/telemetry.service";
+import { TelemetryQuerySchema } from "@/schemas/telemetry.schema";
 import { client } from "@/lib/prisma";
-
-// Force dynamic rendering - this route uses headers for authentication
-export const dynamic = "force-dynamic";
 
 /**
  * Helper to get db user ID
@@ -25,11 +24,12 @@ async function getDbUserId(email: string): Promise<string | null> {
 
 /**
  * ============================================
- * GET /api/v1/insights
- * Get Instagram insights (account, audience, follower growth)
+ * GET /api/v1/telemetry
+ * Get telemetry dashboard data
+ * (Automation health, post reach, scheduler, keywords)
  * ============================================
  */
-export async function GET(_request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // 1. Authentication
     const authUser = await getAuthUser();
@@ -49,27 +49,23 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       return rateLimitResponse;
     }
 
-    // 4. Get insights
-    const result = await insightsService.getInsights(userId);
-
-    if ("error" in result) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "INSIGHTS_FAILED",
-            message: result.error,
-            details: {},
-          },
-        },
-        { status: 500 }
-      );
+    // 4. Validate query params
+    const { searchParams } = new URL(request.url);
+    const validation = validateQuery(searchParams, TelemetryQuerySchema);
+    if (!validation.success) {
+      return validation.response;
     }
 
-    return success(result);
+    // 5. Get telemetry dashboard
+    const dashboard = await telemetryService.getDashboard(
+      userId,
+      validation.data,
+    );
+
+    return success(dashboard);
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error("GET /api/v1/insights error:", error.message);
+      console.error("GET /api/v1/telemetry error:", error.message);
     }
     return internalError();
   }

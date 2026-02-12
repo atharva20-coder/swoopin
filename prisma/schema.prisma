@@ -37,6 +37,7 @@ model User {
   sessions            Session[]
   userProfile         UserProfile?
   canvaIntegration    CanvaIntegration?
+  earlyAccessRequests EarlyAccessRequest[]
 
   @@map("user")
 }
@@ -120,6 +121,8 @@ model Automation {
   name              String             @default("Untitled")
   createdAt         DateTime           @default(now())
   active            Boolean            @default(false)
+  editCount         Int                @default(0)
+  editCountResetAt  DateTime?
   userId            String?            @db.Uuid
   User              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   carouselTemplates CarouselTemplate[]
@@ -714,6 +717,31 @@ model CanvaIntegration {
   User         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum EarlyAccessStatus {
+  PENDING
+  CONTACTED
+  ENROLLED
+  REJECTED
+}
+
+model EarlyAccessRequest {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String            @db.Uuid
+  platform        String            @default("INSTAGRAM")
+  fullName        String
+  email           String
+  instagramHandle String?
+  note            String?
+  status          EarlyAccessStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  User            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@index([status])
+  @@map("early_access_request")
 }
 
 model Contact {
