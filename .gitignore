@@ -42,8 +42,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# meta app review
-docs/meta-app-review-guide.md
-
 # seed data
 prisma/seed.ts
+
+# docs
+docs/pwa-strategy.md
+docs/meta-app-review-guide.mds
+docs/PERFORMANCE_TESTING.md
