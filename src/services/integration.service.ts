@@ -34,9 +34,35 @@ class IntegrationService {
 
   /**
    * Get Instagram OAuth URL
+   * Constructed dynamically so the redirect_uri always matches
+   * NEXT_PUBLIC_HOST_URL (same as generateTokens uses for the token exchange).
    */
   getInstagramOAuthUrl(): string {
-    return process.env.INSTAGRAM_EMBEDDED_OAUTH_URL || "";
+    const clientId = process.env.INSTAGRAM_CLIENT_ID;
+    const hostUrl = process.env.NEXT_PUBLIC_HOST_URL;
+
+    if (!clientId || !hostUrl) {
+      console.error(
+        "[IntegrationService] Missing INSTAGRAM_CLIENT_ID or NEXT_PUBLIC_HOST_URL",
+      );
+      return "";
+    }
+
+    const params = new URLSearchParams({
+      enable_fb_login: "0",
+      force_authentication: "1",
+      client_id: clientId,
+      redirect_uri: `${hostUrl}/callback/instagram`,
+      response_type: "code",
+      scope: [
+        "instagram_business_basic",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_comments",
+        "instagram_business_content_publish",
+      ].join(","),
+    });
+
+    return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
   }
 
   /**

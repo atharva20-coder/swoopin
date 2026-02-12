@@ -21,7 +21,7 @@ const createNotification = (content: string, userId: string) =>
 const updateIntegration = async (
   token: string,
   expiresAt: Date,
-  id: string
+  id: string,
 ) => {
   return client.integrations.update({
     where: { id },
@@ -78,29 +78,34 @@ export const onBoardUser = async () => {
     const found = await findUserByEmail(user.email);
     if (found) {
       if (found.integrations.length > 0) {
-        const today = new Date();
-        const time_left =
-          found.integrations[0].expiresAt?.getTime()! - today.getTime();
-
-        const days = Math.round(time_left / (1000 * 3600 * 24));
-        if (days < 5) {
-          const refresh = await refreshToken(found.integrations[0].token);
-
+        try {
           const today = new Date();
-          const expire_date = today.setDate(today.getDate() + 60);
+          const time_left =
+            found.integrations[0].expiresAt?.getTime()! - today.getTime();
 
-          const update_token = await updateIntegration(
-            refresh.access_token,
-            new Date(expire_date),
-            found.integrations[0].id
-          );
-          if (!update_token) {
-          } else if (update_token.userId) {
-            createNotification(
-              "You have been reintegrated!",
-              update_token.userId
+          const days = Math.round(time_left / (1000 * 3600 * 24));
+          if (days < 5) {
+            const refresh = await refreshToken(found.integrations[0].token);
+
+            const today = new Date();
+            const expire_date = today.setDate(today.getDate() + 60);
+
+            const update_token = await updateIntegration(
+              refresh.access_token,
+              new Date(expire_date),
+              found.integrations[0].id,
             );
+            if (!update_token) {
+            } else if (update_token.userId) {
+              createNotification(
+                "You have been reintegrated!",
+                update_token.userId,
+              );
+            }
           }
+        } catch (tokenError) {
+          // Token refresh failed — log but don't block dashboard access
+          console.error("[onBoardUser] Token refresh failed:", tokenError);
         }
       }
       // Check if user is admin
@@ -121,13 +126,14 @@ export const onBoardUser = async () => {
       user.id,
       nameParts[0] || "",
       nameParts.slice(1).join(" ") || "",
-      user.email
+      user.email,
     );
 
     // Check if new user is admin
     const isAdmin = adminEmails.includes(user.email.toLowerCase());
     return { status: 201, data: { ...created, isAdmin } };
   } catch (error) {
+    console.error("[onBoardUser] Error:", error);
     return { status: 500 };
   }
 };

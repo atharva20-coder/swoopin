@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { registerServiceWorker } from "@/lib/register-sw";
 
 /**
  * Service Worker Provider
- * Registers the service worker on mount for asset caching
+ * Unregisters any stale service workers and clears caches.
  */
 export default function ServiceWorkerProvider({
   children,
@@ -13,15 +12,27 @@ export default function ServiceWorkerProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    // Unregister any existing service workers to fix reload loop issue
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (const registration of registrations) {
-          registration.unregister();
-          console.log("Service Worker unregistered to fix reload loop");
-        }
-      });
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return;
     }
+
+    const cleanup = async () => {
+      try {
+        // 1. Unregister all service workers
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+
+        // 2. Clear all caches
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      } catch {
+        // Silent fail — cleanup is best-effort
+      }
+    };
+
+    cleanup();
   }, []);
 
   return <>{children}</>;

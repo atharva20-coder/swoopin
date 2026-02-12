@@ -99,8 +99,8 @@ export default function InstagramIntegrationCard() {
   const earlyAccessStatus = earlyAccessData?.data?.request?.status;
 
   const handleConnect = async () => {
-    // When early access is active and user is not connected, show the form dialog
-    if (IS_EARLY_ACCESS_MODE && !isConnected) {
+    // When early access is active, user is not connected, and has NOT yet submitted a request → show the form dialog
+    if (IS_EARLY_ACCESS_MODE && !isConnected && !hasEarlyAccessRequest) {
       setShowEarlyAccessDialog(true);
       return;
     }
@@ -158,9 +158,7 @@ export default function InstagramIntegrationCard() {
       return "Connected";
     }
     if (IS_EARLY_ACCESS_MODE && hasEarlyAccessRequest) {
-      if (earlyAccessStatus === "ENROLLED") return "Ready to connect!";
-      if (earlyAccessStatus === "CONTACTED") return "We've reached out to you";
-      return "Request submitted — we'll be in touch!";
+      return "Connect your Instagram account";
     }
     if (IS_EARLY_ACCESS_MODE) {
       return "Get early access to Instagram integration";
@@ -230,13 +228,7 @@ export default function InstagramIntegrationCard() {
         <div className="flex items-center gap-2 shrink-0">
           {isConnecting ? (
             <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-          ) : IS_EARLY_ACCESS_MODE && !isConnected && hasEarlyAccessRequest ? (
-            /* Show "Request Sent" badge when early access is active and already submitted */
-            <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
-              <Check className="w-3 h-3" />
-              <span>Request Sent</span>
-            </div>
-          ) : IS_EARLY_ACCESS_MODE && !isConnected ? (
+          ) : IS_EARLY_ACCESS_MODE && !isConnected && !hasEarlyAccessRequest ? (
             /* Show "Early Access" badge when toggle is on and no request yet */
             <div className="flex items-center gap-1 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-xs font-medium">
               <Sparkles className="w-3 h-3" />
