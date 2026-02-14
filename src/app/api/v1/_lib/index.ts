@@ -16,16 +16,16 @@ export {
   rateLimited,
   internalError,
   serviceUnavailable,
-} from './response';
+} from "./response";
 
 // Types
-export { ErrorCodes } from './types';
-export type { 
-  ApiResponse, 
-  ApiSuccessResponse, 
+export { ErrorCodes } from "./types";
+export type {
+  ApiResponse,
+  ApiSuccessResponse,
   ApiErrorResponse,
   ErrorCode,
-} from './types';
+} from "./types";
 
 // Middleware
 export {
@@ -35,8 +35,8 @@ export {
   hasSubscription,
   isAdmin,
   verifyOwnership,
-} from './middleware';
-export type { AuthenticatedUser } from './middleware';
+} from "./middleware";
+export type { AuthenticatedUser } from "./middleware";
 
 // Validation
 export {
@@ -45,13 +45,15 @@ export {
   validateResponse,
   CommonSchemas,
   createPaginatedSchema,
-} from './validation';
-export type { CursorPagination } from './validation';
+} from "./validation";
+export type { CursorPagination } from "./validation";
 
 // Rate Limiting
 export {
   checkRateLimit,
   rateLimitByUser,
+  rateLimitByUserWithPlan,
   rateLimitByIp,
   RateLimitConfigs,
-} from './rate-limit';
+  SubscriptionRateLimits,
+} from "./rate-limit";

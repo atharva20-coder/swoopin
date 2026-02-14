@@ -35,35 +35,38 @@ const PLANS = {
   FREE: {
     name: "Starter",
     icon: Zap,
-    description: "Try it out - see instant results",
+    description: "Try it out — see instant results",
     monthlyPrice: 0,
     annualPrice: 0,
     color: "from-gray-500 to-gray-600",
     popular: false,
     features: [
-      { text: "50 DMs & Comments/month", included: true },
-      { text: "1 Automation", included: true },
+      { text: "200 DMs & Comments/month", included: true },
+      { text: "3 Automations", included: true },
+      { text: "1 edit per automation/month", included: true },
       { text: "7 days analytics history", included: true },
       { text: "Community support", included: true },
-      { text: '"Powered by NinthNode" branding', included: true, subtle: true },
+      { text: '"Powered by Swoopin" branding', included: true, subtle: true },
       { text: "Post scheduling", included: false },
       { text: "AI-powered responses", included: false },
       { text: "Comment replies", included: false },
     ],
   },
   PRO: {
-    name: "Pro",
+    name: "Plus",
     icon: Crown,
     description: "For serious creators & businesses",
-    monthlyPrice: 999,
-    annualPrice: 9990,
+    monthlyPrice: 1499,
+    annualPrice: 16549,
     color: "from-blue-500 to-indigo-600",
     popular: true,
+    annualDiscount: 8,
     features: [
       { text: "1,000 DMs & Comments/month", included: true },
       { text: "10 Automations", included: true },
+      { text: "10 edits per automation/month", included: true },
       { text: "20 Scheduled Posts/month", included: true },
-      { text: "50 AI responses/month", included: true },
+      { text: "100 AI responses/month", included: true },
       { text: "90 days analytics history", included: true },
       { text: "Comment replies", included: true },
       { text: "3 Carousel templates", included: true },
@@ -72,22 +75,26 @@ const PLANS = {
     ],
   },
   ENTERPRISE: {
-    name: "Enterprise",
+    name: "Pro",
     icon: Rocket,
-    description: "Custom plan for your needs",
-    monthlyPrice: 0,
-    annualPrice: 0,
+    description: "Scale without limits",
+    monthlyPrice: 2999,
+    annualPrice: 30230,
     color: "from-purple-500 to-pink-600",
     popular: false,
-    isContactPlan: true,
+    annualDiscount: 16,
     features: [
-      { text: "Custom DM & Comment limits", included: true },
-      { text: "Custom Automation limits", included: true },
-      { text: "Custom Scheduling limits", included: true },
-      { text: "Custom AI response limits", included: true },
-      { text: "API access available", included: true },
-      { text: "Priority dedicated support", included: true },
-      { text: "Negotiated pricing", included: true },
+      { text: "Unlimited DMs & Comments", included: true },
+      { text: "Unlimited Automations", included: true },
+      { text: "Unlimited edits per automation", included: true },
+      { text: "Unlimited Scheduled Posts", included: true },
+      { text: "Unlimited AI responses", included: true },
+      { text: "365 days analytics history", included: true },
+      { text: "Comment replies", included: true },
+      { text: "Unlimited Carousel templates", included: true },
+      { text: "No branding", included: true },
+      { text: "Dedicated priority support", included: true },
+      { text: "API access", included: true },
     ],
   },
 };
@@ -244,7 +251,7 @@ export default function BillingPage() {
         setCurrentPeriodEnd(endDate);
         setShowCancelModal(false);
         toast.success(
-          `Subscription cancelled. You'll have Pro access until ${endDate.toLocaleDateString(
+          `Subscription cancelled. You'll have ${PLANS[currentPlan].name} access until ${endDate.toLocaleDateString(
             "en-IN",
             {
               day: "numeric",
@@ -319,7 +326,7 @@ export default function BillingPage() {
       </div>
 
       {/* Cancellation Notice - Show when subscription is set to cancel */}
-      {cancelAtPeriodEnd && currentPeriodEnd && currentPlan === "PRO" && (
+      {cancelAtPeriodEnd && currentPeriodEnd && currentPlan !== "FREE" && (
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 mb-8">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
@@ -328,8 +335,9 @@ export default function BillingPage() {
                 Subscription Ending Soon
               </h3>
               <p className="text-yellow-700 dark:text-yellow-300">
-                Your Pro subscription is set to cancel. You&apos;ll continue to
-                have full Pro access until{" "}
+                Your {PLANS[currentPlan].name} subscription is set to cancel.
+                You&apos;ll continue to have full {PLANS[currentPlan].name}{" "}
+                access until{" "}
                 <strong>
                   {currentPeriodEnd.toLocaleDateString("en-IN", {
                     day: "numeric",
@@ -337,7 +345,7 @@ export default function BillingPage() {
                     year: "numeric",
                   })}
                 </strong>
-                . After that, you&apos;ll be moved to the Free plan.
+                . After that, you&apos;ll be moved to the Starter plan.
               </p>
             </div>
           </div>
@@ -451,7 +459,7 @@ export default function BillingPage() {
             <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span className="text-sm">
-                You&apos;re running low on DMs. Upgrade to Pro for more!
+                You&apos;re running low on DMs. Upgrade to Plus for more!
               </span>
             </div>
           )}
@@ -459,7 +467,8 @@ export default function BillingPage() {
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-green-800 dark:text-green-200">
             <Check className="w-4 h-4 shrink-0" />
             <span className="text-sm">
-              You&apos;re on {currentPlan} plan with enhanced limits!
+              You&apos;re on the {PLANS[currentPlan].name} plan with enhanced
+              limits!
             </span>
           </div>
         )}
@@ -490,7 +499,7 @@ export default function BillingPage() {
           >
             Annual
             <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-              Save 17%
+              Save up to 16%
             </span>
           </button>
         </div>
@@ -555,80 +564,51 @@ export default function BillingPage() {
 
                 {/* Price */}
                 <div className="mb-6">
-                  {(plan as any).isContactPlan ? (
-                    <>
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                        Custom
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      {price === 0 ? "Free" : formatPrice(price)}
+                    </span>
+                    {price > 0 && (
+                      <span className="text-gray-500 dark:text-gray-400">
+                        /{billingCycle === "monthly" ? "month" : "year"}
                       </span>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Tailored pricing for your needs
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                          {formatPrice(price)}
-                        </span>
-                        <span className="text-gray-500 dark:text-gray-400">
-                          /{billingCycle === "monthly" ? "month" : "year"}
-                        </span>
-                      </div>
-                      {billingCycle === "annual" && planKey !== "FREE" && (
-                        <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                          Save {formatPrice(getSavings(planKey))} per year
-                        </p>
-                      )}
-                    </>
+                    )}
+                  </div>
+                  {billingCycle === "annual" && planKey !== "FREE" && (
+                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                      Save {formatPrice(getSavings(planKey))} per year
+                    </p>
                   )}
                 </div>
 
-                {/* CTA Button - Different for Enterprise */}
-                {(plan as any).isContactPlan ? (
-                  <div className="space-y-3 mb-6">
-                    <Button
-                      onClick={() => setShowEnterpriseModal(true)}
-                      disabled={hasExistingEnquiry}
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:opacity-90 text-white font-semibold"
-                    >
-                      <Rocket className="w-4 h-4 mr-2" />
-                      {hasExistingEnquiry
-                        ? "Request Pending"
-                        : "Request Enterprise"}
-                    </Button>
-                    {hasExistingEnquiry && (
-                      <p className="text-xs text-center text-green-600 dark:text-green-400">
-                        ✓ Your enterprise request is being reviewed
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => handleSubscribe(planKey)}
-                    disabled={isLoading !== null}
-                    className={cn(
-                      "w-full mb-6",
-                      isCurrentPlan
-                        ? "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
-                        : planKey === "PRO"
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                {/* CTA Button */}
+                <Button
+                  onClick={() => handleSubscribe(planKey)}
+                  disabled={isLoading !== null}
+                  className={cn(
+                    "w-full mb-6",
+                    isCurrentPlan
+                      ? "bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100"
+                      : planKey === "PRO"
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : planKey === "ENTERPRISE"
+                          ? "bg-gradient-to-r from-purple-500 to-pink-600 hover:opacity-90 text-white"
                           : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100",
-                    )}
-                  >
-                    {isLoading === planKey ? (
-                      <span className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </span>
-                    ) : isCurrentPlan ? (
-                      "Current Plan"
-                    ) : currentPlan === "FREE" ? (
-                      "Get Started"
-                    ) : (
-                      "Switch Plan"
-                    )}
-                  </Button>
-                )}
+                  )}
+                >
+                  {isLoading === planKey ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Processing...
+                    </span>
+                  ) : isCurrentPlan ? (
+                    "Current Plan"
+                  ) : currentPlan === "FREE" ? (
+                    "Get Started"
+                  ) : (
+                    "Switch Plan"
+                  )}
+                </Button>
 
                 {/* Features */}
                 <div className="space-y-3">

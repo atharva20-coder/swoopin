@@ -1,9 +1,11 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "@/app/api/v1/_lib/middleware";
-import { rateLimitByUser } from "@/app/api/v1/_lib/rate-limit";
+import { rateLimitByUserWithPlan } from "@/app/api/v1/_lib/rate-limit";
 import { success, error, validationError } from "@/app/api/v1/_lib/response";
 import { flowService } from "@/services/flow.service";
+import { automationService } from "@/services/automation.service";
 import { client } from "@/lib/prisma";
+import { canPerformAction } from "@/lib/access-control";
 import {
   SaveFlowDataRequestSchema,
   SaveFlowBatchRequestSchema,
@@ -16,6 +18,18 @@ import {
   type FlowEdgeRuntime,
   type PlanType,
 } from "@/lib/flow-runner";
+import type { SUBSCRIPTION_PLAN } from "@prisma/client";
+
+/**
+ * Helper: fetch user subscription plan from DB
+ */
+async function getUserPlan(userId: string): Promise<SUBSCRIPTION_PLAN> {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    select: { subscription: { select: { plan: true } } },
+  });
+  return (user?.subscription?.plan ?? "FREE") as SUBSCRIPTION_PLAN;
+}
 
 /**
  * GET /api/v1/automations/[id]/flow
@@ -28,7 +42,13 @@ export async function GET(
   try {
     const user = await requireAuth();
 
-    const rateLimitResponse = await rateLimitByUser(user.id, "standard");
+    // Tier-aware rate limiting
+    const plan = await getUserPlan(user.id);
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      user.id,
+      plan,
+      "standard",
+    );
     if (rateLimitResponse) return rateLimitResponse;
 
     const { id: automationId } = await params;
@@ -87,10 +107,31 @@ export async function POST(
   try {
     const user = await requireAuth();
 
-    const rateLimitResponse = await rateLimitByUser(user.id, "heavy");
+    // Tier-aware rate limiting
+    const plan = await getUserPlan(user.id);
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      user.id,
+      plan,
+      "heavy",
+    );
     if (rateLimitResponse) return rateLimitResponse;
 
     const { id: automationId } = await params;
+
+    // Edit limit guard
+    const editCheck = await canPerformAction(
+      user.id,
+      "edit_automation",
+      automationId,
+    );
+    if (!editCheck.allowed) {
+      return error(
+        "FORBIDDEN",
+        editCheck.reason ?? "Edit limit reached. Upgrade your plan.",
+        403,
+      );
+    }
+
     const body = await request.json();
     const action = body.action;
 
@@ -102,14 +143,6 @@ export async function POST(
           details: validation.error.errors,
         });
       }
-
-      // Get user's subscription plan for validation limits
-      const userWithSubscription = await client.user.findUnique({
-        where: { id: user.id },
-        select: { subscription: { select: { plan: true } } },
-      });
-      const plan = (userWithSubscription?.subscription?.plan ||
-        "FREE") as PlanType;
 
       // Convert nodes to runtime format for validation
       const runtimeNodes: FlowNodeRuntime[] = (validation.data.nodes || []).map(
@@ -133,7 +166,11 @@ export async function POST(
       );
 
       // Validate flow structure
-      const flowValidation = validateFlow(runtimeNodes, runtimeEdges, plan);
+      const flowValidation = validateFlow(
+        runtimeNodes,
+        runtimeEdges,
+        plan as PlanType,
+      );
 
       const result = await flowService.saveFlowBatch(
         user.id,
@@ -144,6 +181,9 @@ export async function POST(
       if ("error" in result) {
         return error("EXTERNAL_API_ERROR", result.error, 400);
       }
+
+      // Track edit
+      await automationService.incrementEditCount(automationId, user.id);
 
       // Return result with validation warnings/errors
       return success({
@@ -164,14 +204,6 @@ export async function POST(
       });
     }
 
-    // Get user's subscription plan for validation limits
-    const userWithSubscription = await client.user.findUnique({
-      where: { id: user.id },
-      select: { subscription: { select: { plan: true } } },
-    });
-    const plan = (userWithSubscription?.subscription?.plan ||
-      "FREE") as PlanType;
-
     // Convert to runtime format for validation
     const runtimeNodes: FlowNodeRuntime[] = validation.data.nodes.map((n) => ({
       nodeId: n.nodeId,
@@ -190,7 +222,11 @@ export async function POST(
     }));
 
     // Validate flow structure (Zero-Patchwork: validate at gateway)
-    const flowValidation = validateFlow(runtimeNodes, runtimeEdges, plan);
+    const flowValidation = validateFlow(
+      runtimeNodes,
+      runtimeEdges,
+      plan as PlanType,
+    );
 
     // Save the flow (allow save with warnings - flexible approach)
     const result = await flowService.saveFlowData(
@@ -203,6 +239,9 @@ export async function POST(
     if ("error" in result) {
       return error("EXTERNAL_API_ERROR", result.error, 400);
     }
+
+    // Track edit
+    await automationService.incrementEditCount(automationId, user.id);
 
     // Return result with validation warnings/errors
     return success({
@@ -233,10 +272,31 @@ export async function DELETE(
   try {
     const user = await requireAuth();
 
-    const rateLimitResponse = await rateLimitByUser(user.id, "standard");
+    // Tier-aware rate limiting
+    const plan = await getUserPlan(user.id);
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      user.id,
+      plan,
+      "standard",
+    );
     if (rateLimitResponse) return rateLimitResponse;
 
     const { id: automationId } = await params;
+
+    // Edit limit guard (deleting a node is an edit)
+    const editCheck = await canPerformAction(
+      user.id,
+      "edit_automation",
+      automationId,
+    );
+    if (!editCheck.allowed) {
+      return error(
+        "FORBIDDEN",
+        editCheck.reason ?? "Edit limit reached. Upgrade your plan.",
+        403,
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     const validation = DeleteNodeRequestSchema.safeParse({
@@ -258,6 +318,9 @@ export async function DELETE(
     if ("error" in result) {
       return error("EXTERNAL_API_ERROR", result.error, 400);
     }
+
+    // Track edit
+    await automationService.incrementEditCount(automationId, user.id);
 
     return success(result);
   } catch (err) {

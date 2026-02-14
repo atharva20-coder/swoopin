@@ -861,6 +861,44 @@ class AutomationService {
     await deleteCache(`user:${userId}:automations`);
     return { id: template.id };
   }
+
+  /**
+   * Increment edit count for an automation with monthly auto-reset.
+   * - If editCountResetAt is null or in the past → reset counter, set new 30-day window.
+   * - Atomically increments editCount.
+   * IDOR: Validates ownership via userId.
+   */
+  async incrementEditCount(
+    automationId: string,
+    userId: string,
+  ): Promise<number> {
+    // IDOR check
+    const automation = await client.automation.findFirst({
+      where: { id: automationId, userId },
+      select: { editCount: true, editCountResetAt: true },
+    });
+
+    if (!automation) {
+      throw new Error("Automation not found or unauthorized");
+    }
+
+    const now = new Date();
+    const resetAt = automation.editCountResetAt;
+    const needsReset = !resetAt || resetAt <= now;
+
+    // Calculate new reset window: 30 days from now
+    const newResetAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const updated = await client.automation.update({
+      where: { id: automationId },
+      data: needsReset
+        ? { editCount: 1, editCountResetAt: newResetAt }
+        : { editCount: { increment: 1 } },
+      select: { editCount: true },
+    });
+
+    return updated.editCount;
+  }
 }
 
 // Export singleton instance

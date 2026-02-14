@@ -7,21 +7,26 @@ import {
   internalError,
   getAuthUser,
   validateBody,
-  rateLimitByUser,
+  rateLimitByUserWithPlan,
 } from "@/app/api/v1/_lib";
 import { automationService } from "@/services/automation.service";
 import { UpdateAutomationRequestSchema } from "@/schemas/automation.schema";
 import { client } from "@/lib/prisma";
+import { getUserPlanLimits, canPerformAction } from "@/lib/access-control";
 
 /**
- * Helper to get db user ID
+ * Helper to get db user ID + subscription plan
  */
-async function getDbUserId(email: string): Promise<string | null> {
+async function getDbUserWithPlan(email: string) {
   const user = await client.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, subscription: { select: { plan: true } } },
   });
-  return user?.id ?? null;
+  if (!user) return null;
+  return {
+    id: user.id,
+    plan: user.subscription?.plan ?? ("FREE" as const),
+  };
 }
 
 /**
@@ -44,20 +49,24 @@ export async function GET(
     // 2. Await params (Next.js 15)
     const { id } = await params;
 
-    // 3. Get user ID
-    const userId = await getDbUserId(authUser.email);
-    if (!userId) {
+    // 3. Get user ID + plan
+    const dbUser = await getDbUserWithPlan(authUser.email);
+    if (!dbUser) {
       return unauthorized("User not found");
     }
 
-    // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, "standard");
+    // 4. Tier-aware rate limiting
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      dbUser.id,
+      dbUser.plan,
+      "standard",
+    );
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
     // 5. Get automation (IDOR check inside service)
-    const automation = await automationService.getById(id, userId);
+    const automation = await automationService.getById(id, dbUser.id);
 
     if (!automation) {
       return notFound("Automation");
@@ -92,19 +101,29 @@ export async function PUT(
     // 2. Await params (Next.js 15)
     const { id } = await params;
 
-    // 3. Get user ID
-    const userId = await getDbUserId(authUser.email);
-    if (!userId) {
+    // 3. Get user ID + plan
+    const dbUser = await getDbUserWithPlan(authUser.email);
+    if (!dbUser) {
       return unauthorized("User not found");
     }
 
-    // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, "standard");
+    // 4. Tier-aware rate limiting
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      dbUser.id,
+      dbUser.plan,
+      "standard",
+    );
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // 5. Validate request body
+    // 5. Edit limit guard
+    const editCheck = await canPerformAction(dbUser.id, "edit_automation", id);
+    if (!editCheck.allowed) {
+      return forbidden(editCheck.reason ?? "Edit limit reached");
+    }
+
+    // 6. Validate request body
     const validation = await validateBody(
       request,
       UpdateAutomationRequestSchema,
@@ -113,12 +132,19 @@ export async function PUT(
       return validation.response;
     }
 
-    // 6. Update automation (IDOR check inside service)
-    const result = await automationService.update(id, userId, validation.data);
+    // 7. Update automation (IDOR check inside service)
+    const result = await automationService.update(
+      id,
+      dbUser.id,
+      validation.data,
+    );
 
     if (!result) {
       return forbidden("Not authorized to update this automation");
     }
+
+    // 8. Track edit
+    await automationService.incrementEditCount(id, dbUser.id);
 
     return success(result);
   } catch (error: unknown) {
@@ -149,20 +175,24 @@ export async function DELETE(
     // 2. Await params (Next.js 15)
     const { id } = await params;
 
-    // 3. Get user ID
-    const userId = await getDbUserId(authUser.email);
-    if (!userId) {
+    // 3. Get user ID + plan
+    const dbUser = await getDbUserWithPlan(authUser.email);
+    if (!dbUser) {
       return unauthorized("User not found");
     }
 
-    // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, "standard");
+    // 4. Tier-aware rate limiting
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      dbUser.id,
+      dbUser.plan,
+      "standard",
+    );
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
     // 5. Delete automation (IDOR check inside service)
-    const deleted = await automationService.delete(id, userId);
+    const deleted = await automationService.delete(id, dbUser.id);
 
     if (!deleted) {
       return forbidden("Not authorized to delete this automation");
@@ -197,19 +227,29 @@ export async function PATCH(
     // 2. Await params (Next.js 15)
     const { id } = await params;
 
-    // 3. Get user ID
-    const userId = await getDbUserId(authUser.email);
-    if (!userId) {
+    // 3. Get user ID + plan
+    const dbUser = await getDbUserWithPlan(authUser.email);
+    if (!dbUser) {
       return unauthorized("User not found");
     }
 
-    // 4. Rate limiting
-    const rateLimitResponse = await rateLimitByUser(userId, "standard");
+    // 4. Tier-aware rate limiting
+    const rateLimitResponse = await rateLimitByUserWithPlan(
+      dbUser.id,
+      dbUser.plan,
+      "standard",
+    );
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
 
-    // 5. Validate request body - accepts name and/or active
+    // 5. Edit limit guard
+    const editCheck = await canPerformAction(dbUser.id, "edit_automation", id);
+    if (!editCheck.allowed) {
+      return forbidden(editCheck.reason ?? "Edit limit reached");
+    }
+
+    // 6. Validate request body - accepts name and/or active
     const validation = await validateBody(
       request,
       UpdateAutomationRequestSchema,
@@ -218,12 +258,19 @@ export async function PATCH(
       return validation.response;
     }
 
-    // 6. Update automation (IDOR check inside service)
-    const result = await automationService.update(id, userId, validation.data);
+    // 7. Update automation (IDOR check inside service)
+    const result = await automationService.update(
+      id,
+      dbUser.id,
+      validation.data,
+    );
 
     if (!result) {
       return forbidden("Not authorized to modify this automation");
     }
+
+    // 8. Track edit
+    await automationService.incrementEditCount(id, dbUser.id);
 
     return success(result);
   } catch (error: unknown) {
