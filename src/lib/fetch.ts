@@ -1,11 +1,37 @@
 import axios from "axios";
 
+/**
+ * Refresh a long-lived Instagram access token.
+ * Token must still be valid (not expired); Instagram returns 400 if token is invalid/expired.
+ * Caller should catch and handle failure (e.g. prompt re-auth).
+ */
 export const refreshToken = async (token: string) => {
-  const refresh_token = await axios.get(
-    `${process.env.INSTAGRAM_BASE_URL}/refresh_access_token?grant_type=ig_refresh_token&access_token=${token}`,
-  );
+  if (!token?.trim()) {
+    throw new Error("Instagram refresh failed: no token provided");
+  }
+  const baseUrl = process.env.INSTAGRAM_BASE_URL || "https://graph.instagram.com";
+  const url = `${baseUrl}/refresh_access_token?grant_type=ig_refresh_token&access_token=${encodeURIComponent(token)}`;
 
-  return refresh_token.data;
+  try {
+    const response = await axios.get(url, { timeout: 10000 });
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      const data = err.response?.data as { error?: { message?: string; code?: number; type?: string } } | undefined;
+      const msg = data?.error?.message || err.message;
+      // 400 = bad request: token invalid, expired, or not refreshable
+      if (status === 400) {
+        console.warn(
+          "[refreshToken] Instagram returned 400:",
+          msg || JSON.stringify(data),
+        );
+        throw new Error(`Instagram token refresh failed: ${msg || "Token may be expired or invalid. Please reconnect Instagram."}`);
+      }
+      throw new Error(`Instagram token refresh failed (${status}): ${msg}`);
+    }
+    throw err;
+  }
 };
 
 /**

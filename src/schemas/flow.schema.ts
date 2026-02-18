@@ -22,7 +22,7 @@ const configTransformer = z
   .record(z.unknown())
   .optional()
   .transform((val): Prisma.InputJsonValue | undefined =>
-    val ? (val as Prisma.InputJsonValue) : undefined
+    val ? (val as Prisma.InputJsonValue) : undefined,
   );
 
 // ============================================

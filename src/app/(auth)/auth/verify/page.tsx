@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { authClient, sendVerificationEmail } from "@/lib/auth-client";
@@ -11,14 +11,21 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import NinthNodeLogo from "@/components/global/ninth-node-logo";
 
-function VerifyContent() {
+type SearchParamsRecord = { [key: string]: string | string[] | undefined };
+
+type VerifyContentProps = {
+  searchParams: Promise<SearchParamsRecord>;
+};
+
+function VerifyContent({ searchParams }: VerifyContentProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const resolved = React.use(searchParams);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const error = searchParams.get("error");
+  const raw = resolved?.error;
+  const error = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
 
   useEffect(() => {
     if (error) {
@@ -230,11 +237,15 @@ function LoadingFallback() {
   );
 }
 
-// Wrap in Suspense for useSearchParams
-export default function VerifyPage() {
+type PageProps = {
+  searchParams?: Promise<SearchParamsRecord>;
+};
+
+export default function VerifyPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ?? Promise.resolve({});
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <VerifyContent />
+      <VerifyContent searchParams={resolvedSearchParams} />
     </Suspense>
   );
 }

@@ -17,7 +17,7 @@ class WebhookService {
    */
   async matchKeyword(
     messageText: string,
-    triggerType: "DM" | "COMMENT" | "MENTION" = "DM",
+    triggerType: "DM" | "COMMENT" | "MENTION" | "STORY_REPLY" = "DM",
     pageId?: string,
   ) {
     // Guard against undefined/null messageText
@@ -25,7 +25,9 @@ class WebhookService {
       return null;
     }
 
-    // First, try legacy keyword table
+    // ==========================================
+    // STEP 1: Try legacy keyword table
+    // ==========================================
     const legacyKeywords = await client.keyword.findMany({
       where: {
         Automation: {
@@ -45,7 +47,9 @@ class WebhookService {
       }
     }
 
-    // Search FlowNode KEYWORDS nodes
+    // ==========================================
+    // STEP 2: Search FlowNode KEYWORDS nodes
+    // ==========================================
     const keywordNodes = await client.flowNode.findMany({
       where: {
         subType: "KEYWORDS",
@@ -73,7 +77,11 @@ class WebhookService {
       }
     }
 
-    // No keyword match - find automation with this trigger type
+    // ==========================================
+    // STEP 3: No keyword match - find automation with trigger type
+    // This logic now runs for ALL trigger types
+    // ==========================================
+
     // For MENTION type, we MUST validate ownership via pageId
     if (triggerType === "MENTION") {
       if (!pageId) {
@@ -120,30 +128,105 @@ class WebhookService {
       return null;
     }
 
-    // For other trigger types (DM, COMMENT), use existing logic
-    const triggerFlows = await client.flowNode.findMany({
-      where: {
+    // For STORY_REPLY type
+    if (triggerType === "STORY_REPLY") {
+      const whereClause: any = {
+        type: "trigger",
+        subType: "STORY_REPLY",
+        Automation: {
+          active: true,
+        },
+      };
+
+      // If pageId is provided, filter by ownership
+      if (pageId) {
+        whereClause.Automation.User = {
+          integrations: {
+            some: {
+              instagramId: pageId,
+            },
+          },
+        };
+      }
+
+      const storyReplyAutomations = await client.flowNode.findMany({
+        where: whereClause,
+        select: {
+          automationId: true,
+        },
+      });
+
+      if (storyReplyAutomations.length > 0) {
+        console.log(`[matchKeyword] Found STORY_REPLY automation`);
+        return {
+          automationId: storyReplyAutomations[0].automationId,
+          isCatchAll: true,
+        };
+      }
+
+      console.log(`[matchKeyword] No STORY_REPLY automation found`);
+      return null;
+    }
+
+    // ==========================================
+    // STEP 4: Handle DM and COMMENT catch-all triggers
+    // ==========================================
+
+    if (triggerType === "DM" || triggerType === "COMMENT") {
+      // For catch-all triggers, we should also validate pageId if provided
+      // to ensure we're automating for the correct account
+      const whereClause: any = {
         type: "trigger",
         subType: triggerType,
         Automation: {
           active: true,
         },
-      },
-      select: {
-        automationId: true,
-      },
-    });
+      };
 
-    // Return first matching automation
-    if (triggerFlows.length > 0) {
-      return { automationId: triggerFlows[0].automationId, isCatchAll: true };
+      // If pageId is provided, filter by ownership (prevents cross-account automation)
+      if (pageId) {
+        whereClause.Automation.User = {
+          integrations: {
+            some: {
+              instagramId: pageId,
+            },
+          },
+        };
+      }
+
+      const triggerFlows = await client.flowNode.findMany({
+        where: whereClause,
+        select: {
+          automationId: true,
+        },
+      });
+
+      if (triggerFlows.length > 0) {
+        console.log(
+          `[matchKeyword] Found ${triggerType} catch-all automation` +
+            (pageId ? ` for pageId: ${pageId}` : ""),
+        );
+        return {
+          automationId: triggerFlows[0].automationId,
+          isCatchAll: true,
+        };
+      }
+
+      console.log(
+        `[matchKeyword] No ${triggerType} automation found` +
+          (pageId ? ` for pageId: ${pageId}` : ""),
+      );
+      return null;
     }
 
+    // Unknown trigger type
+    console.warn(`[matchKeyword] Unknown trigger type: ${triggerType}`);
     return null;
   }
 
   /**
-   * Get automation with all flow data for execution
+   * Get automation with all flow data for execution.
+   * Ensures Instagram integration token is selected (filter by name INSTAGRAM).
    */
   async getKeywordAutomation(automationId: string, dm: boolean) {
     return await client.automation.findUnique({
@@ -155,6 +238,7 @@ class WebhookService {
         },
         flowNodes: true,
         flowEdges: true,
+        posts: { select: { postid: true } }, // used to know if comment must be on attached post
         listener: {
           include: {
             carouselTemplate: {
@@ -170,7 +254,11 @@ class WebhookService {
         User: {
           select: {
             subscription: { select: { plan: true } },
-            integrations: { select: { token: true } },
+            integrations: {
+              where: { name: "INSTAGRAM" },
+              take: 1,
+              select: { token: true },
+            },
             openAiKey: true,
           },
         },

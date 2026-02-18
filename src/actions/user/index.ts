@@ -104,8 +104,12 @@ export const onBoardUser = async () => {
             }
           }
         } catch (tokenError) {
-          // Token refresh failed — log but don't block dashboard access
+          // Token refresh failed — log, notify user to reconnect, don't block dashboard
           console.error("[onBoardUser] Token refresh failed:", tokenError);
+          createNotification(
+            "Your Instagram connection expired. Please reconnect Instagram in Settings → Integrations to keep using Instagram features.",
+            found.id,
+          );
         }
       }
       // Check if user is admin

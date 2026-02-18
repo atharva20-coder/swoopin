@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,11 +83,14 @@ type OrgData = {
   clientHandles: string[];
 };
 
-export default function ProfilePage() {
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function ProfilePage({ params }: PageProps) {
   const { data: session, isPending } = useSession();
   const user = session?.user;
-  const params = useParams();
-  const slug = params.slug as string;
+  const { slug } = React.use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
 

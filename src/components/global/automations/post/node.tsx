@@ -60,7 +60,7 @@ const PostNode = ({ id }: Props) => {
                       const video = e.target as HTMLVideoElement;
                       if (video.src === post.media) {
                         video.src = `/api/instagram-proxy?url=${encodeURIComponent(
-                          post.media
+                          post.media,
                         )}`;
                       }
                     }}

@@ -54,6 +54,7 @@ export async function processWebhookDirectly(
       matcher = await matchKeyword(
         messaging.postback.payload,
         "DM", // Postbacks come through messaging, treated as DM type for matching
+        webhook_payload.entry[0].id,
       );
     }
     // Check for story mention
@@ -71,7 +72,11 @@ export async function processWebhookDirectly(
     }
     // Match keywords for DM
     else if (messaging?.message?.text) {
-      matcher = await matchKeyword(messaging.message.text, "DM");
+      matcher = await matchKeyword(
+        messaging.message.text,
+        "DM",
+        webhook_payload.entry[0].id,
+      );
     }
 
     // Match keywords for Comment or Mentions
@@ -91,7 +96,7 @@ export async function processWebhookDirectly(
       else if (change?.field === "comments") {
         const commentText = change?.value?.text;
         if (commentText) {
-          matcher = await matchKeyword(commentText, "COMMENT");
+          matcher = await matchKeyword(commentText, "COMMENT", pageId);
         }
       }
     }
@@ -99,7 +104,15 @@ export async function processWebhookDirectly(
     if (matcher && matcher.automationId) {
       console.log("Matched automation:", matcher.automationId);
 
-      const automation = await getKeywordAutomation(matcher.automationId, true);
+      const isMessage = !!webhook_payload.entry[0].messaging;
+      const isComment = !!webhook_payload.entry[0].changes?.find(
+        (c: any) => c.field === "comments",
+      );
+      const isMention = !!webhook_payload.entry[0].changes?.find(
+        (c: any) => c.field === "mentions",
+      );
+      const isDm = isMessage && !isMention;
+      const automation = await getKeywordAutomation(matcher.automationId, isDm);
       if (!automation || !automation.active) {
         return { message: "Automation inactive" };
       }
@@ -114,21 +127,23 @@ export async function processWebhookDirectly(
         // Initialize node registry
         initializeNodeRegistry();
 
-        const isMessage = !!webhook_payload.entry[0].messaging;
-        const isComment = !!webhook_payload.entry[0].changes?.find(
-          (c: any) => c.field === "comments",
-        );
-        const isMention = !!webhook_payload.entry[0].changes?.find(
-          (c: any) => c.field === "mentions",
-        );
-
-        // Check post attachment for comments
+        // For comments: only require post match when automation has attached posts.
+        // If no posts attached, allow comment on any post to trigger the flow.
         if (isComment) {
-          const mediaId = webhook_payload.entry[0].changes[0].value.media?.id;
-          if (mediaId) {
-            const postMatch = await getKeywordPost(mediaId, automation.id);
-            if (!postMatch) {
-              return { message: "Post not attached to automation" };
+          const attachedPostIds =
+            (automation as { posts?: { postid: string }[] }).posts?.map(
+              (p) => p.postid,
+            ) ?? [];
+          if (attachedPostIds.length > 0) {
+            const mediaId = webhook_payload.entry[0].changes[0].value.media?.id;
+            if (mediaId) {
+              const postMatch = await getKeywordPost(mediaId, automation.id);
+              if (!postMatch) {
+                return {
+                  message:
+                    "Post not attached to automation (comment must be on an attached post)",
+                };
+              }
             }
           }
         }

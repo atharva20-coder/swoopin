@@ -11,6 +11,9 @@ export interface ApiSuccessResponse<T> {
     limit?: number;
     total?: number;
     version?: string;
+    /** Cursor for next page (e.g. Instagram media pagination) */
+    after?: string;
+    hasMore?: boolean;
   };
 }
 

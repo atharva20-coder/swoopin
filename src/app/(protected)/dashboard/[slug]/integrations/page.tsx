@@ -20,7 +20,6 @@ import {
   BookOpen,
   MessageCircle,
 } from "lucide-react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 type Category = "all" | "social" | "productivity" | "marketing" | "coming-soon";
@@ -91,9 +90,12 @@ const COMING_SOON_INTEGRATIONS = [
   },
 ];
 
-export default function IntegrationsPage() {
-  const params = useParams();
-  const slug = params.slug as string;
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function IntegrationsPage({ params }: PageProps) {
+  const { slug } = React.use(params);
   const [activeCategory, setActiveCategory] = useState<Category>("all");
 
   // Filter coming soon cards based on category

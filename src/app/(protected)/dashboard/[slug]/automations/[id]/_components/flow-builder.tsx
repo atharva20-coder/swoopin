@@ -488,7 +488,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
         keywords.push(...nodeKeywords.filter((k: string) => k));
       }
 
-      // Extract listener from action node
+      // Extract listener from action node (schema requires prompt and reply min length 1)
       let listener:
         | {
             type: "MESSAGE" | "SMARTAI" | "CAROUSEL";
@@ -520,8 +520,11 @@ const FlowManager = ({ automationId, slug }: Props) => {
           prompt = actionNode.data.config?.message || "";
         }
 
+        // API schema requires prompt and reply to be at least 1 character
+        const safePrompt = (prompt || " ").trim() || "—";
+        const safeReply = (reply || " ").trim() || "—";
         if (prompt || reply) {
-          listener = { type: listenerType, prompt, reply };
+          listener = { type: listenerType, prompt: safePrompt, reply: safeReply };
         }
       }
 
@@ -598,7 +601,7 @@ const FlowManager = ({ automationId, slug }: Props) => {
         {/* Left panel - Components (Hidden on mobile) */}
         {!isMobile && (
           <div className="hidden lg:block h-full">
-            <ComponentsPanel />
+            <ComponentsPanel automationId={automationId} />
           </div>
         )}
 

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Check,
@@ -118,11 +117,14 @@ const FAQ = [
   },
 ];
 
-export default function BillingPage() {
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function BillingPage({ params }: PageProps) {
   const { data: session } = useSession();
   const user = session?.user;
-  const params = useParams();
-  const slug = params.slug as string;
+  const { slug } = React.use(params);
 
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [currentPlan, setCurrentPlan] = useState<Plan>("FREE");

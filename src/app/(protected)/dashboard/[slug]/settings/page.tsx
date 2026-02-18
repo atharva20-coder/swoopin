@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useParams } from "next/navigation";
+
 import { cn } from "@/lib/utils";
 import ProfileHeader from "./_components/profile-header";
 import ProfileTab from "./_components/profile-tab";
@@ -8,9 +8,12 @@ import SecurityTab from "./_components/security-tab";
 import BillingTab from "./_components/billing-tab";
 import NotificationsTab from "./_components/notifications-tab";
 
-export default function SettingsPage() {
-  const params = useParams();
-  const slug = params.slug as string;
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function SettingsPage({ params }: PageProps) {
+  const { slug } = React.use(params);
   const [activeTab, setActiveTab] = useState("profile");
 
   const tabs = [
@@ -38,7 +41,7 @@ export default function SettingsPage() {
                 "px-4 py-2 text-sm font-medium transition-all rounded-lg",
                 activeTab === tab.id
                   ? "bg-white dark:bg-neutral-900 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300",
               )}
             >
               {tab.label}

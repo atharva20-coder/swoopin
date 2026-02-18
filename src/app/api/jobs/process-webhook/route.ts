@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
     // Match keywords for DM
     if (webhook_payload.entry[0].messaging) {
       const messaging = webhook_payload.entry[0].messaging[0];
+      const pageId = webhook_payload.entry[0].id;
 
       // Skip echo messages (messages we sent ourselves)
       if (messaging?.message?.is_echo) {
@@ -241,6 +242,14 @@ export async function POST(req: NextRequest) {
         (a: any) => a.type === "story_mention",
       );
 
+      // Check for story reply
+      const messagePayload = messaging?.message;
+      const isStoryReply = !!(
+        messagePayload?.reply_to?.story ||
+        (messagePayload?.is_echo === false &&
+          messagePayload?.attachments?.[0]?.type === "story_mention")
+      );
+
       // Check for post share
       const isPostShare = messaging?.message?.attachments?.some(
         (a: any) => a.type === "share" || a.type === "ig_post",
@@ -250,7 +259,12 @@ export async function POST(req: NextRequest) {
       const messageText = messaging?.message?.text;
 
       if (messageText) {
-        matcher = await matchKeyword(messageText, "DM");
+        matcher = await matchKeyword(messageText, "DM", pageId);
+      } else if (isStoryReply) {
+        // Story replies are replies to stories sent via DM
+        // Match to STORY_REPLY trigger type so "Story Reply" flows are triggered
+        console.log("Story reply received, matching STORY_REPLY automation");
+        matcher = await matchKeyword("[Story Reply]", "STORY_REPLY", pageId);
       } else if (isStoryMention) {
         // Story mentions are @mentions sent via DM when someone mentions you in a story
         // Match to MENTION trigger type so "New Mention" flows are triggered
@@ -342,7 +356,7 @@ export async function POST(req: NextRequest) {
 
         const commentText = change?.value?.text;
         if (commentText) {
-          matcher = await matchKeyword(commentText, "COMMENT");
+          matcher = await matchKeyword(commentText, "COMMENT", pageId);
         }
       }
     }
@@ -350,7 +364,15 @@ export async function POST(req: NextRequest) {
     if (matcher && matcher.automationId) {
       console.log("Matched automation:", matcher.automationId);
 
-      const automation = await getKeywordAutomation(matcher.automationId, true);
+      const isMessage = !!webhook_payload.entry[0].messaging;
+      const isComment = !!webhook_payload.entry[0].changes?.find(
+        (c: any) => c.field === "comments",
+      );
+      const isMention = !!webhook_payload.entry[0].changes?.find(
+        (c: any) => c.field === "mentions",
+      );
+      const isDm = isMessage && !isMention;
+      const automation = await getKeywordAutomation(matcher.automationId, isDm);
       if (!automation || !automation.active) {
         return NextResponse.json(
           { message: "Automation inactive" },
@@ -363,28 +385,26 @@ export async function POST(req: NextRequest) {
         automation.flowNodes && automation.flowNodes.length > 0;
 
       if (hasFlowNodes) {
-        const isMessage = !!webhook_payload.entry[0].messaging;
-        const isComment = !!webhook_payload.entry[0].changes?.find(
-          (c: any) => c.field === "comments",
-        );
-
-        const isMention = !!webhook_payload.entry[0].changes?.find(
-          (c: any) => c.field === "mentions",
-        );
         const mentionChange = isMention
           ? webhook_payload.entry[0].changes[0]
           : null;
 
-        // Check post attachment for comments
+        // For comments: only require post match when automation has attached posts
         if (isComment) {
-          const mediaId = webhook_payload.entry[0].changes[0].value.media?.id;
-          if (mediaId) {
-            const postMatch = await getKeywordPost(mediaId, automation.id);
-            if (!postMatch) {
-              return NextResponse.json(
-                { message: "Post not attached" },
-                { status: 200 },
-              );
+          const attachedPostIds =
+            (automation as { posts?: { postid: string }[] }).posts?.map(
+              (p) => p.postid,
+            ) ?? [];
+          if (attachedPostIds.length > 0) {
+            const mediaId = webhook_payload.entry[0].changes[0].value.media?.id;
+            if (mediaId) {
+              const postMatch = await getKeywordPost(mediaId, automation.id);
+              if (!postMatch) {
+                return NextResponse.json(
+                  { message: "Post not attached" },
+                  { status: 200 },
+                );
+              }
             }
           }
         }
@@ -429,8 +449,20 @@ export async function POST(req: NextRequest) {
             (a: any) => a.type === "story_mention",
           );
 
+        // Detect Story Reply
+        const messagePayload = webhook_payload.entry[0].messaging[0]?.message;
+        const isStoryReply = !!(
+          messagePayload?.reply_to?.story ||
+          (messagePayload?.is_echo === false &&
+            messagePayload?.attachments?.[0]?.type === "story_mention")
+        );
+
         if (isStoryMention && !messageText) {
           messageText = "[Story Mention]";
+        }
+
+        if (isStoryReply && !messageText) {
+          messageText = "[Story Reply]";
         }
 
         // Build execution context (shared by both new and old executors)
@@ -442,6 +474,7 @@ export async function POST(req: NextRequest) {
           senderId,
           messageText,
           isStoryMention,
+          isStoryReply,
           commentId: isComment
             ? webhook_payload.entry[0].changes[0].value.id
             : isMention
@@ -454,13 +487,20 @@ export async function POST(req: NextRequest) {
               : undefined,
           triggerType: ((matcher as any).isCatchAll
             ? isMessage
-              ? isStoryMention
-                ? "MENTION"
-                : "DM" // Story Mentions now map to MENTION trigger
+              ? isStoryReply
+                ? "STORY_REPLY"
+                : isStoryMention
+                  ? "MENTION"
+                  : "DM" // Story Mentions now map to MENTION trigger
               : isMention
                 ? "MENTION"
                 : "COMMENT"
-            : "KEYWORDS") as "DM" | "COMMENT" | "KEYWORDS" | "MENTION",
+            : "KEYWORDS") as
+            | "DM"
+            | "COMMENT"
+            | "KEYWORDS"
+            | "MENTION"
+            | "STORY_REPLY",
           userSubscription: automation.User?.subscription?.plan,
           userOpenAiKey: automation.User?.openAiKey || undefined,
         };

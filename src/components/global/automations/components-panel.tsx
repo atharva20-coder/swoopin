@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useQueryAutomation } from "@/hooks/user-queries";
 import {
   MessageSquare,
   Mail,
@@ -389,6 +390,8 @@ const PlanBadge = ({ tier }: { tier: "PRO" | "ENTERPRISE" }) => {
 
 type ComponentsPanelProps = {
   className?: string;
+  /** When set, only show Instagram nodes for Instagram automations (hide YouTube section) */
+  automationId?: string;
 };
 
 type UsageData = {
@@ -401,7 +404,10 @@ type UsageData = {
   };
 };
 
-const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
+const ComponentsPanel = ({
+  className,
+  automationId,
+}: ComponentsPanelProps) => {
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -412,6 +418,14 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
   });
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // For Instagram automations, hide YouTube section so only Instagram nodes show
+  const { data: automationData } = useQueryAutomation(automationId ?? "");
+  const triggers = automationData?.data?.trigger ?? [];
+  const hasYouTubeTrigger = triggers.some((t: { type?: string }) =>
+    String(t?.type ?? "").startsWith("YT_"),
+  );
+  const showYouTubeSection = !automationId || hasYouTubeTrigger;
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -727,35 +741,36 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
           )}
         </div>
 
-        {/* YouTube Section */}
-        <div
-          className={cn(
-            isCollapsed &&
-              "flex flex-col items-center pt-2 border-t border-gray-200 dark:border-neutral-800",
-          )}
-        >
-          {!isCollapsed ? (
-            <button
-              onClick={() => toggleSection("youtube")}
-              className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
-            >
-              <span className="flex items-center gap-2">
-                <Youtube className="w-4 h-4 text-red-500" />
-                YouTube
-              </span>
-              {expandedSections.youtube ? (
-                <ChevronDown size={16} />
-              ) : (
-                <ChevronRight size={16} />
-              )}
-            </button>
-          ) : (
-            <div title="YouTube">
-              <Youtube className="w-4 h-4 text-red-500 mb-2 opacity-70" />
-            </div>
-          )}
+        {/* YouTube Section - only show when automation uses YouTube triggers */}
+        {showYouTubeSection && (
+          <div
+            className={cn(
+              isCollapsed &&
+                "flex flex-col items-center pt-2 border-t border-gray-200 dark:border-neutral-800",
+            )}
+          >
+            {!isCollapsed ? (
+              <button
+                onClick={() => toggleSection("youtube")}
+                className="w-full flex items-center justify-between text-left font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm hover:text-gray-900 dark:hover:text-white"
+              >
+                <span className="flex items-center gap-2">
+                  <Youtube className="w-4 h-4 text-red-500" />
+                  YouTube
+                </span>
+                {expandedSections.youtube ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </button>
+            ) : (
+              <div title="YouTube">
+                <Youtube className="w-4 h-4 text-red-500 mb-2 opacity-70" />
+              </div>
+            )}
 
-          {(expandedSections.youtube || isCollapsed) && (
+            {(expandedSections.youtube || isCollapsed) && (
             <div className={cn("space-y-4", isCollapsed && "space-y-2")}>
               {/* YouTube Triggers */}
               {!isCollapsed && (
@@ -808,8 +823,9 @@ const ComponentsPanel = ({ className }: ComponentsPanelProps) => {
                 )}
               </div>
             </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

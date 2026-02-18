@@ -80,7 +80,9 @@ export function initializeNodeRegistry(): void {
   // YouTube Nodes
   registerNode(youtubeReplyCommentNodeExecutor);
 
-  console.log("[FlowRunner] Node registry initialized with all 19 node types");
+  if (process.env.NODE_ENV === "development") {
+    console.log("[FlowRunner] Node registry initialized with all 19 node types");
+  }
 }
 
 // =============================================================================

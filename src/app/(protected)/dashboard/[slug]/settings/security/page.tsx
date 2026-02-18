@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useSession, authClient } from "@/lib/auth-client";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,15 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export default function SecurityPage() {
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function SecurityPage({ params }: PageProps) {
   const { data: session, isPending } = useSession();
   const user = session?.user;
-  const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const { slug } = React.use(params);
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);

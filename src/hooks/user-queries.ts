@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   AutomationListItemSchema,
@@ -100,30 +100,25 @@ const InstagramProfileApiResponseSchema = z.object({
     .optional(),
 });
 
-// Standard API response wrapper for posts
-// Following Zero-Patchwork Protocol: Transform nullish to empty strings at schema layer
+// Single post item schema (shared for list and paginated responses)
+const InstagramPostItemSchema = z.object({
+  id: z.string(),
+  media_url: z.string().nullish().transform((v) => v ?? ""),
+  media_type: z.enum(["IMAGE", "VIDEO", "CAROUSEL_ALBUM"]),
+  caption: z.string().nullish().transform((v) => v ?? ""),
+  timestamp: z.string(),
+});
+
+// Standard API response wrapper for posts (supports optional pagination meta)
 const PostsApiResponseSchema = z.object({
   success: z.boolean(),
-  data: z
-    .array(
-      z.object({
-        id: z.string(),
-        // Transform undefined/null to empty string - normalization at gateway
-        media_url: z
-          .string()
-          .nullish()
-          .transform((v) => v ?? ""),
-        // Use enum to match InstagramPostProps type
-        media_type: z.enum(["IMAGE", "VIDEO", "CAROUSEL_ALBUM"]),
-        // Transform undefined/null to empty string - normalization at gateway
-        caption: z
-          .string()
-          .nullish()
-          .transform((v) => v ?? ""),
-        timestamp: z.string(),
-      }),
-    )
-    .default([]),
+  data: z.array(InstagramPostItemSchema).default([]),
+  meta: z
+    .object({
+      after: z.string().optional(),
+      hasMore: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 // Inferred types from schemas
@@ -181,14 +176,38 @@ async function fetchAutomationInfo(id: string): Promise<AutomationApiResponse> {
   return parsed.data;
 }
 
+const INSTAGRAM_MEDIA_PAGE_SIZE = 50;
+
 async function fetchProfilePosts(): Promise<PostsApiResponse> {
-  const res = await fetch("/api/v1/instagram/media");
+  const res = await fetch(
+    `/api/v1/instagram/media?limit=${INSTAGRAM_MEDIA_PAGE_SIZE}`,
+  );
   const json = await res.json();
-  // safeParse to gracefully handle API errors
   const parsed = PostsApiResponseSchema.safeParse(json);
   if (!parsed.success) {
     console.error(
       "[DEBUG] fetchProfilePosts Zod parse error:",
+      parsed.error.format(),
+    );
+    return { success: false, data: [] };
+  }
+  return parsed.data;
+}
+
+async function fetchProfilePostsPage(
+  pageParam: string | undefined,
+): Promise<PostsApiResponse> {
+  const url = new URL("/api/v1/instagram/media", window.location.origin);
+  url.searchParams.set("limit", String(INSTAGRAM_MEDIA_PAGE_SIZE));
+  if (pageParam) {
+    url.searchParams.set("after", pageParam);
+  }
+  const res = await fetch(url.toString());
+  const json = await res.json();
+  const parsed = PostsApiResponseSchema.safeParse(json);
+  if (!parsed.success) {
+    console.error(
+      "[DEBUG] fetchProfilePostsPage Zod parse error:",
       parsed.error.format(),
     );
     return { success: false, data: [] };
@@ -264,6 +283,24 @@ export const useQueryAutomationPosts = () => {
   return useQuery<PostsApiResponse>({
     queryKey: ["instagram-media"],
     queryFn: fetchProfilePosts,
+  });
+};
+
+/**
+ * Infinite query for Instagram media (supports 500+ posts with "Load more").
+ * Use in config panel / post picker for full account media with pagination.
+ */
+export const useInfiniteQueryInstagramMedia = () => {
+  return useInfiniteQuery({
+    queryKey: ["instagram-media-infinite"],
+    queryFn: ({ pageParam }) => fetchProfilePostsPage(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage?.meta;
+      if (meta?.hasMore && meta?.after) return meta.after;
+      return undefined;
+    },
+    staleTime: 60 * 1000,
   });
 };
 

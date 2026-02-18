@@ -23,11 +23,16 @@ async function getDbUserId(email: string): Promise<string | null> {
   return user?.id ?? null;
 }
 
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+
 /**
  * GET /api/v1/instagram/media
- * Get user's Instagram media posts
+ * Get user's Instagram media posts with cursor-based pagination.
+ * Query params: limit (default 50, max 100), after (cursor for next page).
+ * Returns { data, meta: { after, hasMore } } for infinite loading.
  */
-export async function GET(_request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // 1. Authentication
     const authUser = await getAuthUser();
@@ -60,26 +65,45 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     });
 
     if (!integration?.token || !integration?.instagramId) {
-      return success([]); // Return empty array if not connected
+      return success([], { after: undefined, hasMore: false });
     }
 
-    // 5. Fetch media from Instagram API
+    // 5. Parse query params
+    const { searchParams } = new URL(request.url);
+    const limitParam = searchParams.get("limit");
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(1, parseInt(limitParam || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT),
+    );
+    const after = searchParams.get("after") || undefined;
+
+    // 6. Fetch media from Instagram API with pagination
     try {
+      const params: Record<string, string | number> = {
+        fields: "id,caption,media_url,media_type,timestamp,thumbnail_url",
+        limit,
+      };
+      if (after) {
+        params.after = after;
+      }
+
       const response = await axios.get(
         `${process.env.INSTAGRAM_BASE_URL}/v21.0/${integration.instagramId}/media`,
         {
-          params: {
-            fields: "id,caption,media_url,media_type,timestamp,thumbnail_url",
-            limit: 25,
-          },
+          params,
           headers: {
             Authorization: `Bearer ${integration.token}`,
           },
-          timeout: 15000,
+          timeout: 20000,
         },
       );
 
-      const posts = (response.data.data || []).map((post: any) => ({
+      const rawData = response.data?.data || [];
+      const paging = response.data?.paging;
+      const nextCursor = paging?.cursors?.after ?? undefined;
+      const hasMore = Boolean(paging?.next);
+
+      const posts = rawData.map((post: any) => ({
         id: post.id,
         media_url: post.media_url || post.thumbnail_url || "",
         media_type: post.media_type || "IMAGE",
@@ -87,14 +111,13 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
         timestamp: post.timestamp || new Date().toISOString(),
       }));
 
-      return success(posts);
+      return success(posts, { after: nextCursor, hasMore });
     } catch (igError: any) {
-      // Handle Instagram API errors gracefully
       console.error(
         "[Instagram API Error]",
         igError.response?.data || igError.message,
       );
-      return success([]); // Return empty array on API error
+      return success([], { after: undefined, hasMore: false });
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

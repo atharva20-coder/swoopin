@@ -38,11 +38,16 @@ export function registerNode(executor: INodeExecutor): void {
   const key = getRegistryKey(executor.type, executor.subType);
 
   if (nodeRegistry.has(key)) {
-    console.warn(`[NodeRegistry] Overwriting existing executor for: ${key}`);
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[NodeRegistry] Overwriting existing executor for: ${key}`);
+    }
   }
 
   nodeRegistry.set(key, executor);
-  console.log(`[NodeRegistry] Registered: ${key}`);
+  // Only log in development to avoid noise (e.g. YouTube nodes when editing Instagram flows)
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[NodeRegistry] Registered: ${key}`);
+  }
 }
 
 /**

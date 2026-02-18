@@ -7,7 +7,7 @@ import { FlowNodeData } from "./flow-node";
 import {
   useQueryAutomation,
   useQueryUser,
-  useQueryAutomationPosts,
+  useInfiniteQueryInstagramMedia,
   useQueryYouTubeVideos,
 } from "@/hooks/user-queries";
 import {
@@ -57,7 +57,13 @@ const ConfigPanel = ({
 }: ConfigPanelProps) => {
   const { data } = useQueryAutomation(id);
   const { data: userData } = useQueryUser();
-  const { data: instagramPosts } = useQueryAutomationPosts();
+  const {
+    data: instagramMediaData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingInstagram,
+  } = useInfiniteQueryInstagramMedia();
   const {
     posts: selectedPosts,
     onSelectPost,
@@ -1341,8 +1347,9 @@ const ConfigPanel = ({
   const renderPostsConfig = () => {
     // Already attached posts from automation
     const attachedPosts = data?.data?.posts || [];
-    // All Instagram posts available - data is properly typed from Zod parsing
-    const allPosts = instagramPosts?.data || [];
+    // Flatten all pages from infinite query (supports 500+ posts with Load more)
+    const allPosts =
+      instagramMediaData?.pages?.flatMap((p) => p?.data ?? []) ?? [];
 
     return (
       <div className="space-y-4">
@@ -1392,14 +1399,13 @@ const ConfigPanel = ({
           </div>
         )}
 
-        {/* All Instagram posts for selection */}
+        {/* All Instagram posts for selection (paginated, supports 500+ posts) */}
         {allPosts.length > 0 ? (
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Select Posts to Attach
+              Select Posts to Attach {allPosts.length > 0 && `(${allPosts.length})`}
             </p>
-            <div className="grid grid-cols-3 gap-2 max-h-[300px] overflow-y-auto">
-              {/* Data is normalized at Zod schema layer - no patchwork needed */}
+            <div className="grid grid-cols-3 gap-2 max-h-[320px] overflow-y-auto overscroll-contain">
               {allPosts.map((post: InstagramPostProps) => (
                 <div
                   key={post.id}
@@ -1453,6 +1459,25 @@ const ConfigPanel = ({
                 </div>
               ))}
             </div>
+            {hasNextPage && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="w-full"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Loading more…
+                  </>
+                ) : (
+                  "Load more posts"
+                )}
+              </Button>
+            )}
             <Button
               onClick={() => savePosts(undefined as any)}
               disabled={selectedPosts.length === 0 || isSavingPosts}
@@ -1463,6 +1488,16 @@ const ConfigPanel = ({
                 {selectedPosts.length !== 1 ? "s" : ""}
               </Loader>
             </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Click &quot;Attach&quot; to save your selection, then &quot;Save Flow&quot; to save the flow.
+            </p>
+          </div>
+        ) : isLoadingInstagram ? (
+          <div className="p-4 text-center bg-gray-50 dark:bg-neutral-800 rounded-lg">
+            <Loader2 className="w-6 h-6 animate-spin mx-auto text-gray-400" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Loading your Instagram posts…
+            </p>
           </div>
         ) : (
           <div className="p-4 text-center bg-gray-50 dark:bg-neutral-800 rounded-lg">

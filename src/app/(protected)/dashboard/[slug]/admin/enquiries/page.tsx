@@ -1,10 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { 
-  Building2, Mail, Phone, User, RefreshCw, 
-  ChevronRight, DollarSign
+import {
+  Building2,
+  Mail,
+  Phone,
+  User,
+  RefreshCw,
+  ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,10 +35,13 @@ type Enquiry = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+  PENDING:
+    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
   CONTACTED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  NEGOTIATING: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  CLOSED_WON: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  NEGOTIATING:
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  CLOSED_WON:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
   CLOSED_LOST: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
 };
 
@@ -44,11 +53,14 @@ const userTypeLabels: Record<string, string> = {
   other: "Other",
 };
 
-export default function AdminEnquiriesPage() {
-  const params = useParams();
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export default function AdminEnquiriesPage({ params }: PageProps) {
   const router = useRouter();
-  const slug = params.slug as string;
-  
+  const { slug } = React.use(params);
+
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -62,13 +74,13 @@ export default function AdminEnquiriesPage() {
     try {
       const checkRes = await fetch("/api/admin/check");
       const checkData = await checkRes.json();
-      
+
       if (!checkData.isAdmin) {
         setIsAuthorized(false);
         setIsLoading(false);
         return;
       }
-      
+
       setIsAuthorized(true);
       await fetchEnquiries();
     } catch (error) {
@@ -102,26 +114,37 @@ export default function AdminEnquiriesPage() {
   if (!isAuthorized) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Access Denied</h1>
-        <p className="text-gray-600 dark:text-gray-400">Admin access required.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Access Denied
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Admin access required.
+        </p>
       </div>
     );
   }
 
-  const pendingCount = enquiries.filter(e => e.status === "PENDING").length;
-  const paidCount = enquiries.filter(e => e.paymentStatus === "PAID").length;
+  const pendingCount = enquiries.filter((e) => e.status === "PENDING").length;
+  const paidCount = enquiries.filter((e) => e.paymentStatus === "PAID").length;
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Enterprise Enquiries</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Enterprise Enquiries
+          </h1>
           <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1">
             {enquiries.length} total • {pendingCount} pending • {paidCount} paid
           </p>
         </div>
-        <Button onClick={fetchEnquiries} variant="outline" size="sm" className="gap-2">
+        <Button
+          onClick={fetchEnquiries}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
           <RefreshCw className="w-4 h-4" />
           Refresh
         </Button>
@@ -130,15 +153,21 @@ export default function AdminEnquiriesPage() {
       {enquiries.length === 0 ? (
         <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-12 text-center">
           <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">No enterprise enquiries yet</p>
-          <p className="text-sm text-gray-500 mt-2">Enquiries from the billing page will appear here</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            No enterprise enquiries yet
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Enquiries from the billing page will appear here
+          </p>
         </div>
       ) : (
         <div className="grid gap-4">
           {enquiries.map((enquiry) => (
             <div
               key={enquiry.id}
-              onClick={() => router.push(`/dashboard/${slug}/admin/enquiries/${enquiry.id}`)}
+              onClick={() =>
+                router.push(`/dashboard/${slug}/admin/enquiries/${enquiry.id}`)
+              }
               className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-5 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-lg transition-all group"
             >
               <div className="flex items-center justify-between">
@@ -147,7 +176,7 @@ export default function AdminEnquiriesPage() {
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
                     {(enquiry.name || enquiry.email).charAt(0).toUpperCase()}
                   </div>
-                  
+
                   {/* Info */}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -159,7 +188,9 @@ export default function AdminEnquiriesPage() {
                           {userTypeLabels[enquiry.userType] || enquiry.userType}
                         </span>
                       )}
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[enquiry.status]}`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[enquiry.status]}`}
+                      >
                         {enquiry.status.replace("_", " ")}
                       </span>
                       {enquiry.paymentStatus === "PAID" && (
@@ -168,7 +199,7 @@ export default function AdminEnquiriesPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-neutral-400">
                       <span className="flex items-center gap-1">
                         <Mail className="w-3.5 h-3.5" />
