@@ -162,7 +162,19 @@ export class SmartAINodeExecutor implements INodeExecutor {
     }
 
     // Generate response
-    const userMessage = context.messageText || "";
+    // Provide semantic context when messageText is empty (media DMs, stories)
+    let userMessage = context.messageText || "";
+    if (!userMessage || userMessage.startsWith("[")) {
+      // Either empty or a system-generated placeholder like "[User sent an image]"
+      // Provide richer context so Gemini can generate a meaningful response
+      if (context.isStoryMention) {
+        userMessage = userMessage || "User mentioned you in their story";
+      } else if (context.isStoryReply) {
+        userMessage = userMessage || "User replied to your story";
+      } else if (!userMessage) {
+        userMessage = "User sent a media message";
+      }
+    }
     let generatedResponse: string | null = null;
 
     try {

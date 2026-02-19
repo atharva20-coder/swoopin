@@ -250,34 +250,52 @@ export async function POST(req: NextRequest) {
           messagePayload?.attachments?.[0]?.type === "story_mention")
       );
 
-      // Check for post share
-      const isPostShare = messaging?.message?.attachments?.some(
-        (a: any) => a.type === "share" || a.type === "ig_post",
-      );
+      // Extract attachment metadata for context (media DMs, shared posts, etc.)
+      const attachments = messaging?.message?.attachments;
+      let mediaDescription = "";
+      if (attachments?.length > 0) {
+        const att = attachments[0];
+        if (att.type === "share" || att.type === "ig_post") {
+          mediaDescription = att.payload?.title || "[Shared Post]";
+        } else if (att.type === "image") {
+          mediaDescription = "[Image received]";
+        } else if (att.type === "video") {
+          mediaDescription = "[Video received]";
+        } else if (att.type === "audio") {
+          mediaDescription = "[Audio received]";
+        } else if (att.type === "story_mention") {
+          mediaDescription = "[Story Mention]";
+        } else {
+          mediaDescription = `[${att.type || "Media"} received]`;
+        }
+      }
 
       // Get text if available
       const messageText = messaging?.message?.text;
 
+      // Priority: text → story reply → story mention → media-only DM
+      // Story reply MUST be checked before story mention because story mentions
+      // in DMs also show as reply_to.story in some cases.
       if (messageText) {
         matcher = await matchKeyword(messageText, "DM", pageId);
       } else if (isStoryReply) {
-        // Story replies are replies to stories sent via DM
-        // Match to STORY_REPLY trigger type so "Story Reply" flows are triggered
         console.log("Story reply received, matching STORY_REPLY automation");
-        matcher = await matchKeyword("[Story Reply]", "STORY_REPLY", pageId);
+        matcher = await matchKeyword(
+          mediaDescription || "[Story Reply]",
+          "STORY_REPLY",
+          pageId,
+        );
       } else if (isStoryMention) {
-        // Story mentions are @mentions sent via DM when someone mentions you in a story
-        // Match to MENTION trigger type so "New Mention" flows are triggered
-        // Pass pageId to validate ownership - only trigger for the account being mentioned
-        const pageId = webhook_payload.entry[0].id;
         console.log(
           "Story mention received, matching MENTION automation for pageId:",
           pageId,
         );
         matcher = await matchKeyword("[Story Mention]", "MENTION", pageId);
-      } else if (isPostShare) {
-        // Post shares without text - just acknowledge
-        console.log("Post share received, no text to match");
+      } else if (attachments?.length > 0) {
+        // Media-only DM (image, video, reel share, post share, etc.)
+        // Trigger DM catch-all flows so SmartAI can respond with context
+        console.log("Media-only DM received, matching DM automation");
+        matcher = await matchKeyword(mediaDescription, "DM", pageId);
       }
     }
 
@@ -433,10 +451,31 @@ export async function POST(req: NextRequest) {
         }
 
         // Determine Message Text (safely — message.text can be undefined for media/reactions)
+        // For media-only messages, provide semantic context so SmartAI can respond meaningfully
         let messageText = "";
         if (isMessage) {
-          messageText =
+          const rawText =
             webhook_payload.entry[0].messaging[0]?.message?.text || "";
+          if (rawText) {
+            messageText = rawText;
+          } else {
+            // No text: extract attachment context for SmartAI
+            const att =
+              webhook_payload.entry[0].messaging[0]?.message?.attachments?.[0];
+            if (att?.type === "share" || att?.type === "ig_post") {
+              messageText = att.payload?.title || "[User shared a post]";
+            } else if (att?.type === "image") {
+              messageText = "[User sent an image]";
+            } else if (att?.type === "video") {
+              messageText = "[User sent a video]";
+            } else if (att?.type === "audio") {
+              messageText = "[User sent an audio message]";
+            } else if (att?.type === "story_mention") {
+              messageText = "[User mentioned you in their story]";
+            } else if (att) {
+              messageText = `[User sent ${att.type || "media"}]`;
+            }
+          }
         } else if (isComment) {
           messageText = webhook_payload.entry[0].changes[0]?.value?.text || "";
         } else if (isMention && mentionChange) {
@@ -639,62 +678,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Handle chat continuation (no keyword match but existing chat history)
+    // ================================================================
+    // CHAT CONTINUATION (no keyword match but existing chat history)
+    // Supports BOTH flow-based and legacy listener-based automations.
+    // For flow-based: re-runs the full flow with the new message.
+    // For legacy: uses the old listener prompt + Gemini.
+    // ================================================================
     if (!matcher && webhook_payload.entry[0].messaging) {
-      const customer_history = await getChatHistory(
-        webhook_payload.entry[0].messaging[0].recipient.id,
-        webhook_payload.entry[0].messaging[0].sender.id,
-      );
+      const messaging = webhook_payload.entry[0].messaging[0];
+      const recipientId = messaging?.recipient?.id;
+      const senderIdForChat = messaging?.sender?.id;
 
-      if (
-        customer_history.history.length > 0 &&
-        customer_history.automationId
-      ) {
-        const pageId = webhook_payload.entry[0].id;
-        const automation = await findAutomation(
-          customer_history.automationId,
-          pageId,
+      if (recipientId && senderIdForChat) {
+        const customer_history = await getChatHistory(
+          recipientId,
+          senderIdForChat,
         );
 
         if (
-          automation?.User?.subscription?.plan === "PRO" &&
-          automation.listener?.listener === "SMARTAI" &&
-          automation.active
+          customer_history.history.length > 0 &&
+          customer_history.automationId
         ) {
-          const chatHistory = customer_history.history.map(
-            (msg: { role: string; content: string }) => ({
-              role:
-                msg.role === "user" ? ("user" as const) : ("model" as const),
-              text: msg.content,
-            }),
+          const pageId = webhook_payload.entry[0].id;
+
+          // Fetch automation with full flow data (flowNodes + flowEdges)
+          const automationForChat = await getKeywordAutomation(
+            customer_history.automationId,
+            true, // isDm = true
           );
 
-          const systemPrompt = `${automation.listener?.prompt}: keep responses under 2 sentences`;
-          const userMessage =
-            webhook_payload.entry[0].messaging[0].message.text;
-
-          const smart_ai_message = await generateGeminiResponse(
-            systemPrompt,
-            userMessage,
-            chatHistory,
-          );
-
-          if (smart_ai_message) {
-            await createChatHistory(
-              automation.id,
-              webhook_payload.entry[0].id,
-              webhook_payload.entry[0].messaging[0].sender.id,
-              webhook_payload.entry[0].messaging[0].message.text,
-            );
-
-            await createChatHistory(
-              automation.id,
-              webhook_payload.entry[0].id,
-              webhook_payload.entry[0].messaging[0].sender.id,
-              smart_ai_message,
-            );
-
-            const chatIntegration = automation.User?.integrations?.[0];
+          if (
+            automationForChat?.active &&
+            (automationForChat.User?.subscription?.plan === "PRO" ||
+              automationForChat.User?.subscription?.plan === "ENTERPRISE")
+          ) {
+            const chatIntegration = automationForChat.User?.integrations?.[0];
             if (!chatIntegration?.token) {
               console.error("No valid integration token for chat continuation");
               return NextResponse.json(
@@ -703,21 +721,140 @@ export async function POST(req: NextRequest) {
               );
             }
 
-            const direct_message = await sendDM(
-              webhook_payload.entry[0].id,
-              webhook_payload.entry[0].messaging[0].sender.id,
-              smart_ai_message,
-              chatIntegration.token,
-            );
+            // Extract user message (safe for media-only messages)
+            const rawUserMessage = messaging?.message?.text || "";
+            let userMessageForChat = rawUserMessage;
+            if (!userMessageForChat) {
+              const att = messaging?.message?.attachments?.[0];
+              if (att?.type === "image")
+                userMessageForChat = "[User sent an image]";
+              else if (att?.type === "video")
+                userMessageForChat = "[User sent a video]";
+              else if (att?.type === "audio")
+                userMessageForChat = "[User sent an audio message]";
+              else if (att?.type === "share" || att?.type === "ig_post")
+                userMessageForChat =
+                  att.payload?.title || "[User shared a post]";
+              else if (att)
+                userMessageForChat = `[User sent ${att.type || "media"}]`;
+              else userMessageForChat = "[Message received]";
+            }
 
-            if (direct_message.status === 200) {
-              await trackAnalytics(automation.userId!, "dm").catch(
-                console.error,
+            // PATH A: Flow-based automation (has flow nodes with SmartAI)
+            const hasFlowNodes =
+              automationForChat.flowNodes &&
+              automationForChat.flowNodes.length > 0;
+            const hasSmartAINode = hasFlowNodes
+              ? automationForChat.flowNodes.some(
+                  (n: { subType: string | null }) => n.subType === "SMARTAI",
+                )
+              : false;
+
+            if (hasFlowNodes && hasSmartAINode) {
+              console.log(
+                "Chat continuation: re-running flow-based automation",
+                customer_history.automationId,
               );
-              return NextResponse.json(
-                { message: "Chat continued" },
-                { status: 200 },
+
+              initializeNodeRegistry();
+
+              const context: ExecutionContext = {
+                automationId: customer_history.automationId,
+                userId: automationForChat.userId!,
+                token: chatIntegration.token,
+                pageId,
+                senderId: senderIdForChat,
+                messageText: userMessageForChat,
+                triggerType: "DM",
+                userSubscription: automationForChat.User?.subscription?.plan,
+                userOpenAiKey: automationForChat.User?.openAiKey || undefined,
+              };
+
+              try {
+                const flowResult = await runWorkflow(
+                  automationForChat.flowNodes as FlowNodeRuntime[],
+                  automationForChat.flowEdges as FlowEdgeRuntime[],
+                  context,
+                );
+
+                if (flowResult.success) {
+                  await trackAnalytics(automationForChat.userId!, "dm").catch(
+                    console.error,
+                  );
+                  return NextResponse.json(
+                    { message: "Chat continued (flow)" },
+                    { status: 200 },
+                  );
+                }
+                console.warn(
+                  "Chat continuation flow failed:",
+                  flowResult.message,
+                );
+              } catch (flowError) {
+                console.error("Chat continuation flow error:", flowError);
+              }
+            }
+
+            // PATH B: Legacy listener-based automation
+            if (
+              automationForChat.listener?.listener === "SMARTAI" &&
+              automationForChat.listener?.prompt
+            ) {
+              console.log(
+                "Chat continuation: using legacy listener",
+                customer_history.automationId,
               );
+
+              const chatHistory = customer_history.history.map(
+                (msg: { role: string; content: string }) => ({
+                  role:
+                    msg.role === "user"
+                      ? ("user" as const)
+                      : ("model" as const),
+                  text: msg.content,
+                }),
+              );
+
+              const systemPrompt = `${automationForChat.listener.prompt}: keep responses under 2 sentences`;
+
+              const smart_ai_message = await generateGeminiResponse(
+                systemPrompt,
+                userMessageForChat,
+                chatHistory,
+              );
+
+              if (smart_ai_message) {
+                await createChatHistory(
+                  automationForChat.id,
+                  pageId,
+                  senderIdForChat,
+                  userMessageForChat,
+                );
+
+                await createChatHistory(
+                  automationForChat.id,
+                  pageId,
+                  senderIdForChat,
+                  smart_ai_message,
+                );
+
+                const direct_message = await sendDM(
+                  pageId,
+                  senderIdForChat,
+                  smart_ai_message,
+                  chatIntegration.token,
+                );
+
+                if (direct_message.status === 200) {
+                  await trackAnalytics(automationForChat.userId!, "dm").catch(
+                    console.error,
+                  );
+                  return NextResponse.json(
+                    { message: "Chat continued" },
+                    { status: 200 },
+                  );
+                }
+              }
             }
           }
         }
