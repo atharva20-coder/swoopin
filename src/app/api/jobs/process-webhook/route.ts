@@ -432,14 +432,15 @@ export async function POST(req: NextRequest) {
           senderId = (mentionChange.value as any).sender_id_fetched;
         }
 
-        // Determine Message Text
+        // Determine Message Text (safely — message.text can be undefined for media/reactions)
         let messageText = "";
         if (isMessage) {
-          messageText = webhook_payload.entry[0].messaging[0].message.text;
+          messageText =
+            webhook_payload.entry[0].messaging[0]?.message?.text || "";
         } else if (isComment) {
-          messageText = webhook_payload.entry[0].changes[0].value.text;
+          messageText = webhook_payload.entry[0].changes[0]?.value?.text || "";
         } else if (isMention && mentionChange) {
-          messageText = (mentionChange.value as any).text_fetched;
+          messageText = (mentionChange.value as any).text_fetched || "";
         }
 
         // Detect Story Mention (Message Attachment)
@@ -449,12 +450,13 @@ export async function POST(req: NextRequest) {
             (a: any) => a.type === "story_mention",
           );
 
-        // Detect Story Reply
-        const messagePayload = webhook_payload.entry[0].messaging[0]?.message;
+        // Detect Story Reply (safely — messaging[0].message may not exist)
+        const storyMsgPayload =
+          webhook_payload.entry[0].messaging?.[0]?.message;
         const isStoryReply = !!(
-          messagePayload?.reply_to?.story ||
-          (messagePayload?.is_echo === false &&
-            messagePayload?.attachments?.[0]?.type === "story_mention")
+          storyMsgPayload?.reply_to?.story ||
+          (storyMsgPayload?.is_echo === false &&
+            storyMsgPayload?.attachments?.[0]?.type === "story_mention")
         );
 
         if (isStoryMention && !messageText) {

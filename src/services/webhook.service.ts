@@ -20,8 +20,15 @@ class WebhookService {
     triggerType: "DM" | "COMMENT" | "MENTION" | "STORY_REPLY" = "DM",
     pageId?: string,
   ) {
+    console.log("[matchKeyword] Called with:", {
+      messageText: messageText?.substring(0, 50),
+      triggerType,
+      pageId,
+    });
+
     // Guard against undefined/null messageText
     if (!messageText || typeof messageText !== "string") {
+      console.log("[matchKeyword] Skipping: invalid messageText");
       return null;
     }
 
@@ -41,8 +48,14 @@ class WebhookService {
       },
     });
 
+    console.log(
+      `[matchKeyword] Step 1: Found ${legacyKeywords.length} legacy keywords`,
+    );
     for (const kw of legacyKeywords) {
       if (messageText.toLowerCase().includes(kw.word.toLowerCase())) {
+        console.log(
+          `[matchKeyword] Step 1 MATCHED legacy keyword: "${kw.word}" -> automationId: ${kw.automationId}`,
+        );
         return kw;
       }
     }
@@ -63,6 +76,9 @@ class WebhookService {
       },
     });
 
+    console.log(
+      `[matchKeyword] Step 2: Found ${keywordNodes.length} FlowNode KEYWORDS nodes`,
+    );
     for (const node of keywordNodes) {
       const config = (node.config as Record<string, unknown>) || {};
       const keywords = (config.keywords as string[]) || [];
@@ -72,94 +88,149 @@ class WebhookService {
           typeof kw === "string" &&
           messageText.toLowerCase().includes(kw.toLowerCase())
         ) {
+          console.log(
+            `[matchKeyword] Step 2 MATCHED FlowNode keyword: "${kw}" -> automationId: ${node.automationId}`,
+          );
           return { automationId: node.automationId };
         }
       }
     }
+    console.log(
+      "[matchKeyword] No keyword match in Steps 1-2, proceeding to trigger-type matching",
+    );
 
     // ==========================================
     // STEP 3: No keyword match - find automation with trigger type
     // This logic now runs for ALL trigger types
     // ==========================================
 
-    // For MENTION type, we MUST validate ownership via pageId
+    // For MENTION type, try to validate ownership via pageId
     if (triggerType === "MENTION") {
-      if (!pageId) {
-        console.warn(
-          "[matchKeyword] MENTION trigger requires pageId for ownership validation",
-        );
-        return null;
-      }
-
-      // Find MENTION triggers that belong to accounts matching this pageId
-      const mentionAutomations = await client.flowNode.findMany({
+      // Find all active MENTION triggers first
+      const allMentionAutomations = await client.flowNode.findMany({
         where: {
           type: "trigger",
           subType: "MENTION",
           Automation: {
             active: true,
-            User: {
-              integrations: {
-                some: {
-                  instagramId: pageId,
+          },
+        },
+        select: {
+          automationId: true,
+          Automation: {
+            select: {
+              User: {
+                select: {
+                  integrations: {
+                    where: { name: "INSTAGRAM" },
+                    select: { instagramId: true },
+                  },
                 },
               },
             },
           },
         },
-        select: {
-          automationId: true,
-        },
       });
 
-      if (mentionAutomations.length > 0) {
+      console.log(
+        `[matchKeyword] Step 3: Found ${allMentionAutomations.length} MENTION triggers (unfiltered), pageId: ${pageId}`,
+      );
+
+      let matched = allMentionAutomations;
+
+      // Apply pageId filter if provided
+      if (pageId && allMentionAutomations.length > 0) {
+        const filtered = allMentionAutomations.filter((t) =>
+          t.Automation?.User?.integrations?.some(
+            (i) => i.instagramId === pageId,
+          ),
+        );
+
+        if (filtered.length > 0) {
+          matched = filtered;
+        } else {
+          // SAFETY FALLBACK: pageId didn't match any automation's instagramId
+          console.warn(
+            `[matchKeyword] Step 3 FALLBACK: MENTION pageId filter found no match. ` +
+              `Matching first available MENTION trigger anyway. ` +
+              `webhook pageId=${pageId}`,
+          );
+        }
+      }
+
+      if (matched.length > 0) {
         console.log(
-          `[matchKeyword] Found MENTION automation for pageId: ${pageId}`,
+          `[matchKeyword] Found MENTION automation: ${matched[0].automationId}`,
         );
         return {
-          automationId: mentionAutomations[0].automationId,
+          automationId: matched[0].automationId,
           isCatchAll: true,
         };
       }
 
-      console.log(
-        `[matchKeyword] No MENTION automation found for pageId: ${pageId}`,
-      );
+      console.log(`[matchKeyword] No MENTION automation found`);
       return null;
     }
 
     // For STORY_REPLY type
     if (triggerType === "STORY_REPLY") {
-      const whereClause: any = {
-        type: "trigger",
-        subType: "STORY_REPLY",
-        Automation: {
-          active: true,
-        },
-      };
-
-      // If pageId is provided, filter by ownership
-      if (pageId) {
-        whereClause.Automation.User = {
-          integrations: {
-            some: {
-              instagramId: pageId,
-            },
+      // Find all active STORY_REPLY triggers first
+      const allStoryReplyAutomations = await client.flowNode.findMany({
+        where: {
+          type: "trigger",
+          subType: "STORY_REPLY",
+          Automation: {
+            active: true,
           },
-        };
-      }
-
-      const storyReplyAutomations = await client.flowNode.findMany({
-        where: whereClause,
+        },
         select: {
           automationId: true,
+          Automation: {
+            select: {
+              User: {
+                select: {
+                  integrations: {
+                    where: { name: "INSTAGRAM" },
+                    select: { instagramId: true },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
-      if (storyReplyAutomations.length > 0) {
-        console.log(`[matchKeyword] Found STORY_REPLY automation`);
+      console.log(
+        `[matchKeyword] Step 3: Found ${allStoryReplyAutomations.length} STORY_REPLY triggers, pageId: ${pageId}`,
+      );
+
+      let matched = allStoryReplyAutomations;
+
+      // Apply pageId filter if provided
+      if (pageId && allStoryReplyAutomations.length > 0) {
+        const filtered = allStoryReplyAutomations.filter((t) =>
+          t.Automation?.User?.integrations?.some(
+            (i) => i.instagramId === pageId,
+          ),
+        );
+
+        if (filtered.length > 0) {
+          matched = filtered;
+        } else {
+          console.warn(
+            `[matchKeyword] Step 3 FALLBACK: STORY_REPLY pageId filter found no match. ` +
+              `Matching first available STORY_REPLY trigger anyway. ` +
+              `webhook pageId=${pageId}`,
+          );
+        }
+      }
+
+      if (matched.length > 0) {
+        console.log(
+          `[matchKeyword] Found STORY_REPLY automation: ${matched[0].automationId}`,
+        );
         return {
-          automationId: storyReplyAutomations[0].automationId,
+          automationId: matched[0].automationId,
           isCatchAll: true,
         };
       }
@@ -173,47 +244,98 @@ class WebhookService {
     // ==========================================
 
     if (triggerType === "DM" || triggerType === "COMMENT") {
-      // For catch-all triggers, we should also validate pageId if provided
-      // to ensure we're automating for the correct account
-      const whereClause: any = {
-        type: "trigger",
-        subType: triggerType,
-        Automation: {
-          active: true,
-        },
-      };
+      console.log(
+        `[matchKeyword] Step 4: Looking for ${triggerType} catch-all trigger, pageId: ${pageId}`,
+      );
 
-      // If pageId is provided, filter by ownership (prevents cross-account automation)
-      if (pageId) {
-        whereClause.Automation.User = {
-          integrations: {
-            some: {
-              instagramId: pageId,
-            },
+      // First, check WITHOUT pageId filter to see if any triggers exist at all
+      const allTriggers = await client.flowNode.findMany({
+        where: {
+          type: "trigger",
+          subType: triggerType,
+          Automation: {
+            active: true,
           },
-        };
-      }
-
-      const triggerFlows = await client.flowNode.findMany({
-        where: whereClause,
+        },
         select: {
           automationId: true,
+          Automation: {
+            select: {
+              userId: true,
+              User: {
+                select: {
+                  integrations: {
+                    where: { name: "INSTAGRAM" },
+                    select: { instagramId: true },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
-      if (triggerFlows.length > 0) {
+      console.log(
+        `[matchKeyword] Step 4: Found ${allTriggers.length} ${triggerType} triggers (unfiltered)`,
+      );
+      if (allTriggers.length > 0) {
+        for (const t of allTriggers) {
+          const userInstagramIds = t.Automation?.User?.integrations?.map(
+            (i) => i.instagramId,
+          );
+          console.log(
+            `[matchKeyword] Step 4: Trigger automationId=${t.automationId}, userId=${t.Automation?.userId}, instagramIds=${JSON.stringify(userInstagramIds)}, webhook pageId=${pageId}`,
+          );
+        }
+      }
+
+      // Now apply pageId filter if provided
+      let matchedTriggers = allTriggers;
+      if (pageId) {
+        const filtered = allTriggers.filter((t) =>
+          t.Automation?.User?.integrations?.some(
+            (i) => i.instagramId === pageId,
+          ),
+        );
         console.log(
-          `[matchKeyword] Found ${triggerType} catch-all automation` +
+          `[matchKeyword] Step 4: After pageId filter: ${filtered.length} of ${allTriggers.length} triggers`,
+        );
+
+        if (filtered.length > 0) {
+          matchedTriggers = filtered;
+        } else if (allTriggers.length > 0) {
+          // SAFETY FALLBACK: pageId filter removed all triggers.
+          // This can happen if the stored instagramId doesn't match the webhook's entry[0].id.
+          // Rather than silently failing (breaking all automations), match anyway and log a warning.
+          console.warn(
+            `[matchKeyword] Step 4 FALLBACK: pageId filter removed all triggers. ` +
+              `Matching first available trigger anyway. ` +
+              `webhook pageId=${pageId}, stored IDs=${JSON.stringify(
+                allTriggers.flatMap(
+                  (t) =>
+                    t.Automation?.User?.integrations?.map(
+                      (i) => i.instagramId,
+                    ) || [],
+                ),
+              )}`,
+          );
+          matchedTriggers = allTriggers;
+        }
+      }
+
+      if (matchedTriggers.length > 0) {
+        console.log(
+          `[matchKeyword] Step 4 MATCHED ${triggerType} catch-all automation: ${matchedTriggers[0].automationId}` +
             (pageId ? ` for pageId: ${pageId}` : ""),
         );
         return {
-          automationId: triggerFlows[0].automationId,
+          automationId: matchedTriggers[0].automationId,
           isCatchAll: true,
         };
       }
 
       console.log(
-        `[matchKeyword] No ${triggerType} automation found` +
+        `[matchKeyword] Step 4: No ${triggerType} automation found` +
           (pageId ? ` for pageId: ${pageId}` : ""),
       );
       return null;

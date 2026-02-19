@@ -191,10 +191,10 @@ export async function processWebhookDirectly(
                 webhook_payload.entry[0].id
               : webhook_payload.entry[0].changes[0].value.from.id,
           messageText: isMessage
-            ? webhook_payload.entry[0].messaging[0].message.text
+            ? webhook_payload.entry[0].messaging[0]?.message?.text || ""
             : isMention
-              ? webhook_payload.entry[0].changes[0].value.text
-              : webhook_payload.entry[0].changes[0].value.text,
+              ? webhook_payload.entry[0].changes[0]?.value?.text || ""
+              : webhook_payload.entry[0].changes[0]?.value?.text || "",
           commentId: isMention
             ? mentionData?.commentId
             : isComment
